@@ -1,25 +1,54 @@
 import Link from "next/link";
-import { BusFront } from "lucide-react";
+import Image from "next/image";
 
 export function Logo({
   className = "",
+  height = 28,
+  /** Surfaces that are always dark (e.g. the footer) regardless of the
+   *  site's light/dark toggle — always show the dark-mode logo. */
   onDark = false,
 }: {
   className?: string;
+  height?: number;
   onDark?: boolean;
 }) {
+  const width = height * 4;
+
+  if (onDark) {
+    return (
+      <Link href="/" className={`inline-flex items-center ${className}`}>
+        <Image
+          src="/logo-dark.png"
+          alt="BusConnect"
+          width={width}
+          height={height}
+          style={{ height, width: "auto" }}
+          priority
+        />
+      </Link>
+    );
+  }
+
   return (
-    <Link href="/" className={`flex items-center gap-2 ${className}`}>
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-brand-fg shadow-lg shadow-brand/20">
-        <BusFront size={19} />
-      </span>
-      <span
-        className={`font-heading text-lg font-bold tracking-tight ${
-          onDark ? "text-white" : "text-slate-900 dark:text-white"
-        }`}
-      >
-        Bus<span className="text-brand dark:text-blue-400">Connect</span>
-      </span>
+    <Link href="/" className={`inline-flex items-center ${className}`}>
+      <Image
+        src="/logo.png"
+        alt="BusConnect"
+        width={width}
+        height={height}
+        style={{ height, width: "auto" }}
+        priority
+        className="block dark:hidden"
+      />
+      <Image
+        src="/logo-dark.png"
+        alt="BusConnect"
+        width={width}
+        height={height}
+        style={{ height, width: "auto" }}
+        priority
+        className="hidden dark:block"
+      />
     </Link>
   );
 }

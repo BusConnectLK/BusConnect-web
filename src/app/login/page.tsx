@@ -50,8 +50,73 @@ function LoginForm() {
         <div className="mt-6">
           {method === "phone" ? <PhoneForm next={next} router={router} /> : <EmailForm next={next} />}
         </div>
+
+        <div className="my-5 flex items-center gap-3">
+          <span className="h-px flex-1 bg-slate-200 dark:bg-zinc-800" />
+          <span className="ui text-xs text-slate-400 dark:text-zinc-500">or</span>
+          <span className="h-px flex-1 bg-slate-200 dark:bg-zinc-800" />
+        </div>
+
+        <GoogleButton next={next} />
       </div>
     </div>
+  );
+}
+
+/* ── Google OAuth (redirects to Google, comes back via /auth/confirm) ───── */
+function GoogleButton({ next }: { next: string }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function signIn() {
+    setError(null);
+    setLoading(true);
+    const redirect = `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`;
+    const { error } = await createClient().auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: redirect },
+    });
+    // On success the browser navigates away to Google immediately; we only
+    // reach here (still mounted) if something went wrong before the redirect.
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div>
+      <button type="button" onClick={signIn} disabled={loading} className="btn-secondary w-full py-3">
+        {loading ? <Loader2 size={18} className="animate-spin" /> : <GoogleIcon />}
+        {loading ? "Redirecting…" : "Continue with Google"}
+      </button>
+      {error && (
+        <p className="ui mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+      )}
+    </div>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="#4285F4"
+        d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.48a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.58-5.17 3.58-8.82Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.88-3.02c-1.08.72-2.46 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.12A12 12 0 0 0 12 24Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54V6.61H1.27a12 12 0 0 0 0 10.78l4-3.12Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 4.77c1.76 0 3.35.6 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.27 6.61l4 3.12C6.22 6.88 8.87 4.77 12 4.77Z"
+      />
+    </svg>
   );
 }
 
