@@ -44,16 +44,13 @@ function Hero({ locations }: { locations: Awaited<ReturnType<typeof listLocation
       />
       <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-14 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="ui inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-brand dark:border-zinc-800 dark:bg-zinc-900 dark:text-blue-400">
-            <Sparkles size={13} />
-            Live seats · Secure payments · Instant e-tickets
-          </span>
+          
           <h1 className="mt-5 font-heading text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl">
             Book bus tickets the <span className="text-brand dark:text-blue-400">smart</span> way
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-lg text-slate-600 dark:text-zinc-400">
             Search every major intercity route in Sri Lanka, pick your exact
-            seat in real time, and pay securely — all in one place.
+            seat in real time, and pay securely. All in one place.
           </p>
         </div>
 
@@ -228,7 +225,7 @@ function OperatorCta() {
           </h2>
           <p className="mt-3 text-white/80">
             List your buses on BusConnect and get a live manifest, dynamic
-            pricing and revenue analytics — reach passengers across the country.
+            pricing and revenue analytics - reach passengers across the country.
           </p>
           <Link
             href="/#contact"

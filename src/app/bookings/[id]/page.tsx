@@ -1,4 +1,5 @@
 import Link from "next/link";
+import QRCode from "qrcode";
 import { ArrowLeft, CheckCircle2, TicketCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getBooking, ApiError, type Booking } from "@/lib/api";
@@ -53,6 +54,19 @@ export default async function BookingPage({
   const isConfirmed = booking.status === "confirmed";
   const isPayable = booking.status === "pending" || booking.status === "reserved_unpaid";
 
+  const ticket = booking.tickets?.[0];
+  // The QR encodes the signed Ed25519 token itself (not just an id) so a
+  // conductor's scanner can verify authenticity fully offline — see
+  // BusConnect-api's TicketSigningService / GET /tickets/public-key.
+  const qrDataUrl =
+    isConfirmed && ticket?.qr_signature
+      ? await QRCode.toDataURL(ticket.qr_signature, {
+          width: 320,
+          margin: 1,
+          color: { dark: "#0b1b3f", light: "#ffffff" },
+        })
+      : null;
+
   return (
     <div className="mx-auto w-full max-w-lg px-4 py-10 sm:px-6 lg:px-8">
       <h1 className="font-heading text-2xl font-bold tracking-tight">Your booking</h1>
@@ -97,15 +111,25 @@ export default async function BookingPage({
         </dl>
       </div>
 
-      {isConfirmed && booking.tickets?.[0] && (
-        <div className="mt-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm dark:border-emerald-900/50 dark:bg-emerald-950/40">
-          <TicketCheck size={20} className="mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-          <div>
+      {isConfirmed && ticket && qrDataUrl && (
+        <div className="mt-6 overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/40">
+          <div className="flex items-center gap-2 border-b border-emerald-200 px-5 py-3 dark:border-emerald-900/50">
+            <TicketCheck size={18} className="text-emerald-600 dark:text-emerald-400" />
             <p className="font-heading font-semibold text-emerald-800 dark:text-emerald-300">
-              Ticket issued
+              e-Ticket · scan to board
             </p>
-            <p className="ui mt-1 text-emerald-700 dark:text-emerald-400/90">
-              Show this reference when boarding: {booking.tickets[0].id}
+          </div>
+          <div className="flex flex-col items-center gap-3 p-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={qrDataUrl}
+              alt="Boarding QR code"
+              width={200}
+              height={200}
+              className="rounded-xl bg-white p-2"
+            />
+            <p className="ui text-center text-xs text-emerald-700 dark:text-emerald-400/90">
+              Ref {ticket.id.slice(0, 8).toUpperCase()} · show this QR to the conductor
             </p>
           </div>
         </div>

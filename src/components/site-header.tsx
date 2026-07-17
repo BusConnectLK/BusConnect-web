@@ -9,6 +9,7 @@ import { ThemeToggle } from "./theme-toggle";
 const navItems = [
   { label: "Search buses", href: "/", icon: Search },
   { label: "Popular routes", href: "/#routes", icon: Route },
+  { label: "My tickets", href: "/tickets", icon: Ticket },
   { label: "How it works", href: "/#how", icon: HelpCircle },
   { label: "For operators", href: "/#operators", icon: Building2 },
 ] as const;

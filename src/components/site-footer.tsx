@@ -11,7 +11,7 @@ export function SiteFooter() {
           <div className="max-w-xs">
             <Logo onDark />
             <p className="ui mt-4 text-sm leading-relaxed text-zinc-400">
-              Sri Lanka&apos;s smartest bus booking platform — live seat maps,
+              Sri Lanka&apos;s smartest bus booking platform. live seat maps,
               secure payments and instant QR e-tickets across every major route.
             </p>
             <div className="mt-5 flex gap-2.5">
@@ -49,7 +49,7 @@ export function SiteFooter() {
             <h4 className="font-heading text-sm font-bold">Contact</h4>
             <ul className="ui mt-4 flex flex-col gap-3 text-sm text-zinc-400">
               <li className="flex items-center gap-2.5">
-                <Phone size={16} className="text-blue-400" /> +94 11 234 5678
+                <Phone size={16} className="text-blue-400" /> +94 76 467 0645
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail size={16} className="text-blue-400" /> hello@busconnect.lk
@@ -62,7 +62,7 @@ export function SiteFooter() {
         </div>
 
         <div className="ui flex flex-col items-start justify-between gap-3 border-t border-zinc-800 pt-6 text-sm text-zinc-500 sm:flex-row sm:items-center">
-          <p>© {new Date().getFullYear()} BusConnect · built by myscope</p>
+          <p>© {new Date().getFullYear()} BusConnect · Powered by MyScope (PVT) Ltd</p>
           <p>Available in English · සිංහල · தமிழ்</p>
         </div>
       </div>

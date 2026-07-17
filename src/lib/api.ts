@@ -109,7 +109,7 @@ export interface Booking {
   status: string;
   from_stop_id: string;
   to_stop_id: string;
-  tickets?: { id: string; status: string }[];
+  tickets?: { id: string; status: string; qr_signature: string | null }[];
   payments?: { id: string; status: string; amount: number }[];
 }
 
