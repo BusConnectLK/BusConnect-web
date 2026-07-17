@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+/* Dark mode via class strategy (toggled on <html class="dark">) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── BusConnect design tokens ────────────────────────────────────────────────
+   Brand: cobalt #004aad. Light + dark themes use Tailwind slate/zinc/white/black
+   directly (per the UX spec); only the brand + fonts are custom here.
+   Fonts: Outfit (headings), IBM Plex Sans (body/long-form), Inter (UI/nav/meta).
+   ──────────────────────────────────────────────────────────────────────── */
+@theme {
+  --color-brand: #004aad;
+  --color-brand-hover: #003c8c;
+  --color-brand-fg: #ffffff;
+  --color-brand-soft: #e6eefb;
+  --color-brand-soft-dark: #0d1f3f;
+
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-outfit);
+  --font-body: var(--font-ibm);
+}
+
+@layer base {
+  body {
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    @apply bg-white text-slate-900 dark:bg-black dark:text-white;
+  }
+  h1, h2, h3, h4, h5 {
+    font-family: var(--font-heading), var(--font-sans), sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  /* Primary CTA — cobalt with soft colored shadow */
+  .btn-primary {
+    font-family: var(--font-sans), sans-serif;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3
+      font-semibold text-brand-fg shadow-lg shadow-brand/20 transition-colors duration-300
+      hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  /* Secondary — outlined, subtle */
+  .btn-secondary {
+    font-family: var(--font-sans), sans-serif;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200
+      bg-white px-6 py-3 font-medium text-slate-900 transition-colors duration-300
+      hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60
+      dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800;
+  }
+  /* Seamless form input — gray fill, transparent border, brand focus ring */
+  .field {
+    font-family: var(--font-sans), sans-serif;
+    @apply w-full rounded-xl border border-transparent bg-slate-50 px-4 py-3 text-slate-900
+      outline-none transition duration-300 placeholder:text-slate-400
+      focus:border-transparent focus:ring-2 focus:ring-brand
+      dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-500;
+  }
+  /* Card surfaces */
+  .card {
+    @apply rounded-2xl border border-slate-200 bg-white transition-colors duration-300
+      dark:border-zinc-800 dark:bg-zinc-900;
+  }
+  .card-hover {
+    @apply hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5 dark:hover:shadow-black/40;
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s, background-color 0.3s;
+  }
+  /* Category / class pill */
+  .pill {
+    font-family: var(--font-sans), sans-serif;
+    @apply inline-flex items-center gap-1 rounded-md bg-brand-soft px-2.5 py-1 text-xs font-bold
+      uppercase tracking-wide text-brand dark:bg-brand-soft-dark dark:text-blue-300;
+  }
+  .ui {
+    font-family: var(--font-sans), sans-serif;
+  }
+}
