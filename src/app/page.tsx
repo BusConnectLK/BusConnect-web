@@ -228,10 +228,10 @@ function OperatorCta() {
             pricing and revenue analytics - reach passengers across the country.
           </p>
           <Link
-            href="/#contact"
+            href="/operator"
             className="ui mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-brand transition-colors duration-300 hover:bg-white/90"
           >
-            Become a partner <ArrowRight size={16} />
+            Operator dashboard <ArrowRight size={16} />
           </Link>
         </div>
       </div>
