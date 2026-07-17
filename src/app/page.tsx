@@ -6,9 +6,7 @@ import {
   MapPinned,
   Languages,
   RefreshCw,
-  Sparkles,
   Route,
-  ListChecks,
   Clock,
   ArrowRight,
 } from "lucide-react";
@@ -33,18 +31,9 @@ export default async function Home() {
 /* ── Hero + search widget ──────────────────────────────────────────────── */
 function Hero({ locations }: { locations: Awaited<ReturnType<typeof listLocations>> }) {
   return (
-    <section className="relative overflow-hidden bg-slate-50 dark:bg-zinc-950">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-0 h-72 opacity-60"
-        style={{
-          background:
-            "radial-gradient(50% 100% at 50% 0%, rgba(0,74,173,0.14) 0, transparent 70%)",
-        }}
-      />
+    <section className="relative overflow-hidden">
       <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-14 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          
           <h1 className="mt-5 font-heading text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl">
             Book bus tickets the <span className="text-brand dark:text-blue-400">smart</span> way
           </h1>
@@ -54,7 +43,7 @@ function Hero({ locations }: { locations: Awaited<ReturnType<typeof listLocation
           </p>
         </div>
 
-        <div className="mx-auto mt-9 max-w-4xl rounded-3xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5 dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-black/40 sm:p-6">
+        <div className="card-lg mx-auto mt-9 max-w-4xl p-4 sm:p-6">
           <SearchForm locations={locations} />
           {locations.length === 0 && (
             <p className="ui mt-3 text-center text-sm text-slate-500 dark:text-zinc-500">
@@ -107,9 +96,8 @@ function Features() {
   return (
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
       <SectionHeading
-        icon={<Sparkles size={18} />}
         title="Why BusConnect"
-        subtitle="Everything the old booking sites do — done smarter, faster and in your language."
+        subtitle="Everything the old booking sites do,done smarter, faster and in your language."
       />
       <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {features.map(([Icon, title, body]) => (
@@ -195,7 +183,7 @@ function HowItWorks() {
   ];
   return (
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-      <SectionHeading id="how" icon={<ListChecks size={18} />} title="How it works" />
+      <SectionHeading id="how" title="How it works" />
       <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map(([title, body], i) => (
           <div key={title} className="card p-6">

@@ -17,14 +17,14 @@ export function DateBadge({ iso }: { iso: string }) {
   );
 }
 
-/** Section heading with a small icon badge. */
+/** Section heading with an optional small icon badge. */
 export function SectionHeading({
   icon,
   title,
   subtitle,
   id,
 }: {
-  icon: ReactNode;
+  icon?: ReactNode;
   title: string;
   subtitle?: string;
   id?: string;
@@ -32,9 +32,11 @@ export function SectionHeading({
   return (
     <div id={id} className="scroll-mt-28">
       <div className="flex items-center gap-2.5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-brand-soft-dark dark:text-blue-300">
-          {icon}
-        </span>
+        {icon && (
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-brand-soft-dark dark:text-blue-300">
+            {icon}
+          </span>
+        )}
         <h2 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">
           {title}
         </h2>
