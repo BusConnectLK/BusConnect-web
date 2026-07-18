@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AtSign, MessageCircle, Mail, Phone, MapPin } from "lucide-react";
 import { Logo } from "./logo";
+import { OperatorFooterLink } from "./operator-footer-link";
 
 export function SiteFooter() {
   return (
@@ -26,15 +27,27 @@ export function SiteFooter() {
             </div>
           </div>
 
-          <FooterCol
-            title="Explore"
-            links={[
-              ["Search buses", "/"],
-              ["Popular routes", "/#routes"],
-              ["How it works", "/#how"],
-              ["For operators", "/#operators"],
-            ]}
-          />
+          <div>
+            <h4 className="font-heading text-sm font-bold">Explore</h4>
+            <ul className="ui mt-4 flex flex-col gap-2.5 text-sm text-zinc-400">
+              <li>
+                <Link href="/" className="transition-colors hover:text-white">
+                  Search buses
+                </Link>
+              </li>
+              <li>
+                <Link href="/#routes" className="transition-colors hover:text-white">
+                  Popular routes
+                </Link>
+              </li>
+              <li>
+                <Link href="/#how" className="transition-colors hover:text-white">
+                  How it works
+                </Link>
+              </li>
+              <OperatorFooterLink />
+            </ul>
+          </div>
           <FooterCol
             title="Support"
             links={[

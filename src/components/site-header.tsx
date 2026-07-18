@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, Search, Route, HelpCircle, Ticket, Building2 } from "lucide-react";
+import { Menu, X, Search, Route, HelpCircle, Ticket } from "lucide-react";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
 
+// "Operator dashboard" is deliberately not a static item here — UserMenu
+// shows it (or "Become an operator") contextually based on the signed-in
+// user's actual role/status, which a fixed public nav link can't do.
 const navItems = [
   { label: "Search buses", href: "/", icon: Search },
   { label: "Popular routes", href: "/#routes", icon: Route },
   { label: "My tickets", href: "/tickets", icon: Ticket },
   { label: "How it works", href: "/#how", icon: HelpCircle },
-  { label: "Operator dashboard", href: "/operator", icon: Building2 },
 ] as const;
 
 export function SiteHeader() {

@@ -11,17 +11,18 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { listLocations } from "@/lib/locations";
+import { listPopularRoutes, formatDuration } from "@/lib/popular-routes";
 import { SearchForm } from "./search-form";
 import { SectionHeading } from "@/components/ui";
 
 export default async function Home() {
-  const locations = await listLocations();
+  const [locations, popularRoutes] = await Promise.all([listLocations(), listPopularRoutes()]);
   return (
     <>
       <Hero locations={locations} />
       <Stats />
       <Features />
-      <PopularRoutes locations={locations} />
+      <PopularRoutes routes={popularRoutes} />
       <HowItWorks />
       <OperatorCta />
     </>
@@ -115,21 +116,8 @@ function Features() {
 }
 
 /* ── Popular routes ────────────────────────────────────────────────────── */
-function PopularRoutes({
-  locations,
-}: {
-  locations: Awaited<ReturnType<typeof listLocations>>;
-}) {
+function PopularRoutes({ routes }: { routes: Awaited<ReturnType<typeof listPopularRoutes>> }) {
   const today = new Date().toISOString().slice(0, 10);
-  const byName = Object.fromEntries(locations.map((l) => [l.name_en, l.id]));
-  const routes: [string, string, string][] = [
-    ["Colombo Fort", "Kandy", "3h"],
-    ["Colombo Fort", "Jaffna", "8h"],
-    ["Colombo Fort", "Galle", "2h"],
-    ["Kandy", "Nuwara Eliya", "2h 30m"],
-    ["Colombo Fort", "Badulla", "7h"],
-    ["Galle", "Matara", "1h"],
-  ];
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -137,38 +125,47 @@ function PopularRoutes({
         id="routes"
         icon={<Route size={18} />}
         title="Popular routes"
-        subtitle="Sri Lanka's most-travelled corridors."
+        subtitle="Ranked by real scheduled trips across active operators right now."
       />
-      <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {routes.map(([from, to, dur]) => {
-          const fromId = byName[from];
-          const toId = byName[to];
-          const href =
-            fromId && toId ? `/search?from=${fromId}&to=${toId}&date=${today}` : "/";
-          return (
-            <Link key={`${from}-${to}`} href={href} className="card card-hover group overflow-hidden">
-              <div
-                className="flex aspect-[16/9] items-end p-5"
-                style={{ background: "linear-gradient(135deg, #004aad 0%, #062b63 100%)" }}
+      {routes.length === 0 ? (
+        <p className="ui mt-9 text-sm text-slate-500 dark:text-zinc-500">
+          No upcoming trips yet — check back once operators have scheduled some.
+        </p>
+      ) : (
+        <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {routes.map((r) => {
+            const dur = formatDuration(r.durationMinutes);
+            return (
+              <Link
+                key={`${r.originId}-${r.destId}`}
+                href={`/search?from=${r.originId}&to=${r.destId}&date=${today}`}
+                className="card card-hover group overflow-hidden"
               >
-                <span className="ui inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur">
-                  <Clock size={13} /> {dur}
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-2 font-heading font-semibold">
-                  {from}
-                  <ArrowRight size={15} className="text-slate-400" />
-                  {to}
+                <div
+                  className="flex aspect-[16/9] items-end p-5"
+                  style={{ background: "linear-gradient(135deg, #004aad 0%, #062b63 100%)" }}
+                >
+                  {dur && (
+                    <span className="ui inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur">
+                      <Clock size={13} /> {dur}
+                    </span>
+                  )}
                 </div>
-                <span className="ui flex items-center gap-1 text-sm font-medium text-brand transition-transform group-hover:translate-x-0.5 dark:text-blue-400">
-                  Find buses <ArrowRight size={14} />
-                </span>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-2 font-heading font-semibold">
+                    {r.originName}
+                    <ArrowRight size={15} className="text-slate-400" />
+                    {r.destName}
+                  </div>
+                  <span className="ui flex items-center gap-1 text-sm font-medium text-brand transition-transform group-hover:translate-x-0.5 dark:text-blue-400">
+                    Find buses <ArrowRight size={14} />
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { Loader2, Phone, Mail, MailCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { Logo } from "@/components/logo";
 
 export default function LoginPage() {
   return (
@@ -23,6 +24,9 @@ function LoginForm() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-16 sm:px-6">
       <div className="card p-7">
+        <div className="mb-6 flex justify-center">
+          <Logo height={32} />
+        </div>
         <h1 className="font-heading text-2xl font-bold tracking-tight">Sign in</h1>
         <p className="ui mt-2 text-sm text-slate-600 dark:text-zinc-400">
           Choose how you&apos;d like to receive your code.

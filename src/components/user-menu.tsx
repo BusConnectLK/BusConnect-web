@@ -9,6 +9,8 @@ import { getMyRoles, type MyRoles } from "@/lib/api";
 
 interface Identity {
   email: string;
+  fullName?: string;
+  avatarUrl?: string;
 }
 
 export function UserMenu() {
@@ -29,7 +31,15 @@ export function UserMenu() {
         setIdentity(null);
         return;
       }
-      setIdentity({ email: session.user.email ?? "" });
+      // Google (and most OAuth) sign-ins populate these on user_metadata;
+      // phone/email OTP sign-ins won't have them, so the UI falls back to
+      // an initial-letter avatar for those.
+      const meta = session.user.user_metadata ?? {};
+      setIdentity({
+        email: session.user.email ?? "",
+        fullName: (meta.full_name as string) ?? (meta.name as string) ?? undefined,
+        avatarUrl: (meta.avatar_url as string) ?? (meta.picture as string) ?? undefined,
+      });
       try {
         setRoles(await getMyRoles(session.access_token));
       } catch {
@@ -74,7 +84,7 @@ export function UserMenu() {
     );
   }
 
-  const initial = identity.email.charAt(0).toUpperCase();
+  const initial = (identity.fullName ?? identity.email).charAt(0).toUpperCase();
 
   return (
     <div ref={menuRef} className="relative">
@@ -83,20 +93,17 @@ export function UserMenu() {
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1.5 rounded-full border border-slate-200 py-1 pl-1 pr-2.5 transition-colors hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm font-bold text-brand-fg">
-          {initial}
-        </span>
+        <Avatar avatarUrl={identity.avatarUrl} initial={initial} size={28} />
         <ChevronDown size={14} className={`text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
         <div className="ui absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-950">
           <div className="flex items-center gap-3 border-b border-slate-100 p-4 dark:border-zinc-900">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-base font-bold text-brand-fg">
-              {initial}
-            </span>
+            <Avatar avatarUrl={identity.avatarUrl} initial={initial} size={40} />
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{identity.email}</p>
+              {identity.fullName && <p className="truncate text-sm font-medium">{identity.fullName}</p>}
+              <p className="truncate text-xs text-slate-500 dark:text-zinc-400">{identity.email}</p>
             </div>
           </div>
 
@@ -107,11 +114,6 @@ export function UserMenu() {
             {roles?.isOperator && (
               <MenuLink href="/operator" icon={Building2} onClick={() => setOpen(false)}>
                 {roles.operatorRole === "pilot" ? "Conductor dashboard" : "Operator dashboard"}
-              </MenuLink>
-            )}
-            {!roles?.isOperator && (
-              <MenuLink href="/operator/apply" icon={Building2} onClick={() => setOpen(false)}>
-                Become an operator
               </MenuLink>
             )}
             {roles?.isAdmin && (
@@ -134,6 +136,44 @@ export function UserMenu() {
         </div>
       )}
     </div>
+  );
+}
+
+/** Google/OAuth profile photo when available, else an initial-letter circle. */
+function Avatar({
+  avatarUrl,
+  initial,
+  size,
+}: {
+  avatarUrl?: string;
+  initial: string;
+  size: number;
+}) {
+  const [broken, setBroken] = useState(false);
+
+  if (avatarUrl && !broken) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- arbitrary external OAuth provider URL, not a local/optimizable asset
+      <img
+        src={avatarUrl}
+        alt=""
+        width={size}
+        height={size}
+        referrerPolicy="no-referrer"
+        onError={() => setBroken(true)}
+        className="rounded-full object-cover"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+
+  return (
+    <span
+      className="flex shrink-0 items-center justify-center rounded-full bg-brand font-bold text-brand-fg"
+      style={{ width: size, height: size, fontSize: size * 0.4 }}
+    >
+      {initial}
+    </span>
   );
 }
 
