@@ -60,11 +60,16 @@ export interface TripSearchResult {
 /**
  * Seat layout convention stored in bus_types.layout_json.
  * `cols` is a row template: a string is a seat column label, `null` is an aisle
- * gap. A seat's label is `${rowNumber}${colLabel}` (e.g. "1A").
+ * gap. A seat's label is `${rowNumber}${colLabel}` (e.g. "1A") UNLESS `labels`
+ * is present — then `labels[i]` (in row-major reading order, one entry per
+ * non-aisle position) overrides the computed label for the i-th seat. This is
+ * purely a display/identifier override: hold_seats/create_booking treat
+ * seat_no as opaque text regardless of which convention produced it.
  */
 export interface SeatLayout {
   rows: number;
   cols: (string | null)[];
+  labels?: string[];
 }
 
 export interface SeatMap {
@@ -255,9 +260,47 @@ export interface OperatorAnalytics {
   fillRatePct: number;
 }
 
+export interface OperatorBus {
+  id: string;
+  reg_no: string;
+  status: 'pending' | 'active' | 'rejected';
+  amenities: string[];
+  notes: string | null;
+  seat_layout_style: string | null;
+  seat_numbering: 'auto' | 'custom';
+  front_image_url: string | null;
+  side_image_urls: string[] | null;
+  interior_image_url: string | null;
+  seat_layout_image_url: string | null;
+  bus_type: { name: string; class: string; seat_count: number } | null;
+}
+
 export interface OperatorFleet {
   routes: { id: string; origin_id: string; dest_id: string }[];
-  buses: { id: string; reg_no: string; bus_type: { name: string; seat_count: number } }[];
+  buses: OperatorBus[];
+}
+
+export interface RegisterBusInput {
+  regNo: string;
+  busClass: 'normal' | 'semi_luxury' | 'luxury' | 'super_luxury' | 'expressway';
+  totalSeats: number;
+  seatLayoutStyle: '2x2' | '3x2' | '2x1';
+  seatNumbering: 'auto' | 'custom';
+  customSeatNumbers?: string[];
+  amenities: string[];
+  frontImageUrl?: string;
+  sideImageUrls?: string[];
+  interiorImageUrl?: string;
+  seatLayoutImageUrl?: string;
+  notes?: string;
+}
+
+export function registerBus(accessToken: string, input: RegisterBusInput) {
+  return request<OperatorBus>('/operator/buses', {
+    method: 'POST',
+    body: JSON.stringify(input),
+    accessToken,
+  });
 }
 
 export type OperatorRole = 'owner' | 'pilot';
@@ -480,6 +523,14 @@ export interface AdminBus {
   id: string;
   reg_no: string;
   amenities: string[];
+  status: 'pending' | 'active' | 'rejected';
+  notes: string | null;
+  seat_layout_style: string | null;
+  seat_numbering: 'auto' | 'custom';
+  front_image_url: string | null;
+  side_image_urls: string[] | null;
+  interior_image_url: string | null;
+  seat_layout_image_url: string | null;
   operator: { name: string } | null;
   bus_type: { name: string; class: string; seat_count: number } | null;
 }
@@ -588,6 +639,18 @@ export function createAdminBus(
   return request<AdminBus>('/admin/buses', {
     method: 'POST',
     body: JSON.stringify(body),
+    accessToken,
+  });
+}
+
+export function setAdminBusStatus(
+  accessToken: string,
+  busId: string,
+  status: 'pending' | 'active' | 'rejected',
+) {
+  return request<AdminBus>(`/admin/buses/${busId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
     accessToken,
   });
 }

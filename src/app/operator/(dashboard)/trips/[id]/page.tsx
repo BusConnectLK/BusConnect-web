@@ -85,30 +85,37 @@ export default async function OperatorManifestPage({
           <h2 className="mb-3 font-heading text-lg font-semibold">Seat map</h2>
           <div className="card p-5">
             <div className="flex flex-col items-center gap-2">
-              {Array.from({ length: layout.rows }).map((_, r) => {
-                const row = r + 1;
-                return (
-                  <div key={row} className="flex items-center gap-2">
-                    {layout.cols.map((col, ci) => {
-                      if (col === null) return <span key={ci} className="w-6" aria-hidden />;
-                      const label = `${row}${col}`;
-                      const isTaken = taken.has(label);
-                      return (
-                        <span
-                          key={ci}
-                          className={`ui flex h-9 w-9 items-center justify-center rounded-lg text-xs font-medium ${
-                            isTaken
-                              ? "bg-brand text-brand-fg"
-                              : "border border-slate-300 text-slate-400 dark:border-zinc-700 dark:text-zinc-600"
-                          }`}
-                        >
-                          {label}
-                        </span>
-                      );
-                    })}
-                  </div>
-                );
-              })}
+              {(() => {
+                // Matches seatLabels()'s iteration order in the passenger
+                // seat-selector: labels[i] overrides the computed `${row}${col}`
+                // label when a custom numbering scheme was registered.
+                let flatIndex = 0;
+                return Array.from({ length: layout.rows }).map((_, r) => {
+                  const row = r + 1;
+                  return (
+                    <div key={row} className="flex items-center gap-2">
+                      {layout.cols.map((col, ci) => {
+                        if (col === null) return <span key={ci} className="w-6" aria-hidden />;
+                        const idx = flatIndex++;
+                        const label = layout.labels?.[idx] ?? `${row}${col}`;
+                        const isTaken = taken.has(label);
+                        return (
+                          <span
+                            key={ci}
+                            className={`ui flex h-9 w-9 items-center justify-center rounded-lg text-xs font-medium ${
+                              isTaken
+                                ? "bg-brand text-brand-fg"
+                                : "border border-slate-300 text-slate-400 dark:border-zinc-700 dark:text-zinc-600"
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
         </div>

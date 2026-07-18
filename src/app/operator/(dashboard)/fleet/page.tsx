@@ -1,7 +1,19 @@
 import Link from "next/link";
-import { Bus as BusIcon } from "lucide-react";
+import { Bus as BusIcon, PlusCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOperatorFleet, ApiError, type OperatorFleet } from "@/lib/api";
+
+const STATUS_STYLE: Record<string, string> = {
+  active: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
+  pending: "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
+  rejected: "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  active: "Active",
+  pending: "Pending approval",
+  rejected: "Rejected",
+};
 
 export default async function OperatorFleetPage() {
   const supabase = await createClient();
@@ -40,11 +52,17 @@ export default async function OperatorFleetPage() {
 
   return (
     <div>
-      <h1 className="font-heading text-2xl font-bold tracking-tight">My fleet</h1>
-      <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
-        Buses registered to your account. To add a new bus, contact BusConnect support — this
-        keeps fleet data verified across the platform.
-      </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-2xl font-bold tracking-tight">My fleet</h1>
+          <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
+            Buses registered to your account. New buses stay pending until BusConnect approves them.
+          </p>
+        </div>
+        <Link href="/operator/fleet/register" className="btn-primary shrink-0">
+          <PlusCircle size={16} /> Register a bus
+        </Link>
+      </div>
 
       <div className="mt-6">
         <div className="mb-3 flex items-center gap-2">
@@ -59,9 +77,15 @@ export default async function OperatorFleetPage() {
           <div className="flex flex-col gap-2">
             {fleet.buses.map((b) => (
               <div key={b.id} className="card p-4">
-                <p className="font-medium">{b.reg_no}</p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-medium">{b.reg_no}</p>
+                  <span className={`ui rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_STYLE[b.status]}`}>
+                    {STATUS_LABEL[b.status] ?? b.status}
+                  </span>
+                </div>
                 <p className="ui mt-0.5 text-sm text-slate-600 dark:text-zinc-400">
-                  {b.bus_type.name} · {b.bus_type.seat_count} seats
+                  {b.bus_type?.name ?? "—"} · {b.bus_type?.seat_count ?? "—"} seats
+                  {b.amenities.length > 0 && <> · {b.amenities.length} amenities</>}
                 </p>
               </div>
             ))}

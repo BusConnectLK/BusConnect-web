@@ -41,6 +41,7 @@ export default async function NewTripPage() {
 
   const locations = await listLocations();
   const nameOf = (id: string) => locations.find((l) => l.id === id)?.name_en ?? "Unknown";
+  const approvedBuses = fleet.buses.filter((b) => b.status === "active");
 
   return (
     <div className="w-full max-w-lg">
@@ -50,9 +51,11 @@ export default async function NewTripPage() {
       </p>
 
       <div className="card mt-6 p-6">
-        {fleet.routes.length === 0 || fleet.buses.length === 0 ? (
+        {fleet.routes.length === 0 || approvedBuses.length === 0 ? (
           <p className="ui text-sm text-slate-500 dark:text-zinc-400">
-            You don&apos;t have any routes or buses set up yet — contact BusConnect support to add your fleet.
+            {fleet.buses.length > approvedBuses.length && fleet.routes.length > 0
+              ? "You don't have any approved buses yet — new registrations become schedulable once BusConnect approves them."
+              : "You don't have any routes or buses set up yet — contact BusConnect support to add your fleet."}
           </p>
         ) : (
           <NewTripForm
@@ -60,9 +63,9 @@ export default async function NewTripPage() {
               id: r.id,
               label: `${nameOf(r.origin_id)} → ${nameOf(r.dest_id)}`,
             }))}
-            buses={fleet.buses.map((b) => ({
+            buses={approvedBuses.map((b) => ({
               id: b.id,
-              label: `${b.reg_no} · ${b.bus_type.name} (${b.bus_type.seat_count} seats)`,
+              label: `${b.reg_no} · ${b.bus_type?.name ?? "—"} (${b.bus_type?.seat_count ?? "—"} seats)`,
             }))}
           />
         )}

@@ -21,14 +21,20 @@ function defaultLayout(seatCount: number): SeatLayout {
   return { rows: Math.ceil(seatCount / 4), cols: ["A", "B", null, "C", "D"] };
 }
 
-/** Expand a layout into ordered seat labels, capped at seatCount. */
+/**
+ * Expand a layout into ordered seat labels, capped at seatCount. Custom
+ * `layout.labels` (if present) overrides the computed `${row}${col}` label at
+ * each position, in the same row-major reading order.
+ */
 function seatLabels(layout: SeatLayout, seatCount: number): string[] {
   const labels: string[] = [];
+  let i = 0;
   for (let r = 1; r <= layout.rows; r++) {
     for (const col of layout.cols) {
       if (col === null) continue;
       if (labels.length >= seatCount) return labels;
-      labels.push(`${r}${col}`);
+      labels.push(layout.labels?.[i] ?? `${r}${col}`);
+      i++;
     }
   }
   return labels;
@@ -160,41 +166,48 @@ export function SeatSelector(props: Props) {
         </div>
 
         <div className="flex flex-col items-center gap-2">
-          {Array.from({ length: layout.rows }).map((_, r) => {
-            const row = r + 1;
-            return (
-              <div key={row} className="flex items-center gap-2">
-                {layout.cols.map((col, ci) => {
-                  if (col === null)
-                    return <span key={ci} className="w-6" aria-hidden />;
-                  const label = `${row}${col}`;
-                  if (!labels.includes(label))
-                    return <span key={ci} className="h-9 w-9" aria-hidden />;
-                  const isTaken = taken.has(label);
-                  const isSelected = selected.has(label);
-                  return (
-                    <button
-                      key={ci}
-                      type="button"
-                      disabled={isTaken || busy}
-                      onClick={() => toggle(label)}
-                      aria-pressed={isSelected}
-                      className={[
-                        "ui h-9 w-9 rounded-lg text-xs font-medium transition-colors duration-200",
-                        isTaken
-                          ? "cursor-not-allowed bg-slate-200 text-transparent dark:bg-zinc-700"
-                          : isSelected
-                            ? "bg-brand text-brand-fg shadow-md shadow-brand/30"
-                            : "border border-slate-300 bg-white text-slate-700 hover:border-brand hover:text-brand dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
-                      ].join(" ")}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            );
-          })}
+          {(() => {
+            // Tracks the flat seat-position index across rows/cols, matching
+            // seatLabels()'s iteration order exactly — this is what looks up
+            // the right `label` (custom or computed) for each grid cell.
+            let flatIndex = 0;
+            return Array.from({ length: layout.rows }).map((_, r) => {
+              const row = r + 1;
+              return (
+                <div key={row} className="flex items-center gap-2">
+                  {layout.cols.map((col, ci) => {
+                    if (col === null)
+                      return <span key={ci} className="w-6" aria-hidden />;
+                    const idx = flatIndex++;
+                    if (idx >= labels.length)
+                      return <span key={ci} className="h-9 w-9" aria-hidden />;
+                    const label = labels[idx];
+                    const isTaken = taken.has(label);
+                    const isSelected = selected.has(label);
+                    return (
+                      <button
+                        key={ci}
+                        type="button"
+                        disabled={isTaken || busy}
+                        onClick={() => toggle(label)}
+                        aria-pressed={isSelected}
+                        className={[
+                          "ui h-9 w-9 rounded-lg text-xs font-medium transition-colors duration-200",
+                          isTaken
+                            ? "cursor-not-allowed bg-slate-200 text-transparent dark:bg-zinc-700"
+                            : isSelected
+                              ? "bg-brand text-brand-fg shadow-md shadow-brand/30"
+                              : "border border-slate-300 bg-white text-slate-700 hover:border-brand hover:text-brand dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
+                        ].join(" ")}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            });
+          })()}
         </div>
       </div>
 

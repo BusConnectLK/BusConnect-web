@@ -10,6 +10,7 @@ import {
   createAdminBusType,
   listAdminBuses,
   createAdminBus,
+  setAdminBusStatus,
   listAdminRoutes,
   createAdminRoute,
   listAdminOperators,
@@ -217,7 +218,7 @@ function BusTypesTab({
         <h3 className="font-heading font-semibold">New bus type</h3>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (e.g. Luxury 45-seat)" required className="field" />
         <select value={busClass} onChange={(e) => setBusClass(e.target.value)} className="field appearance-none">
-          {["normal", "semi_luxury", "luxury", "super_luxury"].map((c) => (
+          {["normal", "semi_luxury", "luxury", "super_luxury", "expressway"].map((c) => (
             <option key={c} value={c}>
               {c.replace("_", " ")}
             </option>
@@ -268,10 +269,7 @@ function BusesTab({
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-      <List
-        title="Buses"
-        items={buses.map((b) => ({ id: b.id, primary: b.reg_no, secondary: `${b.operator?.name ?? "—"} · ${b.bus_type?.name ?? "—"}` }))}
-      />
+      <BusList buses={buses} token={token} onChanged={onCreated} />
       <form onSubmit={submit} className="card flex flex-col gap-3 p-5">
         <h3 className="font-heading font-semibold">New bus</h3>
         <select value={operatorId} onChange={(e) => setOperatorId(e.target.value)} required className="field appearance-none">
@@ -292,6 +290,131 @@ function BusesTab({
         {error && <p className="ui text-sm text-red-600 dark:text-red-400">{error}</p>}
         <SubmitBtn busy={busy} disabled={!operatorId || !busTypeId} />
       </form>
+    </div>
+  );
+}
+
+const BUS_STATUS_STYLE: Record<string, string> = {
+  active: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
+  pending: "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
+  rejected: "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300",
+};
+
+function BusList({ buses, token, onChanged }: { buses: AdminBus[]; token: string; onChanged: () => void }) {
+  return (
+    <div>
+      <h2 className="mb-3 font-heading text-lg font-semibold">Buses ({buses.length})</h2>
+      {buses.length === 0 ? (
+        <div className="card p-8 text-center text-sm text-slate-500 dark:text-zinc-400">Nothing yet.</div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {buses.map((b) => (
+            <BusRow key={b.id} bus={b} token={token} onChanged={onChanged} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BusRow({ bus, token, onChanged }: { bus: AdminBus; token: string; onChanged: () => void }) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function setStatus(status: "active" | "rejected") {
+    setError(null);
+    setBusy(status);
+    try {
+      await setAdminBusStatus(token, bus.id, status);
+      onChanged();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not update bus status.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const photos: [string, string | null | undefined][] = [
+    ["Front", bus.front_image_url],
+    ["Side 1", bus.side_image_urls?.[0]],
+    ["Side 2", bus.side_image_urls?.[1]],
+    ["Interior", bus.interior_image_url],
+    ["Seat layout", bus.seat_layout_image_url],
+  ];
+
+  return (
+    <div className="card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          {bus.front_image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={bus.front_image_url}
+              alt={`${bus.reg_no} front`}
+              className="h-14 w-20 shrink-0 rounded-lg border border-slate-200 object-cover dark:border-zinc-800"
+            />
+          ) : (
+            <div className="h-14 w-20 shrink-0 rounded-lg border border-dashed border-slate-300 dark:border-zinc-700" />
+          )}
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="font-medium">{bus.reg_no}</p>
+              <span className={`ui rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${BUS_STATUS_STYLE[bus.status]}`}>
+                {bus.status}
+              </span>
+            </div>
+            <p className="ui mt-0.5 text-sm text-slate-500 dark:text-zinc-400">
+              {bus.operator?.name ?? "—"} · {bus.bus_type?.name ?? "—"} · {bus.bus_type?.seat_count ?? "—"} seats
+            </p>
+            {bus.amenities.length > 0 && (
+              <p className="ui mt-1 text-xs text-slate-500 dark:text-zinc-500">{bus.amenities.join(", ")}</p>
+            )}
+            {bus.notes && (
+              <p className="ui mt-1 text-xs italic text-slate-500 dark:text-zinc-500">&ldquo;{bus.notes}&rdquo;</p>
+            )}
+            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+              {photos.map(([label, url]) =>
+                url ? (
+                  <a
+                    key={label}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand underline dark:text-blue-400"
+                  >
+                    {label}
+                  </a>
+                ) : null,
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          {error && <span className="ui text-xs text-red-600 dark:text-red-400">{error}</span>}
+          <div className="flex gap-1.5">
+            {bus.status !== "active" && (
+              <button
+                type="button"
+                onClick={() => setStatus("active")}
+                disabled={!!busy}
+                className="ui rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+              >
+                {busy === "active" ? <Loader2 size={13} className="animate-spin" /> : "Approve"}
+              </button>
+            )}
+            {bus.status !== "rejected" && (
+              <button
+                type="button"
+                onClick={() => setStatus("rejected")}
+                disabled={!!busy}
+                className="ui rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-60"
+              >
+                {busy === "rejected" ? <Loader2 size={13} className="animate-spin" /> : "Reject"}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

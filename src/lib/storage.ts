@@ -29,3 +29,15 @@ export async function uploadOperatorIdDocument(userId: string, file: File): Prom
   if (error) throw error;
   return path;
 }
+
+/** Public bucket — bus registration photos (front/side/interior/seat-layout). */
+export async function uploadBusImage(userId: string, file: File, kind: string): Promise<string> {
+  const supabase = createClient();
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  const path = `${userId}/${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+  const { error } = await supabase.storage
+    .from('bus-images')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw error;
+  return supabase.storage.from('bus-images').getPublicUrl(path).data.publicUrl;
+}
