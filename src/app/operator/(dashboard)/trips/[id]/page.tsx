@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Wallet, Armchair } from "lucide-react";
+import { Wallet, Armchair } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOperatorManifest, ApiError, type OperatorManifest, type SeatLayout } from "@/lib/api";
 
@@ -27,11 +27,9 @@ export default async function OperatorManifestPage({
 
   if (!session) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
-        <Link href={`/login?next=/operator/trips/${id}`} className="font-medium text-brand underline dark:text-blue-400">
-          Sign in to view this manifest
-        </Link>
-      </div>
+      <Link href={`/login?next=/operator/trips/${id}`} className="font-medium text-brand underline dark:text-blue-400">
+        Sign in to view this manifest
+      </Link>
     );
   }
 
@@ -45,11 +43,9 @@ export default async function OperatorManifestPage({
 
   if (error || !manifest) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
-        <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
-          {error ?? "Manifest not found."}
-        </p>
-      </div>
+      <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+        {error ?? "Manifest not found."}
+      </p>
     );
   }
 
@@ -57,15 +53,8 @@ export default async function OperatorManifestPage({
   const taken = new Set(manifest.taken);
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <Link
-        href="/operator"
-        className="ui inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
-      >
-        <ArrowLeft size={15} /> Back to dashboard
-      </Link>
-
-      <h1 className="mt-4 font-heading text-2xl font-bold tracking-tight">Trip manifest</h1>
+    <div>
+      <h1 className="font-heading text-2xl font-bold tracking-tight">Trip manifest</h1>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <div className="card flex items-center gap-3 p-5">

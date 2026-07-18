@@ -5,8 +5,6 @@ import {
   Users,
   PlusCircle,
   ChevronRight,
-  Bus,
-  UserPlus,
   Clock,
   Ban,
   QrCode,
@@ -40,11 +38,9 @@ export default async function OperatorOverviewPage() {
 
   if (!session) {
     return (
-      <Shell>
-        <Link href="/login?next=/operator" className="font-medium text-brand underline dark:text-blue-400">
-          Sign in to access your operator dashboard
-        </Link>
-      </Shell>
+      <Link href="/login?next=/operator" className="font-medium text-brand underline dark:text-blue-400">
+        Sign in to access your operator dashboard
+      </Link>
     );
   }
 
@@ -64,28 +60,24 @@ export default async function OperatorOverviewPage() {
 
   if (notLinked) {
     return (
-      <Shell>
-        <div className="card p-10 text-center">
-          <Building2 size={32} className="mx-auto text-slate-400 dark:text-zinc-600" />
-          <p className="mt-4 font-heading font-semibold">Run a bus fleet?</p>
-          <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
-            Apply to list your buses on BusConnect and reach passengers across the country.
-          </p>
-          <Link href="/operator/apply" className="btn-primary mt-5">
-            <PlusCircle size={16} /> Apply as an operator
-          </Link>
-        </div>
-      </Shell>
+      <div className="card p-10 text-center">
+        <Building2 size={32} className="mx-auto text-slate-400 dark:text-zinc-600" />
+        <p className="mt-4 font-heading font-semibold">Run a bus fleet?</p>
+        <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
+          Apply to list your buses on BusConnect and reach passengers across the country.
+        </p>
+        <Link href="/operator/apply" className="btn-primary mt-5">
+          <PlusCircle size={16} /> Apply as an operator
+        </Link>
+      </div>
     );
   }
 
   if (error || !membership) {
     return (
-      <Shell>
-        <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
-          {error ?? "Could not load your operator dashboard."}
-        </p>
-      </Shell>
+      <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+        {error ?? "Could not load your operator dashboard."}
+      </p>
     );
   }
 
@@ -93,38 +85,34 @@ export default async function OperatorOverviewPage() {
 
   if (operator.status === "pending") {
     return (
-      <Shell>
-        <div className="card p-10 text-center">
-          {operator.logo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={operator.logo_url}
-              alt={`${operator.name} logo`}
-              className="mx-auto h-16 w-16 rounded-xl border border-slate-200 object-cover dark:border-zinc-800"
-            />
-          ) : (
-            <Clock size={32} className="mx-auto text-amber-500" />
-          )}
-          <p className="mt-4 font-heading font-semibold">{operator.name} — application under review</p>
-          <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
-            BusConnect is reviewing your application. You&apos;ll be able to schedule trips once approved.
-          </p>
-        </div>
-      </Shell>
+      <div className="card p-10 text-center">
+        {operator.logo_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={operator.logo_url}
+            alt={`${operator.name} logo`}
+            className="mx-auto h-16 w-16 rounded-xl border border-slate-200 object-cover dark:border-zinc-800"
+          />
+        ) : (
+          <Clock size={32} className="mx-auto text-amber-500" />
+        )}
+        <p className="mt-4 font-heading font-semibold">{operator.name} — application under review</p>
+        <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
+          BusConnect is reviewing your application. You&apos;ll be able to schedule trips once approved.
+        </p>
+      </div>
     );
   }
 
   if (operator.status === "suspended") {
     return (
-      <Shell>
-        <div className="card border-red-200 p-10 text-center dark:border-red-900/50">
-          <Ban size={32} className="mx-auto text-red-500" />
-          <p className="mt-4 font-heading font-semibold">{operator.name} — account suspended</p>
-          <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
-            Contact BusConnect support to resolve this.
-          </p>
-        </div>
-      </Shell>
+      <div className="card border-red-200 p-10 text-center dark:border-red-900/50">
+        <Ban size={32} className="mx-auto text-red-500" />
+        <p className="mt-4 font-heading font-semibold">{operator.name} — account suspended</p>
+        <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
+          Contact BusConnect support to resolve this.
+        </p>
+      </div>
     );
   }
 
@@ -141,11 +129,9 @@ export default async function OperatorOverviewPage() {
     }
   } catch (e) {
     return (
-      <Shell>
-        <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
-          {e instanceof ApiError ? e.message : "Could not load trips."}
-        </p>
-      </Shell>
+      <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+        {e instanceof ApiError ? e.message : "Could not load trips."}
+      </p>
     );
   }
 
@@ -153,7 +139,7 @@ export default async function OperatorOverviewPage() {
   const nameOf = (id: string) => locations.find((l) => l.id === id)?.name_en ?? "—";
 
   return (
-    <Shell>
+    <div>
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="ui text-sm text-slate-500 dark:text-zinc-400">
@@ -162,17 +148,9 @@ export default async function OperatorOverviewPage() {
           <h1 className="font-heading text-2xl font-bold tracking-tight">{operator.name}</h1>
         </div>
         {role === "owner" && (
-          <div className="flex flex-wrap justify-end gap-2">
-            <Link href="/operator/fleet" className="btn-secondary">
-              <Bus size={16} /> My fleet
-            </Link>
-            <Link href="/operator/pilots" className="btn-secondary">
-              <UserPlus size={16} /> Pilots
-            </Link>
-            <Link href="/operator/trips/new" className="btn-primary">
-              <PlusCircle size={16} /> Schedule trip
-            </Link>
-          </div>
+          <Link href="/operator/trips/new" className="btn-primary">
+            <PlusCircle size={16} /> Schedule trip
+          </Link>
         )}
       </div>
 
@@ -233,7 +211,7 @@ export default async function OperatorOverviewPage() {
           ))}
         </div>
       )}
-    </Shell>
+    </div>
   );
 }
 
@@ -248,8 +226,4 @@ function Stat({ label, value }: { label: string; value: string }) {
       </div>
     </div>
   );
-}
-
-function Shell({ children }: { children: React.ReactNode }) {
-  return <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">{children}</div>;
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
+import { ConditionalFooter } from "@/components/conditional-footer";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
@@ -45,7 +45,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col antialiased">
         <SiteHeader />
         <main className="flex flex-1 flex-col">{children}</main>
-        <SiteFooter />
+        <ConditionalFooter />
       </body>
     </html>
   );

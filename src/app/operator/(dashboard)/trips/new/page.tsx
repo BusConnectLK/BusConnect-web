@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOperatorFleet, ApiError, type OperatorFleet } from "@/lib/api";
 import { listLocations } from "@/lib/locations";
@@ -13,11 +12,9 @@ export default async function NewTripPage() {
 
   if (!session) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
-        <Link href="/login?next=/operator/trips/new" className="font-medium text-brand underline dark:text-blue-400">
-          Sign in to schedule a trip
-        </Link>
-      </div>
+      <Link href="/login?next=/operator/trips/new" className="font-medium text-brand underline dark:text-blue-400">
+        Sign in to schedule a trip
+      </Link>
     );
   }
 
@@ -36,11 +33,9 @@ export default async function NewTripPage() {
 
   if (error || !fleet) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
-        <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
-          {error}
-        </p>
-      </div>
+      <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+        {error}
+      </p>
     );
   }
 
@@ -48,15 +43,8 @@ export default async function NewTripPage() {
   const nameOf = (id: string) => locations.find((l) => l.id === id)?.name_en ?? "Unknown";
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 py-10 sm:px-6 lg:px-8">
-      <Link
-        href="/operator"
-        className="ui inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
-      >
-        <ArrowLeft size={15} /> Back to dashboard
-      </Link>
-
-      <h1 className="mt-4 font-heading text-2xl font-bold tracking-tight">Schedule a trip</h1>
+    <div className="w-full max-w-lg">
+      <h1 className="font-heading text-2xl font-bold tracking-tight">Schedule a trip</h1>
       <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
         Pick one of your routes and buses, and set the departure.
       </p>

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { listPilots, ApiError, type Pilot } from "@/lib/api";
 import { InviteForm } from "./invite-form";
@@ -13,11 +12,9 @@ export default async function OperatorPilotsPage() {
 
   if (!session) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-        <Link href="/login?next=/operator/pilots" className="font-medium text-brand underline dark:text-blue-400">
-          Sign in to manage your pilots
-        </Link>
-      </div>
+      <Link href="/login?next=/operator/pilots" className="font-medium text-brand underline dark:text-blue-400">
+        Sign in to manage your pilots
+      </Link>
     );
   }
 
@@ -36,24 +33,15 @@ export default async function OperatorPilotsPage() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-        <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
-          {error}
-        </p>
-      </div>
+      <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+        {error}
+      </p>
     );
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-      <Link
-        href="/operator"
-        className="ui inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
-      >
-        <ArrowLeft size={15} /> Back to dashboard
-      </Link>
-
-      <h1 className="mt-4 font-heading text-2xl font-bold tracking-tight">Pilots</h1>
+    <div>
+      <h1 className="font-heading text-2xl font-bold tracking-tight">Pilots</h1>
       <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
         Conductors who can view your trips and scan boarding tickets.
       </p>
