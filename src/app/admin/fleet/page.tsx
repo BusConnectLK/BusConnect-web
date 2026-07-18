@@ -11,22 +11,15 @@ import {
   listAdminBuses,
   createAdminBus,
   setAdminBusStatus,
-  listAdminPilots,
-  setAdminPilotStatus,
-  getAdminPilotPhotoUrl,
-  listAdminRoutes,
-  createAdminRoute,
   listAdminOperators,
   ApiError,
   type AdminLocation,
   type AdminBusType,
   type AdminBus,
-  type AdminPilot,
-  type AdminRoute,
   type AdminOperator,
 } from "@/lib/api";
 
-const TABS = ["locations", "bus-types", "buses", "pilots", "routes"] as const;
+const TABS = ["locations", "bus-types", "buses"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function AdminFleetPage() {
@@ -36,8 +29,6 @@ export default function AdminFleetPage() {
   const [locations, setLocations] = useState<AdminLocation[]>([]);
   const [busTypes, setBusTypes] = useState<AdminBusType[]>([]);
   const [buses, setBuses] = useState<AdminBus[]>([]);
-  const [pilots, setPilots] = useState<AdminPilot[]>([]);
-  const [routes, setRoutes] = useState<AdminRoute[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,20 +42,16 @@ export default function AdminFleetPage() {
       } = await supabase.auth.getSession();
       if (!session) throw new ApiError(401, "Please sign in.");
       setToken(session.access_token);
-      const [ops, locs, types, busList, pilotList, routeList] = await Promise.all([
+      const [ops, locs, types, busList] = await Promise.all([
         listAdminOperators(session.access_token),
         listAdminLocations(session.access_token),
         listAdminBusTypes(session.access_token),
         listAdminBuses(session.access_token),
-        listAdminPilots(session.access_token),
-        listAdminRoutes(session.access_token),
       ]);
       setOperators(ops);
       setLocations(locs);
       setBusTypes(types);
       setBuses(busList);
-      setPilots(pilotList);
-      setRoutes(routeList);
     } catch (e) {
       setError(
         e instanceof ApiError
@@ -101,7 +88,8 @@ export default function AdminFleetPage() {
     <div>
       <h1 className="font-heading text-2xl font-bold tracking-tight">Fleet master data</h1>
       <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
-        Locations, bus types, buses and routes — operators can only schedule trips on what exists here.
+        Locations, bus types, and buses — operators can only schedule trips on what exists here.
+        Routes and pilots now have their own sections.
       </p>
 
       <div className="ui mt-5 flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1 dark:bg-zinc-800">
@@ -125,10 +113,6 @@ export default function AdminFleetPage() {
         {tab === "bus-types" && <BusTypesTab token={token} busTypes={busTypes} onCreated={loadAll} />}
         {tab === "buses" && (
           <BusesTab token={token} buses={buses} operators={operators} busTypes={busTypes} onCreated={loadAll} />
-        )}
-        {tab === "pilots" && <PilotsTab token={token} pilots={pilots} onChanged={loadAll} />}
-        {tab === "routes" && (
-          <RoutesTab token={token} routes={routes} operators={operators} locations={locations} onCreated={loadAll} />
         )}
       </div>
     </div>
@@ -423,211 +407,6 @@ function BusRow({ bus, token, onChanged }: { bus: AdminBus; token: string; onCha
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-/* ── Pilots ────────────────────────────────────────────────────────────── */
-function PilotsTab({ token, pilots, onChanged }: { token: string; pilots: AdminPilot[]; onChanged: () => void }) {
-  return (
-    <div>
-      <h2 className="mb-3 font-heading text-lg font-semibold">Pilots ({pilots.length})</h2>
-      {pilots.length === 0 ? (
-        <div className="card p-8 text-center text-sm text-slate-500 dark:text-zinc-400">Nothing yet.</div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {pilots.map((p) => (
-            <PilotRow key={p.id} pilot={p} token={token} onChanged={onChanged} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-const PILOT_STATUS_STYLE: Record<string, string> = {
-  active: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
-  pending: "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
-  rejected: "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300",
-};
-
-function PilotRow({ pilot, token, onChanged }: { pilot: AdminPilot; token: string; onChanged: () => void }) {
-  const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  async function setStatus(status: "active" | "rejected") {
-    setError(null);
-    setBusy(status);
-    try {
-      await setAdminPilotStatus(token, pilot.id, status);
-      onChanged();
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Could not update pilot status.");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function viewPhoto() {
-    setError(null);
-    const tab = window.open("", "_blank");
-    try {
-      const { url } = await getAdminPilotPhotoUrl(token, pilot.id);
-      if (tab) tab.location.href = url;
-      else window.location.href = url;
-    } catch (e) {
-      tab?.close();
-      setError(e instanceof ApiError ? e.message : "Could not open photo.");
-    }
-  }
-
-  return (
-    <div className="card p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <p className="font-medium">{pilot.name}</p>
-            <span className={`ui rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${PILOT_STATUS_STYLE[pilot.status]}`}>
-              {pilot.status}
-            </span>
-            {pilot.user_id && (
-              <span className="ui rounded-full bg-brand-soft px-2 py-0.5 text-xs font-semibold text-brand dark:bg-brand-soft-dark dark:text-blue-300">
-                Account linked
-              </span>
-            )}
-          </div>
-          <p className="ui mt-0.5 text-sm text-slate-500 dark:text-zinc-400">
-            {pilot.operator?.name ?? "—"} · ID {pilot.id_number} · {pilot.phone_no}
-          </p>
-          {pilot.bus && (
-            <p className="ui mt-1 text-xs capitalize text-slate-500 dark:text-zinc-500">
-              {pilot.assigned_role} · {pilot.bus.reg_no}
-            </p>
-          )}
-          {pilot.profile_image_url && (
-            <button
-              type="button"
-              onClick={viewPhoto}
-              className="ui mt-2 text-xs text-brand underline dark:text-blue-400"
-            >
-              View photo
-            </button>
-          )}
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-1.5">
-          {error && <span className="ui text-xs text-red-600 dark:text-red-400">{error}</span>}
-          <div className="flex gap-1.5">
-            {pilot.status !== "active" && (
-              <button
-                type="button"
-                onClick={() => setStatus("active")}
-                disabled={!!busy}
-                className="ui rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
-              >
-                {busy === "active" ? <Loader2 size={13} className="animate-spin" /> : "Approve"}
-              </button>
-            )}
-            {pilot.status !== "rejected" && (
-              <button
-                type="button"
-                onClick={() => setStatus("rejected")}
-                disabled={!!busy}
-                className="ui rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-60"
-              >
-                {busy === "rejected" ? <Loader2 size={13} className="animate-spin" /> : "Reject"}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Routes ────────────────────────────────────────────────────────────── */
-function RoutesTab({
-  token,
-  routes,
-  operators,
-  locations,
-  onCreated,
-}: {
-  token: string;
-  routes: AdminRoute[];
-  operators: AdminOperator[];
-  locations: AdminLocation[];
-  onCreated: () => void;
-}) {
-  const [operatorId, setOperatorId] = useState(operators[0]?.id ?? "");
-  const [originLocationId, setOriginLocationId] = useState(locations[0]?.id ?? "");
-  const [destLocationId, setDestLocationId] = useState(locations[1]?.id ?? locations[0]?.id ?? "");
-  const [durationMinutes, setDurationMinutes] = useState("180");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    try {
-      await createAdminRoute(token, {
-        operatorId,
-        originLocationId,
-        destLocationId,
-        durationMinutes: Number(durationMinutes),
-      });
-      onCreated();
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Could not create route.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-      <List
-        title="Routes"
-        items={routes.map((r) => ({
-          id: r.id,
-          primary: `${r.origin?.name_en ?? "—"} → ${r.dest?.name_en ?? "—"}`,
-          secondary: r.operator?.name ?? "—",
-        }))}
-      />
-      <form onSubmit={submit} className="card flex flex-col gap-3 p-5">
-        <h3 className="font-heading font-semibold">New route</h3>
-        <select value={operatorId} onChange={(e) => setOperatorId(e.target.value)} required className="field appearance-none">
-          {operators.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name}
-            </option>
-          ))}
-        </select>
-        <select value={originLocationId} onChange={(e) => setOriginLocationId(e.target.value)} required className="field appearance-none">
-          {locations.map((l) => (
-            <option key={l.id} value={l.id}>
-              From: {l.name_en}
-            </option>
-          ))}
-        </select>
-        <select value={destLocationId} onChange={(e) => setDestLocationId(e.target.value)} required className="field appearance-none">
-          {locations.map((l) => (
-            <option key={l.id} value={l.id}>
-              To: {l.name_en}
-            </option>
-          ))}
-        </select>
-        <input
-          value={durationMinutes}
-          onChange={(e) => setDurationMinutes(e.target.value)}
-          placeholder="Duration (minutes)"
-          type="number"
-          min="1"
-          className="field"
-        />
-        {error && <p className="ui text-sm text-red-600 dark:text-red-400">{error}</p>}
-        <SubmitBtn busy={busy} disabled={!operatorId || !originLocationId || !destLocationId || originLocationId === destLocationId} />
-      </form>
     </div>
   );
 }
