@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   CalendarDays,
   FileText,
+  Mail,
   MapPin,
   Phone,
   ShieldAlert,
@@ -13,6 +14,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAdminOperator, ApiError, type AdminOperator } from "@/lib/api";
 import { StatusActions } from "../status-actions";
 import { ViewIdButton } from "../view-id-button";
+import { DeleteOperatorButton } from "./delete-operator-button";
 
 const STATUS_STYLE: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
@@ -144,9 +146,11 @@ export default async function AdminOperatorDetailPage({
           Application details
         </h2>
         <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <Field icon={UserCheck} label="Witness name" value={operator.witness_name ?? "—"} />
-          <Field icon={Phone} label="Mobile number" value={operator.mobile_no ?? "—"} />
-          <Field icon={MapPin} label="Company address" value={operator.address ?? "—"} />
+          <Field
+            icon={Mail}
+            label="Applicant account"
+            value={operator.owner_email ?? "—"}
+          />
           <Field
             icon={CalendarDays}
             label="Applied on"
@@ -156,28 +160,47 @@ export default async function AdminOperatorDetailPage({
               day: "numeric",
             })}
           />
+          <Field icon={UserCheck} label="Witness name" value={operator.witness_name ?? "—"} />
+          <Field icon={Phone} label="Mobile number" value={operator.mobile_no ?? "—"} />
+          <Field icon={MapPin} label="Company address" value={operator.address ?? "—"} />
         </div>
-      </div>
 
-      {/* ── Verification document ───────────────────────────────────────────── */}
-      <div className="card-lg mt-4 p-6">
-        <h2 className="ui text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-600">
-          Verification document
-        </h2>
-        <div className="mt-4 flex items-center gap-3">
+        <div className="mt-6 flex items-center gap-3 border-t border-slate-200 pt-5 dark:border-zinc-800">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-zinc-900 dark:text-zinc-400">
             <FileText size={15} />
           </div>
           {operator.id_document_path ? (
             <div>
-              <p className="text-sm font-medium">Company registration / ID on file</p>
+              <p className="ui text-xs font-medium text-slate-500 dark:text-zinc-500">
+                Registration / ID document
+              </p>
               <div className="mt-1.5">
                 <ViewIdButton operatorId={operator.id} />
               </div>
             </div>
           ) : (
-            <p className="text-sm text-slate-500 dark:text-zinc-500">No document was submitted.</p>
+            <div>
+              <p className="ui text-xs font-medium text-slate-500 dark:text-zinc-500">
+                Registration / ID document
+              </p>
+              <p className="mt-0.5 text-sm text-slate-500 dark:text-zinc-500">No document was submitted.</p>
+            </div>
           )}
+        </div>
+      </div>
+
+      {/* ── Danger zone ─────────────────────────────────────────────────────── */}
+      <div className="card-lg mt-4 border-red-200/60 p-6 dark:border-red-900/40">
+        <h2 className="ui text-xs font-semibold uppercase tracking-wide text-red-500/80 dark:text-red-400/70">
+          Danger zone
+        </h2>
+        <div className="mt-3 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+          <p className="ui text-xs text-slate-600 dark:text-zinc-400">
+            Deleting removes this operator and its fleet/routes for good. Only possible if it has
+            never had a trip scheduled — operators with operating history should be put on hold
+            instead.
+          </p>
+          <DeleteOperatorButton operatorId={operator.id} operatorName={operator.name} />
         </div>
       </div>
     </div>

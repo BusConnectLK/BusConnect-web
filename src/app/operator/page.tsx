@@ -95,7 +95,16 @@ export default async function OperatorOverviewPage() {
     return (
       <Shell>
         <div className="card p-10 text-center">
-          <Clock size={32} className="mx-auto text-amber-500" />
+          {operator.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={operator.logo_url}
+              alt={`${operator.name} logo`}
+              className="mx-auto h-16 w-16 rounded-xl border border-slate-200 object-cover dark:border-zinc-800"
+            />
+          ) : (
+            <Clock size={32} className="mx-auto text-amber-500" />
+          )}
           <p className="mt-4 font-heading font-semibold">{operator.name} — application under review</p>
           <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
             BusConnect is reviewing your application. You&apos;ll be able to schedule trips once approved.

@@ -375,6 +375,7 @@ export interface AdminOperator {
   mobile_no: string | null;
   address: string | null;
   id_document_path: string | null;
+  owner_email?: string | null;
 }
 
 export interface AdminRefund {
@@ -461,6 +462,13 @@ export function setAdminOperatorStatus(
   return request<AdminOperator>(`/admin/operators/${operatorId}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),
+    accessToken,
+  });
+}
+
+export function deleteAdminOperator(accessToken: string, operatorId: string) {
+  return request<{ ok: true }>(`/admin/operators/${operatorId}`, {
+    method: 'DELETE',
     accessToken,
   });
 }

@@ -38,7 +38,8 @@ export function StatusActions({
   return (
     <div className="flex items-center justify-end gap-1.5">
       {error && <span className="ui text-xs text-red-600 dark:text-red-400">{error}</span>}
-      {status !== "active" && (
+
+      {status === "pending" && (
         <button
           type="button"
           onClick={() => setStatus("active")}
@@ -48,7 +49,17 @@ export function StatusActions({
           {busy === "active" ? <Loader2 size={13} className="animate-spin" /> : "Approve"}
         </button>
       )}
-      {status !== "suspended" && (
+
+      {status === "suspended" ? (
+        <button
+          type="button"
+          onClick={() => setStatus("active")}
+          disabled={!!busy}
+          className="ui rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+        >
+          {busy === "active" ? <Loader2 size={13} className="animate-spin" /> : "Unhold"}
+        </button>
+      ) : (
         <button
           type="button"
           onClick={() => setStatus("suspended")}
