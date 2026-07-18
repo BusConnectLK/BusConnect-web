@@ -111,6 +111,16 @@ export interface Booking {
   to_stop_id: string;
   tickets?: { id: string; status: string; qr_signature: string | null }[];
   payments?: { id: string; status: string; amount: number }[];
+  refunds?: { id: string; amount: number; reason: string; status: string }[];
+  trip?: { depart_at: string };
+}
+
+export interface CancelResult {
+  ok: true;
+  refundPct: number;
+  refundAmount: number;
+  refundStatus: "processed" | "pending_manual" | "not_eligible" | "none";
+  message: string;
 }
 
 export interface HoldResult {
@@ -179,6 +189,13 @@ export function createBooking(
 
 export function getBooking(accessToken: string, id: string) {
   return request<Booking>(`/bookings/${id}`, { accessToken });
+}
+
+export function cancelBooking(accessToken: string, id: string) {
+  return request<CancelResult>(`/bookings/${id}/cancel`, {
+    method: 'POST',
+    accessToken,
+  });
 }
 
 export function checkoutBooking(accessToken: string, bookingId: string) {

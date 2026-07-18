@@ -1,9 +1,10 @@
 import Link from "next/link";
 import QRCode from "qrcode";
-import { ArrowLeft, CheckCircle2, TicketCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, TicketCheck, Ban } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getBooking, ApiError, type Booking } from "@/lib/api";
 import { PayButton } from "./pay-button";
+import { CancelButton } from "./cancel-button";
 
 export default async function BookingPage({
   params,
@@ -53,6 +54,12 @@ export default async function BookingPage({
 
   const isConfirmed = booking.status === "confirmed";
   const isPayable = booking.status === "pending" || booking.status === "reserved_unpaid";
+  const isCancelled = booking.status === "cancelled";
+  const hasDeparted = booking.trip
+    ? new Date(booking.trip.depart_at).getTime() <= Date.now()
+    : false;
+  const isCancellable = (isConfirmed || isPayable) && !hasDeparted;
+  const latestRefund = booking.refunds?.[booking.refunds.length - 1];
 
   const ticket = booking.tickets?.[0];
   // The QR encodes the signed Ed25519 token itself (not just an id) so a
@@ -135,9 +142,35 @@ export default async function BookingPage({
         </div>
       )}
 
+      {isCancelled && latestRefund && (
+        <div className="mt-6 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <Ban size={20} className="mt-0.5 shrink-0 text-slate-500 dark:text-zinc-400" />
+          <div>
+            <p className="font-heading font-semibold">Booking cancelled</p>
+            <p className="ui mt-1 text-slate-600 dark:text-zinc-400">
+              {Number(latestRefund.amount) > 0
+                ? `LKR ${Number(latestRefund.amount).toLocaleString("en-LK")} refund — ${
+                    latestRefund.status === "processed" ? "processed" : "being processed by our team"
+                  }.`
+                : "No refund was due for this cancellation."}
+            </p>
+          </div>
+        </div>
+      )}
+
       {isPayable && (
         <div className="mt-6">
           <PayButton bookingId={booking.id} />
+        </div>
+      )}
+
+      {isCancellable && booking.trip && (
+        <div className="mt-6">
+          <CancelButton
+            bookingId={booking.id}
+            amount={Number(booking.amount)}
+            departAt={booking.trip.depart_at}
+          />
         </div>
       )}
 
