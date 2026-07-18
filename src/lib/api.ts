@@ -449,6 +449,10 @@ export function listAdminOperators(accessToken: string) {
   return request<AdminOperator[]>('/admin/operators', { accessToken });
 }
 
+export function getAdminOperator(accessToken: string, operatorId: string) {
+  return request<AdminOperator>(`/admin/operators/${operatorId}`, { accessToken });
+}
+
 export function setAdminOperatorStatus(
   accessToken: string,
   operatorId: string,

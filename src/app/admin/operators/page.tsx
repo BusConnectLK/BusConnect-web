@@ -1,13 +1,19 @@
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { listAdminOperators, ApiError, type AdminOperator } from "@/lib/api";
 import { StatusActions } from "./status-actions";
-import { ViewIdButton } from "./view-id-button";
 
 const STATUS_STYLE: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
   pending: "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
   suspended: "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  active: "Active",
+  pending: "Pending",
+  suspended: "On hold",
 };
 
 export default async function AdminOperatorsPage() {
@@ -49,13 +55,16 @@ export default async function AdminOperatorsPage() {
     <div>
       <h1 className="font-heading text-2xl font-bold tracking-tight">Operators</h1>
       <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
-        Approve new bus companies before their trips become bookable, or suspend one if needed.
+        Approve new bus companies before their trips become bookable, or put one on hold if needed.
       </p>
 
       <div className="mt-6 flex flex-col gap-2">
         {operators.map((op) => (
-          <div key={op.id} className="card flex items-start justify-between gap-4 p-4">
-            <div className="flex items-start gap-3">
+          <div key={op.id} className="card flex items-center justify-between gap-4 p-4">
+            <Link
+              href={`/admin/operators/${op.id}`}
+              className="flex min-w-0 flex-1 items-center gap-3"
+            >
               {op.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -66,39 +75,24 @@ export default async function AdminOperatorsPage() {
               ) : (
                 <div className="h-11 w-11 shrink-0 rounded-lg border border-dashed border-slate-300 dark:border-zinc-700" />
               )}
-              <div>
-                <p className="font-medium">{op.name}</p>
+              <div className="min-w-0">
+                <p className="truncate font-medium">{op.name}</p>
                 <p className="ui mt-0.5 flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-500">
-                  <span className={`rounded-full px-2 py-0.5 font-medium capitalize ${STATUS_STYLE[op.status]}`}>
-                    {op.status}
+                  <span className={`rounded-full px-2 py-0.5 font-medium ${STATUS_STYLE[op.status]}`}>
+                    {STATUS_LABEL[op.status] ?? op.status}
                   </span>
                   ★ {Number(op.rating).toFixed(1)} · {Number(op.reliability_score).toFixed(0)}% reliability
                 </p>
-                <dl className="ui mt-2 grid grid-cols-1 gap-x-6 gap-y-0.5 text-xs text-slate-600 sm:grid-cols-2 dark:text-zinc-400">
-                  {op.witness_name && (
-                    <div>
-                      <dt className="inline font-medium text-slate-500 dark:text-zinc-500">Witness: </dt>
-                      <dd className="inline">{op.witness_name}</dd>
-                    </div>
-                  )}
-                  {op.mobile_no && (
-                    <div>
-                      <dt className="inline font-medium text-slate-500 dark:text-zinc-500">Mobile: </dt>
-                      <dd className="inline">{op.mobile_no}</dd>
-                    </div>
-                  )}
-                  {op.address && (
-                    <div className="sm:col-span-2">
-                      <dt className="inline font-medium text-slate-500 dark:text-zinc-500">Address: </dt>
-                      <dd className="inline">{op.address}</dd>
-                    </div>
-                  )}
-                </dl>
               </div>
-            </div>
-            <div className="flex shrink-0 flex-col items-end gap-2">
+            </Link>
+            <div className="flex shrink-0 items-center gap-2">
               <StatusActions operatorId={op.id} status={op.status} />
-              {op.id_document_path && <ViewIdButton operatorId={op.id} />}
+              <Link
+                href={`/admin/operators/${op.id}`}
+                className="ui inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
+              >
+                View details <ChevronRight size={13} />
+              </Link>
             </div>
           </div>
         ))}

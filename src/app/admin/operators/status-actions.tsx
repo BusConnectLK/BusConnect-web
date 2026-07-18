@@ -55,7 +55,7 @@ export function StatusActions({
           disabled={!!busy}
           className="ui rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-60"
         >
-          {busy === "suspended" ? <Loader2 size={13} className="animate-spin" /> : "Suspend"}
+          {busy === "suspended" ? <Loader2 size={13} className="animate-spin" /> : "Hold"}
         </button>
       )}
     </div>
