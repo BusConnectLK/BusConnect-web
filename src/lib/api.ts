@@ -285,3 +285,182 @@ export function createOperatorTrip(
     accessToken,
   });
 }
+
+// ── Admin dashboard (token required; caller must be linked via admin_users) ────
+
+export interface AdminOperator {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  rating: number;
+  reliability_score: number;
+  status: 'pending' | 'active' | 'suspended';
+  created_at: string;
+}
+
+export interface AdminRefund {
+  id: string;
+  amount: number;
+  reason: string;
+  status: string;
+  processed_at: string | null;
+  booking: {
+    id: string;
+    amount: number;
+    seats: string[];
+    trip: { route: { operator: { name: string } | null } | null } | null;
+  };
+}
+
+export interface AdminAnalytics {
+  totalOperators: number;
+  pendingOperators: number;
+  activeOperators: number;
+  totalTrips: number;
+  totalBookings: number;
+  totalRevenue: number;
+  pendingRefundsCount: number;
+  pendingRefundsAmount: number;
+  perOperator: { operatorId: string; name: string; status: string; bookings: number; revenue: number }[];
+}
+
+export interface AdminBooking {
+  id: string;
+  seats: string[];
+  amount: number;
+  status: string;
+  created_at: string;
+  trip: { depart_at: string; route: { operator: { name: string } | null } | null } | null;
+  tickets?: { id: string; status: string }[];
+  payments?: { id: string; status: string; amount: number }[];
+  refunds?: { id: string; amount: number; status: string }[];
+}
+
+export interface AdminLocation {
+  id: string;
+  name_en: string;
+  name_si: string | null;
+  name_ta: string | null;
+}
+
+export interface AdminBusType {
+  id: string;
+  name: string;
+  class: string;
+  seat_count: number;
+  layout_json: SeatLayout;
+}
+
+export interface AdminBus {
+  id: string;
+  reg_no: string;
+  amenities: string[];
+  operator: { name: string } | null;
+  bus_type: { name: string; class: string; seat_count: number } | null;
+}
+
+export interface AdminRoute {
+  id: string;
+  operator: { name: string } | null;
+  origin: { name_en: string } | null;
+  dest: { name_en: string } | null;
+}
+
+export function listAdminOperators(accessToken: string) {
+  return request<AdminOperator[]>('/admin/operators', { accessToken });
+}
+
+export function setAdminOperatorStatus(
+  accessToken: string,
+  operatorId: string,
+  status: 'pending' | 'active' | 'suspended',
+) {
+  return request<AdminOperator>(`/admin/operators/${operatorId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+    accessToken,
+  });
+}
+
+export function listAdminRefunds(accessToken: string, status?: string) {
+  const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+  return request<AdminRefund[]>(`/admin/refunds${qs}`, { accessToken });
+}
+
+export function processAdminRefund(accessToken: string, refundId: string) {
+  return request(`/admin/refunds/${refundId}/process`, { method: 'POST', accessToken });
+}
+
+export function getAdminAnalytics(accessToken: string) {
+  return request<AdminAnalytics>('/admin/analytics', { accessToken });
+}
+
+export function findAdminBookingById(accessToken: string, bookingId: string) {
+  return request<AdminBooking>(`/admin/bookings/${bookingId}`, { accessToken });
+}
+
+export function findAdminBookingsByEmail(accessToken: string, email: string) {
+  return request<AdminBooking[]>(`/admin/bookings?email=${encodeURIComponent(email)}`, {
+    accessToken,
+  });
+}
+
+export function listAdminLocations(accessToken: string) {
+  return request<AdminLocation[]>('/admin/locations', { accessToken });
+}
+
+export function createAdminLocation(
+  accessToken: string,
+  body: { nameEn: string; nameSi?: string; nameTa?: string; lat: number; lng: number },
+) {
+  return request<AdminLocation>('/admin/locations', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    accessToken,
+  });
+}
+
+export function listAdminBusTypes(accessToken: string) {
+  return request<AdminBusType[]>('/admin/bus-types', { accessToken });
+}
+
+export function createAdminBusType(
+  accessToken: string,
+  body: { name: string; busClass: string; seatCount: number },
+) {
+  return request<AdminBusType>('/admin/bus-types', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    accessToken,
+  });
+}
+
+export function listAdminBuses(accessToken: string) {
+  return request<AdminBus[]>('/admin/buses', { accessToken });
+}
+
+export function createAdminBus(
+  accessToken: string,
+  body: { operatorId: string; busTypeId: string; regNo: string; amenities?: string[] },
+) {
+  return request<AdminBus>('/admin/buses', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    accessToken,
+  });
+}
+
+export function listAdminRoutes(accessToken: string) {
+  return request<AdminRoute[]>('/admin/routes', { accessToken });
+}
+
+export function createAdminRoute(
+  accessToken: string,
+  body: { operatorId: string; originLocationId: string; destLocationId: string; durationMinutes?: number },
+) {
+  return request<AdminRoute>('/admin/routes', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    accessToken,
+  });
+}

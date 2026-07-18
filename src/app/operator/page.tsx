@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, TrendingUp, Users, PlusCircle, ChevronRight } from "lucide-react";
+import { Building2, TrendingUp, Users, PlusCircle, ChevronRight, Bus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   getMyOperator,
@@ -94,9 +94,14 @@ export default async function OperatorOverviewPage() {
           <p className="ui text-sm text-slate-500 dark:text-zinc-400">Operator dashboard</p>
           <h1 className="font-heading text-2xl font-bold tracking-tight">{operator.name}</h1>
         </div>
-        <Link href="/operator/trips/new" className="btn-primary">
-          <PlusCircle size={16} /> Schedule trip
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/operator/fleet" className="btn-secondary">
+            <Bus size={16} /> My fleet
+          </Link>
+          <Link href="/operator/trips/new" className="btn-primary">
+            <PlusCircle size={16} /> Schedule trip
+          </Link>
+        </div>
       </div>
 
       {/* stats */}
