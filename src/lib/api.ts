@@ -213,6 +213,11 @@ export interface OperatorInfo {
   rating: number;
   reliability_score: number;
   status: string;
+  witness_name?: string | null;
+  mobile_no?: string | null;
+  address?: string | null;
+  logo_url?: string | null;
+  id_document_path?: string | null;
 }
 
 export interface OperatorTrip {
@@ -281,10 +286,19 @@ export function getMyOperator(accessToken: string) {
   return request<OperatorMembership>('/operator/me', { accessToken });
 }
 
-export function applyAsOperator(accessToken: string, name: string) {
+export interface ApplyOperatorInput {
+  name: string;
+  witnessName: string;
+  mobileNo: string;
+  address: string;
+  logoUrl: string;
+  idDocumentPath: string;
+}
+
+export function applyAsOperator(accessToken: string, input: ApplyOperatorInput) {
   return request<OperatorInfo>('/operator/apply', {
     method: 'POST',
-    body: JSON.stringify({ name }),
+    body: JSON.stringify(input),
     accessToken,
   });
 }
@@ -357,6 +371,10 @@ export interface AdminOperator {
   reliability_score: number;
   status: 'pending' | 'active' | 'suspended';
   created_at: string;
+  witness_name: string | null;
+  mobile_no: string | null;
+  address: string | null;
+  id_document_path: string | null;
 }
 
 export interface AdminRefund {
@@ -439,6 +457,12 @@ export function setAdminOperatorStatus(
   return request<AdminOperator>(`/admin/operators/${operatorId}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),
+    accessToken,
+  });
+}
+
+export function getAdminIdDocumentUrl(accessToken: string, operatorId: string) {
+  return request<{ url: string }>(`/admin/operators/${operatorId}/id-document-url`, {
     accessToken,
   });
 }
