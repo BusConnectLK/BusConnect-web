@@ -171,15 +171,17 @@ export default async function OperatorPilotDetailPage({
           Assign to fleet
         </h2>
         <p className="ui mt-1 text-xs text-slate-500 dark:text-zinc-500">
-          {pilot.status === "active"
-            ? "Choose one of your approved buses and whether they'll work as driver or conductor."
-            : "Only approved pilots can be assigned to a fleet."}
+          {pilot.status !== "active"
+            ? "Only approved pilots can be assigned to a fleet."
+            : !pilot.user_id
+              ? "Link this pilot to a BusConnect account below before assigning them to a fleet."
+              : "Choose one of your approved buses and whether they'll work as driver or conductor."}
         </p>
         <div className="mt-3">
           <AssignFleetButton
             pilotId={pilot.id}
             busOptions={busOptions}
-            disabled={pilot.status !== "active"}
+            disabled={pilot.status !== "active" || !pilot.user_id}
           />
         </div>
       </div>

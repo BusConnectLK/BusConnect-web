@@ -184,7 +184,9 @@ export default async function OperatorOverviewPage() {
 
       {trips.length === 0 ? (
         <div className="card mt-5 p-10 text-center text-slate-500 dark:text-zinc-400">
-          No trips scheduled yet.
+          {role === "owner"
+            ? "No trips scheduled yet."
+            : "No trips yet — you'll see them here once your operator assigns you to a bus."}
           {role === "owner" && (
             <Link href="/operator/trips/new" className="btn-primary mt-4">
               <PlusCircle size={16} /> Schedule your first trip

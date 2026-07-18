@@ -147,9 +147,13 @@ export default async function OperatorPilotsPage() {
                   <AssignFleetButton
                     pilotId={p.id}
                     busOptions={busOptions}
-                    disabled={p.status !== "active"}
+                    disabled={p.status !== "active" || !p.user_id}
                     disabledReason={
-                      p.status !== "active" ? "Only approved pilots can be assigned to a fleet." : undefined
+                      p.status !== "active"
+                        ? "Only approved pilots can be assigned to a fleet."
+                        : !p.user_id
+                          ? "Link this pilot to a BusConnect account first."
+                          : undefined
                     }
                   />
                   <DeletePilotButton pilotId={p.id} pilotName={p.name} />

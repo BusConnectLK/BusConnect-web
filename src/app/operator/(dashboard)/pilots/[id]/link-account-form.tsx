@@ -45,12 +45,14 @@ export function LinkAccountForm({ pilotId }: { pilotId: string }) {
         />
       </label>
       <p className="ui text-xs text-slate-500 dark:text-zinc-500">
-        They must have already signed in to BusConnect themselves — this doesn&apos;t send an invite.
+        If they already have a BusConnect account we&apos;ll link it directly. Otherwise we&apos;ll
+        email them an invitation — once they accept, they can sign in and see their pilot
+        dashboard.
       </p>
       {error && <p className="ui text-sm text-red-600 dark:text-red-400">{error}</p>}
       <button type="submit" disabled={busy} className="btn-primary self-start py-2.5">
         {busy ? <Loader2 size={15} className="animate-spin" /> : <Link2 size={15} />}
-        {busy ? "Linking…" : "Link account"}
+        {busy ? "Sending…" : "Link or invite"}
       </button>
     </form>
   );
