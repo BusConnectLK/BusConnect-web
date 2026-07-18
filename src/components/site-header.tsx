@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Menu, X, Search, Route, HelpCircle, Ticket, Building2 } from "lucide-react";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
+import { UserMenu } from "./user-menu";
 
 const navItems = [
   { label: "Search buses", href: "/", icon: Search },
@@ -37,12 +38,9 @@ export function SiteHeader() {
               EN · සිං · த
             </span>
             <ThemeToggle />
-            <Link
-              href="/login"
-              className="hidden rounded-xl bg-brand px-4 py-2 font-semibold text-brand-fg shadow-lg shadow-brand/20 transition-colors duration-300 hover:bg-brand-hover sm:inline-flex"
-            >
-              Sign in
-            </Link>
+            <span className="hidden sm:inline-flex">
+              <UserMenu />
+            </span>
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}

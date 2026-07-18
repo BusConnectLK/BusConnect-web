@@ -1,12 +1,23 @@
 import Link from "next/link";
-import { Building2, TrendingUp, Users, PlusCircle, ChevronRight, Bus } from "lucide-react";
+import {
+  Building2,
+  TrendingUp,
+  Users,
+  PlusCircle,
+  ChevronRight,
+  Bus,
+  UserPlus,
+  Clock,
+  Ban,
+  QrCode,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   getMyOperator,
   listOperatorTrips,
   getOperatorAnalytics,
   ApiError,
-  type OperatorInfo,
+  type OperatorMembership,
   type OperatorTrip,
   type OperatorAnalytics,
 } from "@/lib/api";
@@ -37,48 +48,93 @@ export default async function OperatorOverviewPage() {
     );
   }
 
-  let operator: OperatorInfo | null = null;
-  let trips: OperatorTrip[] = [];
-  let analytics: OperatorAnalytics | null = null;
-  let notAnOperator = false;
+  let membership: OperatorMembership | null = null;
+  let notLinked = false;
   let error: string | null = null;
 
   try {
-    [operator, trips, analytics] = await Promise.all([
-      getMyOperator(session.access_token),
-      listOperatorTrips(session.access_token),
-      getOperatorAnalytics(session.access_token),
-    ]);
+    membership = await getMyOperator(session.access_token);
   } catch (e) {
     if (e instanceof ApiError && e.status === 403) {
-      notAnOperator = true;
+      notLinked = true;
     } else {
       error = e instanceof ApiError ? e.message : "Could not reach BusConnect-api. Is it running?";
     }
   }
 
-  if (notAnOperator) {
+  if (notLinked) {
     return (
       <Shell>
         <div className="card p-10 text-center">
           <Building2 size={32} className="mx-auto text-slate-400 dark:text-zinc-600" />
-          <p className="mt-4 font-heading font-semibold">No operator account linked</p>
+          <p className="mt-4 font-heading font-semibold">Run a bus fleet?</p>
           <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
-            Your sign-in isn&apos;t linked to a bus operator yet. Contact BusConnect to become a partner.
+            Apply to list your buses on BusConnect and reach passengers across the country.
           </p>
-          <Link href="/#operators" className="btn-primary mt-5">
-            Learn about partnering
+          <Link href="/operator/apply" className="btn-primary mt-5">
+            <PlusCircle size={16} /> Apply as an operator
           </Link>
         </div>
       </Shell>
     );
   }
 
-  if (error || !operator) {
+  if (error || !membership) {
     return (
       <Shell>
         <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
           {error ?? "Could not load your operator dashboard."}
+        </p>
+      </Shell>
+    );
+  }
+
+  const { operator, role } = membership;
+
+  if (operator.status === "pending") {
+    return (
+      <Shell>
+        <div className="card p-10 text-center">
+          <Clock size={32} className="mx-auto text-amber-500" />
+          <p className="mt-4 font-heading font-semibold">{operator.name} — application under review</p>
+          <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
+            BusConnect is reviewing your application. You&apos;ll be able to schedule trips once approved.
+          </p>
+        </div>
+      </Shell>
+    );
+  }
+
+  if (operator.status === "suspended") {
+    return (
+      <Shell>
+        <div className="card border-red-200 p-10 text-center dark:border-red-900/50">
+          <Ban size={32} className="mx-auto text-red-500" />
+          <p className="mt-4 font-heading font-semibold">{operator.name} — account suspended</p>
+          <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
+            Contact BusConnect support to resolve this.
+          </p>
+        </div>
+      </Shell>
+    );
+  }
+
+  let trips: OperatorTrip[] = [];
+  let analytics: OperatorAnalytics | null = null;
+  try {
+    if (role === "owner") {
+      [trips, analytics] = await Promise.all([
+        listOperatorTrips(session.access_token),
+        getOperatorAnalytics(session.access_token),
+      ]);
+    } else {
+      trips = await listOperatorTrips(session.access_token);
+    }
+  } catch (e) {
+    return (
+      <Shell>
+        <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+          {e instanceof ApiError ? e.message : "Could not load trips."}
         </p>
       </Shell>
     );
@@ -91,50 +147,59 @@ export default async function OperatorOverviewPage() {
     <Shell>
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="ui text-sm text-slate-500 dark:text-zinc-400">Operator dashboard</p>
+          <p className="ui text-sm text-slate-500 dark:text-zinc-400">
+            {role === "owner" ? "Operator dashboard" : "Conductor dashboard"}
+          </p>
           <h1 className="font-heading text-2xl font-bold tracking-tight">{operator.name}</h1>
         </div>
-        <div className="flex gap-2">
-          <Link href="/operator/fleet" className="btn-secondary">
-            <Bus size={16} /> My fleet
-          </Link>
-          <Link href="/operator/trips/new" className="btn-primary">
-            <PlusCircle size={16} /> Schedule trip
-          </Link>
-        </div>
+        {role === "owner" && (
+          <div className="flex flex-wrap justify-end gap-2">
+            <Link href="/operator/fleet" className="btn-secondary">
+              <Bus size={16} /> My fleet
+            </Link>
+            <Link href="/operator/pilots" className="btn-secondary">
+              <UserPlus size={16} /> Pilots
+            </Link>
+            <Link href="/operator/trips/new" className="btn-primary">
+              <PlusCircle size={16} /> Schedule trip
+            </Link>
+          </div>
+        )}
       </div>
 
-      {/* stats */}
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Total trips" value={String(analytics?.totalTrips ?? 0)} />
-        <Stat label="Upcoming" value={String(analytics?.upcomingTrips ?? 0)} />
-        <Stat label="Bookings" value={String(analytics?.totalBookings ?? 0)} />
-        <Stat
-          label="Revenue"
-          value={`LKR ${Number(analytics?.totalRevenue ?? 0).toLocaleString("en-LK")}`}
-        />
-      </div>
+      {role === "owner" && (
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Stat label="Total trips" value={String(analytics?.totalTrips ?? 0)} />
+          <Stat label="Upcoming" value={String(analytics?.upcomingTrips ?? 0)} />
+          <Stat label="Bookings" value={String(analytics?.totalBookings ?? 0)} />
+          <Stat label="Revenue" value={`LKR ${Number(analytics?.totalRevenue ?? 0).toLocaleString("en-LK")}`} />
+        </div>
+      )}
 
       <div className="mt-8 flex items-center gap-2.5">
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-brand-soft-dark dark:text-blue-300">
           <TrendingUp size={18} />
         </span>
-        <h2 className="font-heading text-xl font-semibold">Your trips</h2>
+        <h2 className="font-heading text-xl font-semibold">
+          {role === "owner" ? "Your trips" : "Trips you can board"}
+        </h2>
       </div>
 
       {trips.length === 0 ? (
         <div className="card mt-5 p-10 text-center text-slate-500 dark:text-zinc-400">
           No trips scheduled yet.
-          <Link href="/operator/trips/new" className="btn-primary mt-4">
-            <PlusCircle size={16} /> Schedule your first trip
-          </Link>
+          {role === "owner" && (
+            <Link href="/operator/trips/new" className="btn-primary mt-4">
+              <PlusCircle size={16} /> Schedule your first trip
+            </Link>
+          )}
         </div>
       ) : (
         <div className="mt-5 flex flex-col gap-3">
           {trips.map((t) => (
             <Link
               key={t.id}
-              href={`/operator/trips/${t.id}`}
+              href={role === "owner" ? `/operator/trips/${t.id}` : `/operator/trips/${t.id}/scan`}
               className="card card-hover flex items-center justify-between p-4"
             >
               <div className="min-w-0">
@@ -148,9 +213,12 @@ export default async function OperatorOverviewPage() {
                   {t.bus.bus_type.name} · {t.bus.bus_type.seat_count} seats · Bus {t.bus.reg_no}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="font-medium">{formatDateTime(t.depart_at)}</p>
-                <p className="ui text-xs capitalize text-slate-500 dark:text-zinc-400">{t.status}</p>
+              <div className="flex items-center gap-3 text-right">
+                <div>
+                  <p className="font-medium">{formatDateTime(t.depart_at)}</p>
+                  <p className="ui text-xs capitalize text-slate-500 dark:text-zinc-400">{t.status}</p>
+                </div>
+                {role === "pilot" && <QrCode size={18} className="text-brand dark:text-blue-400" />}
               </div>
             </Link>
           ))}

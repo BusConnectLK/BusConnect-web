@@ -255,8 +255,69 @@ export interface OperatorFleet {
   buses: { id: string; reg_no: string; bus_type: { name: string; seat_count: number } }[];
 }
 
+export type OperatorRole = 'owner' | 'pilot';
+
+export interface OperatorMembership {
+  operator: OperatorInfo;
+  role: OperatorRole;
+}
+
+export interface Pilot {
+  userId: string;
+  displayName: string | null;
+  email: string | null;
+  createdAt: string;
+}
+
+export interface MyRoles {
+  isOperator: boolean;
+  operatorRole: OperatorRole | null;
+  operatorName: string | null;
+  operatorStatus: string | null;
+  isAdmin: boolean;
+}
+
 export function getMyOperator(accessToken: string) {
-  return request<OperatorInfo>('/operator/me', { accessToken });
+  return request<OperatorMembership>('/operator/me', { accessToken });
+}
+
+export function applyAsOperator(accessToken: string, name: string) {
+  return request<OperatorInfo>('/operator/apply', {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+    accessToken,
+  });
+}
+
+export function listPilots(accessToken: string) {
+  return request<Pilot[]>('/operator/pilots', { accessToken });
+}
+
+export function invitePilot(accessToken: string, email: string, displayName?: string) {
+  return request<{ user_id: string }>('/operator/pilots', {
+    method: 'POST',
+    body: JSON.stringify({ email, displayName }),
+    accessToken,
+  });
+}
+
+export function removePilot(accessToken: string, pilotUserId: string) {
+  return request(`/operator/pilots/${pilotUserId}`, { method: 'DELETE', accessToken });
+}
+
+export function getMyRoles(accessToken: string) {
+  return request<MyRoles>('/me/roles', { accessToken });
+}
+
+export function validateTicket(accessToken: string, token: string) {
+  return request<
+    | { ok: true; status: 'accepted'; ticketId: string }
+    | { ok: false; reason: 'already_used' | 'void' | 'not_found' }
+  >('/tickets/validate', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+    accessToken,
+  });
 }
 
 export function listOperatorTrips(accessToken: string) {
