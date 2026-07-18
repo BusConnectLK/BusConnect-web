@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Bus, UserPlus } from "lucide-react";
+import { LayoutDashboard, Bus, Route, UserPlus, UserCircle } from "lucide-react";
 
 const items = [
   { label: "Overview", href: "/operator", icon: LayoutDashboard, ownerOnly: false },
   { label: "Fleet", href: "/operator/fleet", icon: Bus, ownerOnly: true },
+  { label: "Routes", href: "/operator/routes", icon: Route, ownerOnly: true },
   { label: "Pilots", href: "/operator/pilots", icon: UserPlus, ownerOnly: true },
+  { label: "Profile", href: "/operator/profile", icon: UserCircle, ownerOnly: false },
 ] as const;
 
 export function OperatorNav({ role }: { role: "owner" | "pilot" }) {

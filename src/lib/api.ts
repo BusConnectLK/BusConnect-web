@@ -350,6 +350,50 @@ export function getOperatorFleet(accessToken: string) {
   return request<OperatorFleet>('/operator/fleet', { accessToken });
 }
 
+export interface OperatorPayoutAccount {
+  bankName?: string | null;
+  branchName?: string | null;
+  accountNumber?: string | null;
+  bankCode?: string | null;
+}
+
+export interface OperatorProfile {
+  id: string;
+  name: string;
+  rating: number;
+  reliability_score: number;
+  status: string;
+  logo_url: string | null;
+  witness_name: string | null;
+  mobile_no: string | null;
+  address: string | null;
+  payout_account: OperatorPayoutAccount | null;
+  created_at: string;
+  role: OperatorRole;
+}
+
+export function getOperatorProfile(accessToken: string) {
+  return request<OperatorProfile>('/operator/profile', { accessToken });
+}
+
+export interface UpdateOperatorProfileInput {
+  mobileNo?: string;
+  address?: string;
+  logoUrl?: string;
+  bankName?: string;
+  branchName?: string;
+  accountNumber?: string;
+  bankCode?: string;
+}
+
+export function updateOperatorProfile(accessToken: string, input: UpdateOperatorProfileInput) {
+  return request<OperatorProfile>('/operator/profile', {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+    accessToken,
+  });
+}
+
 export function createOperatorTrip(
   accessToken: string,
   body: { routeId: string; busId: string; departAt: string; arriveEst?: string; baseFare: number },
@@ -375,6 +419,7 @@ export interface AdminOperator {
   mobile_no: string | null;
   address: string | null;
   id_document_path: string | null;
+  payout_account: OperatorPayoutAccount | null;
   owner_email?: string | null;
 }
 

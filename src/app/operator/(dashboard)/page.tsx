@@ -141,11 +141,21 @@ export default async function OperatorOverviewPage() {
   return (
     <div>
       <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="ui text-sm text-slate-500 dark:text-zinc-400">
-            {role === "owner" ? "Operator dashboard" : "Conductor dashboard"}
-          </p>
-          <h1 className="font-heading text-2xl font-bold tracking-tight">{operator.name}</h1>
+        <div className="flex items-center gap-3">
+          {operator.logo_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={operator.logo_url}
+              alt={`${operator.name} logo`}
+              className="h-12 w-12 shrink-0 rounded-xl border border-slate-200 object-cover dark:border-zinc-800"
+            />
+          )}
+          <div>
+            <p className="ui text-sm text-slate-500 dark:text-zinc-400">
+              {role === "owner" ? "Operator dashboard" : "Conductor dashboard"}
+            </p>
+            <h1 className="font-heading text-2xl font-bold tracking-tight">{operator.name}</h1>
+          </div>
         </div>
         {role === "owner" && (
           <Link href="/operator/trips/new" className="btn-primary">

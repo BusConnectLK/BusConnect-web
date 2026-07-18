@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Bus as BusIcon } from "lucide-react";
+import { Route as RouteIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOperatorFleet, ApiError, type OperatorFleet } from "@/lib/api";
+import { listLocations } from "@/lib/locations";
 
-export default async function OperatorFleetPage() {
+export default async function OperatorRoutesPage() {
   const supabase = await createClient();
   const {
     data: { session },
@@ -11,8 +12,8 @@ export default async function OperatorFleetPage() {
 
   if (!session) {
     return (
-      <Link href="/login?next=/operator/fleet" className="font-medium text-brand underline dark:text-blue-400">
-        Sign in to view your fleet
+      <Link href="/login?next=/operator/routes" className="font-medium text-brand underline dark:text-blue-400">
+        Sign in to view your routes
       </Link>
     );
   }
@@ -38,30 +39,32 @@ export default async function OperatorFleetPage() {
     );
   }
 
+  const locations = await listLocations();
+  const nameOf = (id: string) => locations.find((l) => l.id === id)?.name_en ?? "Unknown";
+
   return (
     <div>
-      <h1 className="font-heading text-2xl font-bold tracking-tight">My fleet</h1>
+      <h1 className="font-heading text-2xl font-bold tracking-tight">Routes</h1>
       <p className="ui mt-1 text-sm text-slate-600 dark:text-zinc-400">
-        Buses registered to your account. To add a new bus, contact BusConnect support — this
-        keeps fleet data verified across the platform.
+        Routes registered to your account. To add a new route, contact BusConnect support — this
+        keeps route data verified across the platform.
       </p>
 
       <div className="mt-6">
         <div className="mb-3 flex items-center gap-2">
-          <BusIcon size={18} className="text-brand dark:text-blue-400" />
-          <h2 className="font-heading text-lg font-semibold">Buses ({fleet.buses.length})</h2>
+          <RouteIcon size={18} className="text-brand dark:text-blue-400" />
+          <h2 className="font-heading text-lg font-semibold">Routes ({fleet.routes.length})</h2>
         </div>
-        {fleet.buses.length === 0 ? (
+        {fleet.routes.length === 0 ? (
           <div className="card p-8 text-center text-sm text-slate-500 dark:text-zinc-400">
-            No buses registered yet.
+            No routes registered yet.
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            {fleet.buses.map((b) => (
-              <div key={b.id} className="card p-4">
-                <p className="font-medium">{b.reg_no}</p>
-                <p className="ui mt-0.5 text-sm text-slate-600 dark:text-zinc-400">
-                  {b.bus_type.name} · {b.bus_type.seat_count} seats
+            {fleet.routes.map((r) => (
+              <div key={r.id} className="card p-4">
+                <p className="font-medium">
+                  {nameOf(r.origin_id)} → {nameOf(r.dest_id)}
                 </p>
               </div>
             ))}

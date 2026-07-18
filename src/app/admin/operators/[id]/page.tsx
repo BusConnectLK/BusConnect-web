@@ -2,8 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
+  Banknote,
+  Building2,
   CalendarDays,
   FileText,
+  Hash,
+  Landmark,
   Mail,
   MapPin,
   Phone,
@@ -187,6 +191,25 @@ export default async function AdminOperatorDetailPage({
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── Bank details ─────────────────────────────────────────────────────── */}
+      <div className="card-lg mt-4 p-6">
+        <h2 className="ui text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-600">
+          Bank details
+        </h2>
+        {operator.payout_account?.bankName || operator.payout_account?.accountNumber ? (
+          <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <Field icon={Landmark} label="Bank name" value={operator.payout_account?.bankName ?? "—"} />
+            <Field icon={Building2} label="Branch name" value={operator.payout_account?.branchName ?? "—"} />
+            <Field icon={Hash} label="Account number" value={operator.payout_account?.accountNumber ?? "—"} />
+            <Field icon={Banknote} label="Bank code" value={operator.payout_account?.bankCode ?? "—"} />
+          </div>
+        ) : (
+          <p className="ui mt-3 text-sm text-slate-500 dark:text-zinc-500">
+            This operator hasn&apos;t added bank details yet.
+          </p>
+        )}
       </div>
 
       {/* ── Danger zone ─────────────────────────────────────────────────────── */}
