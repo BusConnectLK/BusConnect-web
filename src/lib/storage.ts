@@ -41,3 +41,15 @@ export async function uploadBusImage(userId: string, file: File, kind: string): 
   if (error) throw error;
   return supabase.storage.from('bus-images').getPublicUrl(path).data.publicUrl;
 }
+
+/** Private bucket — pilot profile photo; returns a storage PATH, viewed later via a signed URL. */
+export async function uploadPilotPhoto(userId: string, file: File): Promise<string> {
+  const supabase = createClient();
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  const path = `${userId}/photo-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('pilot-photos')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw error;
+  return path;
+}

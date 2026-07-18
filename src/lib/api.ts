@@ -310,11 +310,23 @@ export interface OperatorMembership {
   role: OperatorRole;
 }
 
-export interface Pilot {
-  userId: string;
-  displayName: string | null;
-  email: string | null;
-  createdAt: string;
+export interface OperatorPilot {
+  id: string;
+  name: string;
+  id_number: string;
+  phone_no: string;
+  profile_image_url: string | null;
+  status: 'pending' | 'active' | 'rejected';
+  assigned_bus_id: string | null;
+  assigned_role: 'driver' | 'conductor' | null;
+  user_id: string | null;
+  created_at: string;
+  bus: { reg_no: string } | null;
+}
+
+export interface OperatorPilotDetail extends OperatorPilot {
+  operator_id: string;
+  bus: { reg_no: string; bus_type: { name: string; class: string } | null } | null;
 }
 
 export interface MyRoles {
@@ -347,19 +359,54 @@ export function applyAsOperator(accessToken: string, input: ApplyOperatorInput) 
 }
 
 export function listPilots(accessToken: string) {
-  return request<Pilot[]>('/operator/pilots', { accessToken });
+  return request<OperatorPilot[]>('/operator/pilots', { accessToken });
 }
 
-export function invitePilot(accessToken: string, email: string, displayName?: string) {
-  return request<{ user_id: string }>('/operator/pilots', {
+export function getPilot(accessToken: string, pilotId: string) {
+  return request<OperatorPilotDetail>(`/operator/pilots/${pilotId}`, { accessToken });
+}
+
+export interface RegisterPilotInput {
+  name: string;
+  idNumber: string;
+  phoneNo: string;
+  profileImagePath: string;
+}
+
+export function registerPilot(accessToken: string, input: RegisterPilotInput) {
+  return request<OperatorPilot>('/operator/pilots', {
     method: 'POST',
-    body: JSON.stringify({ email, displayName }),
+    body: JSON.stringify(input),
     accessToken,
   });
 }
 
-export function removePilot(accessToken: string, pilotUserId: string) {
-  return request(`/operator/pilots/${pilotUserId}`, { method: 'DELETE', accessToken });
+export function getPilotPhotoUrl(accessToken: string, pilotId: string) {
+  return request<{ url: string }>(`/operator/pilots/${pilotId}/photo-url`, { accessToken });
+}
+
+export function assignPilot(
+  accessToken: string,
+  pilotId: string,
+  input: { busId: string; role: 'driver' | 'conductor' },
+) {
+  return request<OperatorPilot>(`/operator/pilots/${pilotId}/assign`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+    accessToken,
+  });
+}
+
+export function linkPilotAccount(accessToken: string, pilotId: string, email: string) {
+  return request<OperatorPilot>(`/operator/pilots/${pilotId}/link-account`, {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+    accessToken,
+  });
+}
+
+export function deletePilot(accessToken: string, pilotId: string) {
+  return request(`/operator/pilots/${pilotId}`, { method: 'DELETE', accessToken });
 }
 
 export function getMyRoles(accessToken: string) {
@@ -653,6 +700,41 @@ export function setAdminBusStatus(
     body: JSON.stringify({ status }),
     accessToken,
   });
+}
+
+export interface AdminPilot {
+  id: string;
+  name: string;
+  id_number: string;
+  phone_no: string;
+  profile_image_url: string | null;
+  status: 'pending' | 'active' | 'rejected';
+  assigned_bus_id: string | null;
+  assigned_role: 'driver' | 'conductor' | null;
+  user_id: string | null;
+  created_at: string;
+  operator: { name: string } | null;
+  bus: { reg_no: string } | null;
+}
+
+export function listAdminPilots(accessToken: string) {
+  return request<AdminPilot[]>('/admin/pilots', { accessToken });
+}
+
+export function setAdminPilotStatus(
+  accessToken: string,
+  pilotId: string,
+  status: 'pending' | 'active' | 'rejected',
+) {
+  return request<AdminPilot>(`/admin/pilots/${pilotId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+    accessToken,
+  });
+}
+
+export function getAdminPilotPhotoUrl(accessToken: string, pilotId: string) {
+  return request<{ url: string }>(`/admin/pilots/${pilotId}/photo-url`, { accessToken });
 }
 
 export function listAdminRoutes(accessToken: string) {
