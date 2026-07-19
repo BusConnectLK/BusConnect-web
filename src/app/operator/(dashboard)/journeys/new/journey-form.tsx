@@ -2,17 +2,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Loader2, Send, User } from "lucide-react";
+import { ChevronDown, Loader2, Save, Send, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
   getOperatorRouteCatalog,
   getOperatorFleet,
   listPilots,
   createJourney,
+  updateJourney,
   ApiError,
   type RouteCatalogEntry,
   type OperatorBus,
   type OperatorPilot,
+  type OperatorJourneyDetail,
 } from "@/lib/api";
 import { WEEKDAYS } from "@/lib/journey-format";
 
@@ -24,8 +26,9 @@ interface StopRow {
   canDrop: boolean;
 }
 
-export function JourneyForm() {
+export function JourneyForm({ initial }: { initial?: OperatorJourneyDetail }) {
   const router = useRouter();
+  const editing = !!initial;
 
   const [routes, setRoutes] = useState<RouteCatalogEntry[]>([]);
   const [buses, setBuses] = useState<OperatorBus[]>([]);
@@ -33,21 +36,33 @@ export function JourneyForm() {
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
-  const [routeId, setRouteId] = useState("");
-  const [busId, setBusId] = useState("");
-  const [departTime, setDepartTime] = useState("");
-  const [arriveTime, setArriveTime] = useState("");
-  const [arriveNextDay, setArriveNextDay] = useState(false);
-  const [departLocation, setDepartLocation] = useState("");
-  const [departLocationUrl, setDepartLocationUrl] = useState("");
-  const [arriveLocation, setArriveLocation] = useState("");
-  const [arriveLocationUrl, setArriveLocationUrl] = useState("");
-  const [baseFare, setBaseFare] = useState("");
-  const [recurrence, setRecurrence] = useState<"daily" | "weekly">("daily");
-  const [weekdays, setWeekdays] = useState<Set<number>>(new Set());
-  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
-  const [endDate, setEndDate] = useState("");
-  const [stops, setStops] = useState<StopRow[]>([]);
+  const [routeId, setRouteId] = useState(initial?.route?.id ?? "");
+  const [busId, setBusId] = useState(initial?.bus?.id ?? "");
+  const [departTime, setDepartTime] = useState(initial?.depart_time.slice(0, 5) ?? "");
+  const [arriveTime, setArriveTime] = useState(initial?.arrive_time.slice(0, 5) ?? "");
+  const [arriveNextDay, setArriveNextDay] = useState(initial ? initial.arrive_day_offset > 0 : false);
+  const [departLocation, setDepartLocation] = useState(initial?.depart_location ?? "");
+  const [departLocationUrl, setDepartLocationUrl] = useState(initial?.depart_location_url ?? "");
+  const [arriveLocation, setArriveLocation] = useState(initial?.arrive_location ?? "");
+  const [arriveLocationUrl, setArriveLocationUrl] = useState(initial?.arrive_location_url ?? "");
+  const [baseFare, setBaseFare] = useState(initial ? String(initial.base_fare) : "");
+  const [recurrence, setRecurrence] = useState<"daily" | "weekly">(initial?.recurrence ?? "daily");
+  const [weekdays, setWeekdays] = useState<Set<number>>(new Set(initial?.weekdays ?? []));
+  const [startDate, setStartDate] = useState(initial?.start_date ?? new Date().toISOString().slice(0, 10));
+  const [endDate, setEndDate] = useState(initial?.end_date ?? "");
+  const [stops, setStops] = useState<StopRow[]>(
+    initial
+      ? [...initial.stops]
+          .sort((a, b) => a.seq - b.seq)
+          .map((s) => ({
+            routeStopId: s.route_stop_id,
+            name: s.route_stop?.location?.name_en ?? "—",
+            time: s.scheduled_time.slice(0, 5),
+            canBoard: s.can_board,
+            canDrop: s.can_drop,
+          }))
+      : [],
+  );
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +81,7 @@ export function JourneyForm() {
           listPilots(session.access_token),
         ]);
         setRoutes(routeList);
-        setBuses(fleet.buses.filter((b) => b.status === "active"));
+        setBuses(fleet.buses.filter((b) => b.status === "active" || b.id === initial?.bus?.id));
         setPilots(pilotList);
       } catch (e) {
         setLoadErr(e instanceof ApiError ? e.message : "Could not load your routes and buses.");
@@ -74,6 +89,7 @@ export function JourneyForm() {
         setLoaded(true);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Departure/arrival time changes mirror into the first/last timetable rows.
@@ -150,10 +166,10 @@ export function JourneyForm() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) {
-        router.push("/login?next=/operator/journeys/new");
+        router.push(`/login?next=/operator/journeys${editing ? `/${initial.id}/edit` : "/new"}`);
         return;
       }
-      await createJourney(session.access_token, {
+      const payload = {
         routeId,
         busId,
         departTime,
@@ -174,11 +190,17 @@ export function JourneyForm() {
           canBoard: s.canBoard,
           canDrop: s.canDrop,
         })),
-      });
-      router.push("/operator/journeys");
+      };
+      if (editing) {
+        await updateJourney(session.access_token, initial.id, payload);
+        router.push(`/operator/journeys/${initial.id}`);
+      } else {
+        await createJourney(session.access_token, payload);
+        router.push("/operator/journeys");
+      }
       router.refresh();
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Could not create the journey. Try again.");
+      setError(e instanceof ApiError ? e.message : `Could not ${editing ? "save" : "create"} the journey. Try again.`);
       setBusy(false);
     }
   }
@@ -408,8 +430,14 @@ export function JourneyForm() {
       {error && <p className="ui text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       <button type="submit" disabled={busy} className="btn-primary self-start py-3.5">
-        {busy ? <Loader2 size={18} className="animate-spin" /> : <Send size={16} />}
-        {busy ? "Creating…" : "Create journey"}
+        {busy ? (
+          <Loader2 size={18} className="animate-spin" />
+        ) : editing ? (
+          <Save size={16} />
+        ) : (
+          <Send size={16} />
+        )}
+        {editing ? (busy ? "Saving…" : "Save changes") : busy ? "Creating…" : "Create journey"}
       </button>
     </form>
   );

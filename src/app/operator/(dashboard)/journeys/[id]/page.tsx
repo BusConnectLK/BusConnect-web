@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, Bus, CalendarClock, MapPin, User, Wallet } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bus, CalendarClock, MapPin, Pencil, User, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getJourney, ApiError, type OperatorJourneyDetail } from "@/lib/api";
 import { formatTime, recurrenceLabel, durationLabel } from "@/lib/journey-format";
@@ -110,7 +110,15 @@ export default async function JourneyDetailPage({
               <span>{durationLabel(journey.depart_time, journey.arrive_time, journey.arrive_day_offset)}</span>
             </p>
           </div>
-          <JourneyActions journeyId={journey.id} status={journey.status} />
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              href={`/operator/journeys/${journey.id}/edit`}
+              className="ui inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            >
+              <Pencil size={13} /> Edit details
+            </Link>
+            <JourneyActions journeyId={journey.id} status={journey.status} />
+          </div>
         </div>
 
         <dl className="ui mt-6 grid grid-cols-1 gap-5 border-t border-slate-200 pt-6 sm:grid-cols-2 dark:border-zinc-800">
