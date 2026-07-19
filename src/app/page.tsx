@@ -6,7 +6,6 @@ import {
   MapPinned,
   Languages,
   RefreshCw,
-  Route,
   Clock,
   ArrowRight,
 } from "lucide-react";
@@ -100,7 +99,7 @@ function Features() {
         title="Why BusConnect"
         subtitle="Everything the old booking sites do,done smarter, faster and in your language."
       />
-      <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-9 grid grid-cols-2 gap-4 lg:grid-cols-3">
         {features.map(([Icon, title, body]) => (
           <div key={title} className="card card-hover p-6">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-brand-soft-dark dark:text-blue-300">
@@ -123,7 +122,6 @@ function PopularRoutes({ routes }: { routes: Awaited<ReturnType<typeof listPopul
     <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <SectionHeading
         id="routes"
-        icon={<Route size={18} />}
         title="Popular routes"
         subtitle="Ranked by real scheduled trips across active operators right now."
       />
@@ -184,7 +182,7 @@ function HowItWorks() {
       <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map(([title, body], i) => (
           <div key={title} className="card p-6">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand font-heading font-bold text-brand-fg shadow-lg shadow-brand/20">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand font-heading font-bold text-brand-fg">
               {i + 1}
             </span>
             <h3 className="mt-4 font-heading font-semibold">{title}</h3>

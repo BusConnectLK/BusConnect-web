@@ -77,7 +77,7 @@ export function UserMenu() {
     return (
       <Link
         href="/login"
-        className="rounded-xl bg-brand px-4 py-2 font-semibold text-brand-fg shadow-lg shadow-brand/20 transition-colors duration-300 hover:bg-brand-hover"
+        className="rounded-xl bg-brand px-4 py-2 font-semibold text-brand-fg transition-colors duration-300 hover:bg-brand-hover"
       >
         Sign in
       </Link>

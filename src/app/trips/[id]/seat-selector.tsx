@@ -196,7 +196,7 @@ export function SeatSelector(props: Props) {
                           isTaken
                             ? "cursor-not-allowed bg-slate-200 text-transparent dark:bg-zinc-700"
                             : isSelected
-                              ? "bg-brand text-brand-fg shadow-md shadow-brand/30"
+                              ? "bg-brand text-brand-fg"
                               : "border border-slate-300 bg-white text-slate-700 hover:border-brand hover:text-brand dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
                         ].join(" ")}
                       >
