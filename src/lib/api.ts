@@ -969,3 +969,24 @@ export function updateAdminRoute(accessToken: string, routeId: string, body: Ups
 export function deleteAdminRoute(accessToken: string, routeId: string) {
   return request(`/admin/routes/${routeId}`, { method: 'DELETE', accessToken });
 }
+
+// ── Timetable — every scheduled trip across every operator ─────────────────
+
+export interface AdminTrip {
+  id: string;
+  depart_at: string;
+  arrive_est: string | null;
+  base_fare: number;
+  status: string;
+  route: { id: string; name: string } | null;
+  bus: {
+    reg_no: string;
+    bus_type: { name: string; class: string; seat_count: number } | null;
+    operator: { id: string; name: string } | null;
+  } | null;
+}
+
+export function listAdminTrips(accessToken: string, upcomingOnly = false) {
+  const qs = upcomingOnly ? '?upcomingOnly=true' : '';
+  return request<AdminTrip[]>(`/admin/trips${qs}`, { accessToken });
+}
