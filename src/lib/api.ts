@@ -59,6 +59,7 @@ export interface TripSearchResult {
   status: string;
   bus_reg_no: string;
   bus_amenities: string[];
+  bus_images: string[];
   bus_type_name: string;
   bus_type_class: string;
   bus_type_seat_count: number;
@@ -321,6 +322,7 @@ export interface RouteStopEntry {
 export interface RouteCatalogEntry {
   id: string;
   name: string;
+  image_url: string | null;
   origin_id: string;
   dest_id: string;
   origin?: { name_en: string } | null;
@@ -933,6 +935,7 @@ export function listAdminRoutes(accessToken: string) {
 export interface UpsertRouteInput {
   name: string;
   stopLocationIds: string[];
+  imageUrl?: string;
 }
 
 export function createAdminRoute(accessToken: string, body: UpsertRouteInput) {

@@ -6,7 +6,6 @@ import {
   MapPinned,
   Languages,
   RefreshCw,
-  Clock,
   ArrowRight,
 } from "lucide-react";
 import { listLocations } from "@/lib/locations";
@@ -130,7 +129,7 @@ function PopularRoutes({ routes }: { routes: Awaited<ReturnType<typeof listPopul
           No upcoming trips yet — check back once operators have scheduled some.
         </p>
       ) : (
-        <div className="mt-9 grid grid-cols-2 gap-4 lg:grid-cols-3">
+        <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {routes.map((r) => {
             const dur = formatDuration(r.durationMinutes);
             return (
@@ -139,30 +138,24 @@ function PopularRoutes({ routes }: { routes: Awaited<ReturnType<typeof listPopul
                 href={`/search?from=${r.originId}&to=${r.destId}&date=${today}`}
                 className="card card-hover overflow-hidden"
               >
-                <div
-                  className="flex aspect-square items-start p-4"
-                  style={{ background: "linear-gradient(135deg, #004aad 0%, #062b63 100%)" }}
-                >
-                  {dur && (
-                    <span className="ui inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur">
-                      <Clock size={13} /> {dur}
-                    </span>
-                  )}
-                </div>
-                <div className="p-5">
-                  <h3 className="flex items-center gap-2 font-heading text-lg font-bold tracking-tight">
-                    {r.originName}
+                {r.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={r.imageUrl}
+                    alt={`${r.originName} to ${r.destName}`}
+                    className="aspect-video w-full object-cover"
+                  />
+                )}
+                <div className="p-4">
+                  <h3 className="flex items-center gap-2 font-heading text-base font-bold tracking-tight">
+                    <span className="truncate">{r.originName}</span>
                     <ArrowRight size={15} className="shrink-0 text-slate-400" />
-                    {r.destName}
+                    <span className="truncate">{r.destName}</span>
                   </h3>
                   <p className="ui mt-1 text-sm text-slate-500 dark:text-zinc-400">
                     {r.tripCount} {r.tripCount === 1 ? "trip" : "trips"} scheduled today
+                    {dur && ` · ${dur}`}
                   </p>
-                  <div className="mt-4 border-t border-slate-200 pt-4 dark:border-zinc-800">
-                    <span className="btn-primary w-full">
-                      Find buses
-                    </span>
-                  </div>
                 </div>
               </Link>
             );

@@ -7,6 +7,7 @@ export interface PopularRoute {
   destName: string;
   durationMinutes: number | null;
   tripCount: number;
+  imageUrl: string | null;
 }
 
 interface TripRow {
@@ -15,6 +16,7 @@ interface TripRow {
   route: {
     origin_id: string;
     dest_id: string;
+    image_url: string | null;
     origin: { name_en: string } | null;
     dest: { name_en: string } | null;
   } | null;
@@ -36,7 +38,7 @@ export async function listPopularRoutes(limit = 6): Promise<PopularRoute[]> {
     .select(
       `depart_at, arrive_est,
        route:routes!inner (
-         origin_id, dest_id,
+         origin_id, dest_id, image_url,
          origin:locations!routes_origin_id_fkey ( name_en ),
          dest:locations!routes_dest_id_fkey ( name_en )
        ),
@@ -54,7 +56,15 @@ export async function listPopularRoutes(limit = 6): Promise<PopularRoute[]> {
 
   const byPair = new Map<
     string,
-    { originId: string; destId: string; originName: string; destName: string; durations: number[]; count: number }
+    {
+      originId: string;
+      destId: string;
+      originName: string;
+      destName: string;
+      durations: number[];
+      count: number;
+      imageUrl: string | null;
+    }
   >();
 
   for (const row of (data ?? []) as unknown as TripRow[]) {
@@ -69,6 +79,7 @@ export async function listPopularRoutes(limit = 6): Promise<PopularRoute[]> {
     if (existing) {
       existing.count += 1;
       if (duration != null) existing.durations.push(duration);
+      if (!existing.imageUrl && route.image_url) existing.imageUrl = route.image_url;
     } else {
       byPair.set(key, {
         originId: route.origin_id,
@@ -77,6 +88,7 @@ export async function listPopularRoutes(limit = 6): Promise<PopularRoute[]> {
         destName: route.dest?.name_en ?? 'Unknown',
         durations: duration != null ? [duration] : [],
         count: 1,
+        imageUrl: route.image_url,
       });
     }
   }
@@ -91,6 +103,7 @@ export async function listPopularRoutes(limit = 6): Promise<PopularRoute[]> {
       destName: r.destName,
       durationMinutes: r.durations.length > 0 ? Math.min(...r.durations) : null,
       tripCount: r.count,
+      imageUrl: r.imageUrl,
     }));
 }
 

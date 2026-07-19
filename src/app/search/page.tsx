@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Star, Clock } from "lucide-react";
 import { searchTrips, ApiError, type TripSearchResult } from "@/lib/api";
 import { DateBadge } from "@/components/ui";
+import { ImageCarousel } from "@/components/image-carousel";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("en-LK", { hour: "2-digit", minute: "2-digit" });
@@ -21,12 +22,19 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
   return (
     <div className="card card-hover overflow-hidden">
       {/* poster header */}
-      <div
-        className="relative flex aspect-square items-start justify-between p-4"
-        style={{ background: "linear-gradient(135deg, #004aad 0%, #062b63 100%)" }}
-      >
-        <DateBadge iso={trip.boarding_at} />
-        <div className="absolute bottom-4 left-4 flex items-center gap-2 text-white">
+      <div className="relative aspect-video">
+        {trip.bus_images.length > 0 ? (
+          <ImageCarousel images={trip.bus_images} alt={`${trip.bus_reg_no} photos`} />
+        ) : (
+          <div
+            className="h-full w-full"
+            style={{ background: "linear-gradient(135deg, #004aad 0%, #062b63 100%)" }}
+          />
+        )}
+        <div className="pointer-events-none absolute inset-x-0 top-0 p-4">
+          <DateBadge iso={trip.boarding_at} />
+        </div>
+        <div className="pointer-events-none absolute bottom-4 left-4 flex items-center gap-2 text-white">
           {trip.operator_logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -39,7 +47,7 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
               {trip.operator_name.slice(0, 1)}
             </span>
           )}
-          <span className="font-heading text-lg font-semibold">{trip.operator_name}</span>
+          <span className="font-heading text-lg font-semibold drop-shadow">{trip.operator_name}</span>
         </div>
       </div>
 

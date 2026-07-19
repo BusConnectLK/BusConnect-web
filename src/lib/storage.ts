@@ -53,3 +53,15 @@ export async function uploadPilotPhoto(userId: string, file: File): Promise<stri
   if (error) throw error;
   return path;
 }
+
+/** Public bucket — admin-uploaded route photo, shown on passenger-facing route cards. */
+export async function uploadRouteImage(userId: string, file: File): Promise<string> {
+  const supabase = createClient();
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  const path = `${userId}/route-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+  const { error } = await supabase.storage
+    .from('route-images')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw error;
+  return supabase.storage.from('route-images').getPublicUrl(path).data.publicUrl;
+}

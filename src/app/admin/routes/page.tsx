@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { ArrowDown, ArrowUp, Loader2, Plus, PlusCircle, Save, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Loader2, Plus, PlusCircle, Route as RouteIcon, Save, Trash2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { uploadRouteImage } from "@/lib/storage";
+import { ImageSlot } from "@/components/image-slot";
 import {
   listAdminLocations,
   createAdminLocation,
@@ -18,6 +20,7 @@ import {
 interface EditorState {
   id?: string;
   name: string;
+  imageUrl?: string;
   stopIds: string[]; // ordered; "" for an empty slot awaiting a pick
 }
 
@@ -126,8 +129,20 @@ export default function AdminRoutesPage() {
           </div>
         ) : (
           routes.map((r) => (
-            <div key={r.id} className="card p-4">
-              <div className="flex items-start justify-between gap-3">
+            <div key={r.id} className="card flex items-center gap-3 p-4">
+              {r.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={r.image_url}
+                  alt={`${r.name} photo`}
+                  className="h-14 w-14 shrink-0 rounded-lg border border-slate-200 object-cover dark:border-zinc-800"
+                />
+              ) : (
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-dashed border-slate-300 text-slate-400 dark:border-zinc-700 dark:text-zinc-600">
+                  <RouteIcon size={18} />
+                </div>
+              )}
+              <div className="flex flex-1 items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-medium">{r.name}</p>
                   <p className="ui mt-1 text-sm text-slate-500 dark:text-zinc-400">
@@ -142,6 +157,7 @@ export default function AdminRoutesPage() {
                       setEditor({
                         id: r.id,
                         name: r.name,
+                        imageUrl: r.image_url ?? undefined,
                         stopIds: r.stops.map((s) => s.location?.id ?? "").filter(Boolean),
                       })
                     }
@@ -177,6 +193,13 @@ function RouteEditor({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(editor.imageUrl ?? null);
+
+  function onImageChange(file: File | null) {
+    setImageFile(file);
+    setImagePreview(file ? URL.createObjectURL(file) : editor.imageUrl ?? null);
+  }
 
   function setStop(i: number, id: string) {
     setEditor({ ...editor, stopIds: editor.stopIds.map((s, idx) => (idx === i ? id : s)) });
@@ -212,7 +235,17 @@ function RouteEditor({
     }
     setBusy(true);
     try {
-      const body = { name: editor.name.trim(), stopLocationIds };
+      let imageUrl = editor.imageUrl;
+      if (imageFile) {
+        const supabase = createClient();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) throw new ApiError(401, "Please sign in.");
+        imageUrl = await uploadRouteImage(session.user.id, imageFile);
+      }
+
+      const body = { name: editor.name.trim(), stopLocationIds, imageUrl };
       if (editor.id) await updateAdminRoute(token, editor.id, body);
       else await createAdminRoute(token, body);
       onSaved();
@@ -245,6 +278,10 @@ function RouteEditor({
           className="field text-sm"
         />
       </label>
+
+      <div className="mt-4">
+        <ImageSlot label="Route photo (optional)" preview={imagePreview} onChange={onImageChange} />
+      </div>
 
       <p className="ui mt-5 mb-2 text-sm font-medium text-slate-700 dark:text-zinc-300">
         Stops <span className="font-normal text-slate-400 dark:text-zinc-500">(origin first → destination last)</span>
