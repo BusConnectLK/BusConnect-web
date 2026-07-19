@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getOperatorFleet, ApiError, type OperatorFleet } from "@/lib/api";
-import { listLocations } from "@/lib/locations";
 import { NewTripForm } from "./new-trip-form";
 
 export default async function NewTripPage() {
@@ -39,8 +38,6 @@ export default async function NewTripPage() {
     );
   }
 
-  const locations = await listLocations();
-  const nameOf = (id: string) => locations.find((l) => l.id === id)?.name_en ?? "Unknown";
   const approvedBuses = fleet.buses.filter((b) => b.status === "active");
 
   return (
@@ -61,7 +58,7 @@ export default async function NewTripPage() {
           <NewTripForm
             routes={fleet.routes.map((r) => ({
               id: r.id,
-              label: `${nameOf(r.origin_id)} → ${nameOf(r.dest_id)}`,
+              label: r.name,
             }))}
             buses={approvedBuses.map((b) => ({
               id: b.id,

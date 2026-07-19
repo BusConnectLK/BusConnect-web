@@ -60,6 +60,9 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
   const fromStopId = stops[0]?.id ?? "";
   const toStopId = stops[stops.length - 1]?.id ?? "";
 
+  const operator = trip.bus.operator;
+  const operatorName = operator?.name ?? "Operator";
+
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <Link
@@ -76,11 +79,11 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
       >
         <div className="flex items-center gap-3 text-white">
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 font-heading text-lg font-bold backdrop-blur">
-            {trip.route.operator.name.slice(0, 1)}
+            {operatorName.slice(0, 1)}
           </span>
           <div>
             <h1 className="font-heading text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              {trip.route.operator.name}
+              {operatorName}
             </h1>
             <p className="ui text-sm text-white/80">
               {trip.bus.bus_type.name} · {trip.bus.bus_type.class.replace("_", " ")} · Bus {trip.bus.reg_no}
@@ -93,10 +96,10 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
           </span>
           <span className="flex items-center gap-1 rounded-lg bg-white/15 px-3 py-1.5 font-medium text-white backdrop-blur">
             <Star size={13} className="fill-amber-300 text-amber-300" />
-            {trip.route.operator.rating.toFixed(1)}
+            {(operator?.rating ?? 0).toFixed(1)}
           </span>
           <span className="rounded-lg bg-white/15 px-3 py-1.5 font-medium text-white backdrop-blur">
-            {trip.route.operator.reliability_score.toFixed(0)}% on-time
+            {(operator?.reliability_score ?? 0).toFixed(0)}% on-time
           </span>
         </div>
       </header>

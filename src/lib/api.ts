@@ -48,11 +48,14 @@ export interface TripSearchResult {
   status: string;
   route: {
     id: string;
-    operator: { id: string; name: string; rating: number; reliability_score: number };
+    name: string;
+    origin_id: string;
+    dest_id: string;
   };
   bus: {
     reg_no: string;
     amenities: string[];
+    operator: { id: string; name: string; rating: number; reliability_score: number };
     bus_type: { name: string; class: string; seat_count: number };
   };
 }
@@ -84,6 +87,7 @@ export interface RouteStop {
   location_id: string;
   seq: number;
   scheduled_offset_min: number;
+  location?: { id: string; name_en: string } | null;
 }
 
 export interface TripDetail {
@@ -94,14 +98,15 @@ export interface TripDetail {
   status: string;
   route: {
     id: string;
+    name: string;
     origin_id: string;
     dest_id: string;
-    operator: { id: string; name: string; rating: number; reliability_score: number };
     stops: RouteStop[];
   };
   bus: {
     reg_no: string;
     amenities: string[];
+    operator: { id: string; name: string; rating: number; reliability_score: number } | null;
     bus_type: { name: string; class: string; seat_count: number; layout_json: SeatLayout | null };
   };
 }
@@ -231,7 +236,7 @@ export interface OperatorTrip {
   arrive_est: string | null;
   base_fare: number;
   status: string;
-  route: { id: string; operator_id: string; origin_id: string; dest_id: string };
+  route: { id: string; name: string; origin_id: string; dest_id: string } | null;
   bus: { reg_no: string; bus_type: { name: string; class: string; seat_count: number } };
 }
 
@@ -275,9 +280,28 @@ export interface OperatorBus {
   bus_type: { name: string; class: string; seat_count: number } | null;
 }
 
+export interface RouteStopEntry {
+  seq: number;
+  location: { id: string; name_en: string } | null;
+}
+
+export interface RouteCatalogEntry {
+  id: string;
+  name: string;
+  origin_id: string;
+  dest_id: string;
+  origin?: { name_en: string } | null;
+  dest?: { name_en: string } | null;
+  stops: RouteStopEntry[];
+}
+
 export interface OperatorFleet {
-  routes: { id: string; origin_id: string; dest_id: string }[];
+  routes: { id: string; name: string; origin_id: string; dest_id: string }[];
   buses: OperatorBus[];
+}
+
+export function getOperatorRouteCatalog(accessToken: string) {
+  return request<RouteCatalogEntry[]>('/operator/routes', { accessToken });
 }
 
 export interface RegisterBusInput {
@@ -523,7 +547,7 @@ export interface AdminRefund {
     id: string;
     amount: number;
     seats: string[];
-    trip: { route: { operator: { name: string } | null } | null } | null;
+    trip: { bus: { operator: { name: string } | null } | null } | null;
   };
 }
 
@@ -582,12 +606,7 @@ export interface AdminBus {
   bus_type: { name: string; class: string; seat_count: number } | null;
 }
 
-export interface AdminRoute {
-  id: string;
-  operator: { name: string } | null;
-  origin: { name_en: string } | null;
-  dest: { name_en: string } | null;
-}
+export type AdminRoute = RouteCatalogEntry;
 
 export function listAdminOperators(accessToken: string) {
   return request<AdminOperator[]>('/admin/operators', { accessToken });
@@ -651,7 +670,7 @@ export function listAdminLocations(accessToken: string) {
 
 export function createAdminLocation(
   accessToken: string,
-  body: { nameEn: string; nameSi?: string; nameTa?: string; lat: number; lng: number },
+  body: { nameEn: string; nameSi?: string; nameTa?: string; lat?: number; lng?: number },
 ) {
   return request<AdminLocation>('/admin/locations', {
     method: 'POST',
@@ -741,13 +760,27 @@ export function listAdminRoutes(accessToken: string) {
   return request<AdminRoute[]>('/admin/routes', { accessToken });
 }
 
-export function createAdminRoute(
-  accessToken: string,
-  body: { operatorId: string; originLocationId: string; destLocationId: string; durationMinutes?: number },
-) {
+export interface UpsertRouteInput {
+  name: string;
+  stopLocationIds: string[];
+}
+
+export function createAdminRoute(accessToken: string, body: UpsertRouteInput) {
   return request<AdminRoute>('/admin/routes', {
     method: 'POST',
     body: JSON.stringify(body),
     accessToken,
   });
+}
+
+export function updateAdminRoute(accessToken: string, routeId: string, body: UpsertRouteInput) {
+  return request<AdminRoute>(`/admin/routes/${routeId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+    accessToken,
+  });
+}
+
+export function deleteAdminRoute(accessToken: string, routeId: string) {
+  return request(`/admin/routes/${routeId}`, { method: 'DELETE', accessToken });
 }

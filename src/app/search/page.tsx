@@ -30,9 +30,9 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
         </span>
         <div className="absolute bottom-4 left-4 flex items-center gap-2 text-white">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 font-heading text-sm font-bold backdrop-blur">
-            {trip.route.operator.name.slice(0, 1)}
+            {trip.bus.operator.name.slice(0, 1)}
           </span>
-          <span className="font-heading text-lg font-semibold">{trip.route.operator.name}</span>
+          <span className="font-heading text-lg font-semibold">{trip.bus.operator.name}</span>
         </div>
       </div>
 
@@ -41,7 +41,7 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
           <span>{trip.bus.bus_type.name}</span>
           <span className="flex items-center gap-1">
             <Star size={13} className="fill-amber-400 text-amber-400" />
-            {trip.route.operator.rating.toFixed(1)} · {trip.route.operator.reliability_score.toFixed(0)}%
+            {trip.bus.operator.rating.toFixed(1)} · {trip.bus.operator.reliability_score.toFixed(0)}%
           </span>
         </div>
 

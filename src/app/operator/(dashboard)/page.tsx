@@ -203,9 +203,9 @@ export default async function OperatorOverviewPage() {
             >
               <div className="min-w-0">
                 <p className="flex items-center gap-1.5 font-heading font-semibold">
-                  {nameOf(t.route.origin_id)}
+                  {t.route ? nameOf(t.route.origin_id) : "—"}
                   <ChevronRight size={14} className="text-slate-400" />
-                  {nameOf(t.route.dest_id)}
+                  {t.route ? nameOf(t.route.dest_id) : "—"}
                 </p>
                 <p className="ui mt-0.5 flex items-center gap-1.5 text-sm text-slate-500 dark:text-zinc-400">
                   <Users size={13} />
