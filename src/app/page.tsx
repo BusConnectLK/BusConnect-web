@@ -21,8 +21,8 @@ export default async function Home() {
     <>
       <Hero locations={locations} />
       <Stats />
-      <Features />
       <PopularRoutes routes={popularRoutes} />
+      <Features />
       <HowItWorks />
       <OperatorCta />
     </>
