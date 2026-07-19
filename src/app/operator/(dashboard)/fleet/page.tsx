@@ -76,7 +76,7 @@ export default async function OperatorFleetPage() {
         ) : (
           <div className="flex flex-col gap-2">
             {fleet.buses.map((b) => (
-              <div key={b.id} className="card p-4">
+              <Link key={b.id} href={`/operator/fleet/${b.id}`} className="card card-hover p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-medium">{b.reg_no}</p>
                   <span className={`ui rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_STYLE[b.status]}`}>
@@ -87,7 +87,7 @@ export default async function OperatorFleetPage() {
                   {b.bus_type?.name ?? "—"} · {b.bus_type?.seat_count ?? "—"} seats
                   {b.amenities.length > 0 && <> · {b.amenities.length} amenities</>}
                 </p>
-              </div>
+              </Link>
             ))}
           </div>
         )}

@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ImagePlus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { uploadPilotPhoto } from "@/lib/storage";
 import { registerPilot, ApiError } from "@/lib/api";
+import { AvatarSlot } from "@/components/avatar-slot";
 
 export function RegisterPilotForm() {
   const router = useRouter();
@@ -19,8 +19,7 @@ export function RegisterPilotForm() {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  function onPhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] ?? null;
+  function onPhotoChange(file: File | null) {
     setPhoto(file);
     setPhotoPreview(file ? URL.createObjectURL(file) : null);
   }
@@ -106,32 +105,13 @@ export function RegisterPilotForm() {
         />
       </label>
 
-      <label className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
+      <div className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
         Profile photo
-        <div className="flex items-center gap-3">
-          {photoPreview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={photoPreview}
-              alt="Profile preview"
-              className="h-16 w-16 shrink-0 rounded-full border border-slate-200 object-cover dark:border-zinc-800"
-            />
-          ) : (
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-dashed border-slate-300 text-slate-400 dark:border-zinc-700 dark:text-zinc-600">
-              <ImagePlus size={18} />
-            </div>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={onPhotoChange}
-            className="ui cursor-pointer text-xs text-slate-500 file:mr-2 file:cursor-pointer file:rounded-lg file:border-0 file:bg-brand file:px-2.5 file:py-1 file:text-xs file:font-medium file:text-brand-fg dark:text-zinc-400"
-          />
-        </div>
+        <AvatarSlot preview={photoPreview} onChange={onPhotoChange} />
         <span className="text-xs text-slate-400 dark:text-zinc-500">
           Kept private — only visible to you and BusConnect admins.
         </span>
-      </label>
+      </div>
 
       {error && <p className="ui text-sm text-red-600 dark:text-red-400">{error}</p>}
 

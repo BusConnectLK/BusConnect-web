@@ -2,95 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ImagePlus, Plus, Upload, X } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { uploadBusImage } from "@/lib/storage";
 import { registerBus, ApiError } from "@/lib/api";
-
-const BUS_CLASSES = [
-  { value: "normal", label: "Normal" },
-  { value: "semi_luxury", label: "Semi Luxury" },
-  { value: "luxury", label: "Luxury" },
-  { value: "super_luxury", label: "Super Luxury" },
-  { value: "expressway", label: "Expressway" },
-] as const;
-
-const SEAT_LAYOUTS = [
-  { value: "2x2", label: "2 × 2" },
-  { value: "3x2", label: "3 × 2" },
-  { value: "2x1", label: "2 × 1" },
-] as const;
-
-const PREDEFINED_AMENITIES = [
-  "Air Conditioning (AC)",
-  "Wi-Fi",
-  "USB Charging",
-  "Power Outlets",
-  "Reclining Seats",
-  "TV / Entertainment",
-  "CCTV",
-  "GPS Tracking",
-  "Reading Lights",
-  "Blankets (Sleeper)",
-  "Washroom",
-  "Wheelchair Accessible",
-  "Luggage Storage",
-  "Refreshments",
-  "Emergency Exit",
-  "Fire Extinguisher",
-];
-
-function ImageSlot({
-  label,
-  preview,
-  onChange,
-}: {
-  label: string;
-  preview: string | null;
-  onChange: (file: File | null) => void;
-}) {
-  return (
-    <div className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
-      {label}
-      <div className="flex items-center gap-3">
-        <div className="relative h-14 w-20 shrink-0">
-          {preview ? (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={preview}
-                alt={`${label} preview`}
-                className="h-14 w-20 rounded-lg border border-slate-200 object-cover dark:border-zinc-800"
-              />
-              <button
-                type="button"
-                onClick={() => onChange(null)}
-                aria-label={`Remove ${label} photo`}
-                className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-white shadow-sm transition-colors hover:bg-slate-700 dark:bg-zinc-700 dark:hover:bg-zinc-600"
-              >
-                <X size={11} />
-              </button>
-            </>
-          ) : (
-            <div className="flex h-14 w-20 items-center justify-center rounded-lg border border-dashed border-slate-300 text-slate-400 dark:border-zinc-700 dark:text-zinc-600">
-              <ImagePlus size={16} />
-            </div>
-          )}
-        </div>
-        <label className="ui inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-brand-fg transition-colors hover:bg-brand/90">
-          <Upload size={13} />
-          {preview ? "Change photo" : "Choose photo"}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => onChange(e.target.files?.[0] ?? null)}
-            className="sr-only"
-          />
-        </label>
-      </div>
-    </div>
-  );
-}
+import { BUS_CLASSES, SEAT_LAYOUTS } from "@/lib/bus-constants";
+import { ImageSlot } from "@/components/image-slot";
+import { AmenitiesPicker } from "@/components/amenities-picker";
 
 export function RegisterBusForm() {
   const router = useRouter();
@@ -102,8 +20,6 @@ export function RegisterBusForm() {
   const [seatNumbering, setSeatNumbering] = useState<"auto" | "custom">("auto");
 
   const [amenities, setAmenities] = useState<Set<string>>(new Set());
-  const [customAmenityInput, setCustomAmenityInput] = useState("");
-  const [customAmenities, setCustomAmenities] = useState<string[]>([]);
 
   const [frontImage, setFrontImage] = useState<File | null>(null);
   const [frontPreview, setFrontPreview] = useState<string | null>(null);
@@ -120,32 +36,6 @@ export function RegisterBusForm() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  function toggleAmenity(name: string) {
-    setAmenities((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
-      return next;
-    });
-  }
-
-  function addCustomAmenity() {
-    const name = customAmenityInput.trim();
-    if (!name) return;
-    setCustomAmenities((prev) => (prev.includes(name) ? prev : [...prev, name]));
-    setAmenities((prev) => new Set(prev).add(name));
-    setCustomAmenityInput("");
-  }
-
-  function removeCustomAmenity(name: string) {
-    setCustomAmenities((prev) => prev.filter((a) => a !== name));
-    setAmenities((prev) => {
-      const next = new Set(prev);
-      next.delete(name);
-      return next;
-    });
-  }
 
   function pick(setFile: (f: File | null) => void, setPreview: (p: string | null) => void) {
     return (file: File | null) => {
@@ -325,59 +215,8 @@ export function RegisterBusForm() {
         <h2 className="ui text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-600">
           Bus features / amenities
         </h2>
-        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {PREDEFINED_AMENITIES.map((name) => (
-            <label
-              key={name}
-              className="ui flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-slate-700 hover:bg-slate-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
-            >
-              <input
-                type="checkbox"
-                checked={amenities.has(name)}
-                onChange={() => toggleAmenity(name)}
-                className="h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand dark:border-zinc-700"
-              />
-              {name}
-            </label>
-          ))}
-        </div>
-
-        {customAmenities.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {customAmenities.map((name) => (
-              <span
-                key={name}
-                className="ui inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-xs font-medium text-brand dark:bg-brand-soft-dark dark:text-blue-300"
-              >
-                {name}
-                <button type="button" onClick={() => removeCustomAmenity(name)} aria-label={`Remove ${name}`}>
-                  <X size={12} />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-4 flex items-center gap-2">
-          <input
-            value={customAmenityInput}
-            onChange={(e) => setCustomAmenityInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addCustomAmenity();
-              }
-            }}
-            placeholder="Add another amenity not listed above"
-            className="field text-sm"
-          />
-          <button
-            type="button"
-            onClick={addCustomAmenity}
-            className="btn-secondary shrink-0 whitespace-nowrap px-3 py-3"
-          >
-            <Plus size={16} /> Add
-          </button>
+        <div className="mt-4">
+          <AmenitiesPicker selected={amenities} onChange={setAmenities} />
         </div>
       </section>
 

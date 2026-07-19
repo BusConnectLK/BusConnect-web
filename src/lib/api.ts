@@ -451,6 +451,33 @@ export function registerBus(accessToken: string, input: RegisterBusInput) {
   });
 }
 
+export interface OperatorBusDetail extends OperatorBus {
+  created_at: string;
+}
+
+export function getBus(accessToken: string, busId: string) {
+  return request<OperatorBusDetail>(`/operator/buses/${busId}`, { accessToken });
+}
+
+export interface UpdateBusInput {
+  regNo?: string;
+  busClass?: 'normal' | 'semi_luxury' | 'luxury' | 'super_luxury' | 'expressway';
+  amenities?: string[];
+  notes?: string;
+  frontImageUrl?: string;
+  sideImageUrls?: string[];
+  interiorImageUrl?: string;
+  seatLayoutImageUrl?: string;
+}
+
+export function updateBus(accessToken: string, busId: string, input: UpdateBusInput) {
+  return request<OperatorBusDetail>(`/operator/buses/${busId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+    accessToken,
+  });
+}
+
 export type OperatorRole = 'owner' | 'pilot';
 
 export interface OperatorMembership {
@@ -512,6 +539,21 @@ export function listPilots(accessToken: string) {
 
 export function getPilot(accessToken: string, pilotId: string) {
   return request<OperatorPilotDetail>(`/operator/pilots/${pilotId}`, { accessToken });
+}
+
+export interface UpdatePilotInput {
+  name?: string;
+  idNumber?: string;
+  phoneNo?: string;
+  profileImagePath?: string;
+}
+
+export function updatePilot(accessToken: string, pilotId: string, input: UpdatePilotInput) {
+  return request<OperatorPilotDetail>(`/operator/pilots/${pilotId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+    accessToken,
+  });
 }
 
 export interface RegisterPilotInput {
