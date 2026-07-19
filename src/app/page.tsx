@@ -130,17 +130,17 @@ function PopularRoutes({ routes }: { routes: Awaited<ReturnType<typeof listPopul
           No upcoming trips yet — check back once operators have scheduled some.
         </p>
       ) : (
-        <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-9 grid grid-cols-2 gap-4 lg:grid-cols-3">
           {routes.map((r) => {
             const dur = formatDuration(r.durationMinutes);
             return (
               <Link
                 key={`${r.originId}-${r.destId}`}
                 href={`/search?from=${r.originId}&to=${r.destId}&date=${today}`}
-                className="card card-hover group overflow-hidden"
+                className="card card-hover overflow-hidden"
               >
                 <div
-                  className="flex aspect-[16/9] items-end p-5"
+                  className="flex aspect-square items-start p-4"
                   style={{ background: "linear-gradient(135deg, #004aad 0%, #062b63 100%)" }}
                 >
                   {dur && (
@@ -149,15 +149,20 @@ function PopularRoutes({ routes }: { routes: Awaited<ReturnType<typeof listPopul
                     </span>
                   )}
                 </div>
-                <div className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-2 font-heading font-semibold">
+                <div className="p-5">
+                  <h3 className="flex items-center gap-2 font-heading text-lg font-bold tracking-tight">
                     {r.originName}
-                    <ArrowRight size={15} className="text-slate-400" />
+                    <ArrowRight size={15} className="shrink-0 text-slate-400" />
                     {r.destName}
+                  </h3>
+                  <p className="ui mt-1 text-sm text-slate-500 dark:text-zinc-400">
+                    {r.tripCount} {r.tripCount === 1 ? "trip" : "trips"} scheduled today
+                  </p>
+                  <div className="mt-4 border-t border-slate-200 pt-4 dark:border-zinc-800">
+                    <span className="btn-primary w-full">
+                      Find buses
+                    </span>
                   </div>
-                  <span className="ui flex items-center gap-1 text-sm font-medium text-brand transition-transform group-hover:translate-x-0.5 dark:text-blue-400">
-                    Find buses <ArrowRight size={14} />
-                  </span>
                 </div>
               </Link>
             );

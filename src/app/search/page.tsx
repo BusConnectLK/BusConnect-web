@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Armchair, Star, Clock } from "lucide-react";
+import { Star, Clock } from "lucide-react";
 import { searchTrips, ApiError, type TripSearchResult } from "@/lib/api";
 import { DateBadge } from "@/components/ui";
 
@@ -22,13 +22,10 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
     <div className="card card-hover overflow-hidden">
       {/* poster header */}
       <div
-        className="relative flex aspect-[16/9] items-start justify-between p-4"
+        className="relative flex aspect-square items-start justify-between p-4"
         style={{ background: "linear-gradient(135deg, #004aad 0%, #062b63 100%)" }}
       >
         <DateBadge iso={trip.boarding_at} />
-        <span className="ui rounded-md bg-white/15 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white backdrop-blur">
-          {trip.bus_type_class.replace("_", " ")}
-        </span>
         <div className="absolute bottom-4 left-4 flex items-center gap-2 text-white">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 font-heading text-sm font-bold backdrop-blur">
             {trip.operator_name.slice(0, 1)}
@@ -38,7 +35,10 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
       </div>
 
       <div className="p-5">
-        <p className="ui text-xs font-medium text-slate-500 dark:text-zinc-500">{trip.route_name}</p>
+        <span className="pill">{trip.bus_type_class.replace("_", " ")}</span>
+        <h3 className="mt-2 font-heading text-lg font-bold leading-snug tracking-tight">
+          {trip.route_name}
+        </h3>
         <div className="ui mt-1 flex items-center justify-between text-sm text-slate-600 dark:text-zinc-400">
           <span>{trip.bus_type_name}</span>
           <span className="flex items-center gap-1">
@@ -60,25 +60,28 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
           </div>
         )}
 
-        <div className="mt-4 flex items-end justify-between border-t border-slate-200 pt-4 dark:border-zinc-800">
-          <div>
-            <p className="ui flex items-center gap-1 text-xs uppercase tracking-wide text-slate-500 dark:text-zinc-500">
-              <Clock size={12} /> {formatTime(trip.boarding_at)} · {dur}
-              {overnight && (
-                <span className="rounded bg-amber-100 px-1 py-px font-semibold text-amber-700 normal-case tracking-normal dark:bg-amber-950/50 dark:text-amber-300">
-                  +1 day
-                </span>
-              )}
+        <div className="mt-4 border-t border-slate-200 pt-4 dark:border-zinc-800">
+          <p className="ui flex items-center gap-1 text-xs uppercase tracking-wide text-slate-500 dark:text-zinc-500">
+            <Clock size={12} /> {formatTime(trip.boarding_at)} · {dur}
+            {overnight && (
+              <span className="rounded bg-amber-100 px-1 py-px font-semibold text-amber-700 normal-case tracking-normal dark:bg-amber-950/50 dark:text-amber-300">
+                +1 day
+              </span>
+            )}
+          </p>
+          <div className="mt-1.5">
+            <p className="ui text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-500">
+              LKR
             </p>
-            <p className="mt-0.5 font-heading text-2xl font-bold text-brand dark:text-blue-400">
-              LKR {Number(trip.fare).toLocaleString("en-LK")}
+            <p className="font-heading text-2xl font-bold leading-tight text-brand dark:text-blue-400">
+              {Number(trip.fare).toLocaleString("en-LK")}
             </p>
           </div>
           <Link
             href={`/trips/${trip.trip_id}?from=${trip.from_stop_id}&to=${trip.to_stop_id}`}
-            className="btn-primary"
+            className="btn-primary mt-4 w-full"
           >
-            <Armchair size={16} /> Select seats
+            Select seats
           </Link>
         </div>
       </div>
