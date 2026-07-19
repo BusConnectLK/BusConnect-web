@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, Bus, CalendarClock, MapPin, Pencil, User, Wallet } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bus, MapPin, Pencil, User, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getJourney, ApiError, type OperatorJourneyDetail } from "@/lib/api";
-import { formatTime, recurrenceLabel, durationLabel } from "@/lib/journey-format";
+import { formatTime, durationLabel } from "@/lib/journey-format";
 import { JourneyActions } from "./journey-actions";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -124,12 +124,6 @@ export default async function JourneyDetailPage({
         <dl className="ui mt-6 grid grid-cols-1 gap-5 border-t border-slate-200 pt-6 sm:grid-cols-2 dark:border-zinc-800">
           <Field icon={Bus} label="Bus" value={`${journey.bus?.reg_no ?? "—"} · ${journey.bus?.bus_type?.name ?? "—"}`} />
           <Field icon={Wallet} label="Base fare" value={`LKR ${Number(journey.base_fare).toLocaleString("en-LK")}`} />
-          <Field icon={CalendarClock} label="Runs" value={recurrenceLabel(journey.recurrence, journey.weekdays)} />
-          <Field
-            icon={CalendarClock}
-            label="Dates"
-            value={`${journey.start_date}${journey.end_date ? ` → ${journey.end_date}` : " → open-ended"}`}
-          />
           <Field
             icon={User}
             label="Driver"

@@ -1,5 +1,3 @@
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
 /** "02:20:00" or "02:20" → "2:20 AM". */
 export function formatTime(t: string | null | undefined): string {
   if (!t) return "—";
@@ -10,13 +8,6 @@ export function formatTime(t: string | null | undefined): string {
   const period = h < 12 ? "AM" : "PM";
   const h12 = h % 12 === 0 ? 12 : h % 12;
   return `${h12}:${String(m).padStart(2, "0")} ${period}`;
-}
-
-export function recurrenceLabel(recurrence: "daily" | "weekly", weekdays: number[]): string {
-  if (recurrence === "daily") return "Daily";
-  if (!weekdays.length) return "Weekly";
-  if (weekdays.length === 7) return "Daily";
-  return [...weekdays].sort((a, b) => a - b).map((d) => DAYS[d]).join(", ");
 }
 
 /** Minutes between two HH:MM(:SS) clock times, honouring a same-day/next-day arrival. */
@@ -35,5 +26,3 @@ export function durationLabel(
   const m = total % 60;
   return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
 }
-
-export const WEEKDAYS = DAYS;

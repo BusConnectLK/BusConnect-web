@@ -344,10 +344,6 @@ export interface OperatorJourney {
   arrive_time: string;
   arrive_day_offset: number;
   base_fare: number;
-  recurrence: 'daily' | 'weekly';
-  weekdays: number[];
-  start_date: string;
-  end_date: string | null;
   status: 'active' | 'paused';
   created_at: string;
   route: { id: string; name: string } | null;
@@ -398,10 +394,6 @@ export interface UpsertJourneyInput {
   arriveLocation?: string;
   arriveLocationUrl?: string;
   baseFare: number;
-  recurrence: 'daily' | 'weekly';
-  weekdays?: number[];
-  startDate: string;
-  endDate?: string;
   stops: JourneyStopInput[];
 }
 
@@ -439,6 +431,26 @@ export function setJourneyStatus(accessToken: string, id: string, status: 'activ
 
 export function deleteJourney(accessToken: string, id: string) {
   return request(`/operator/journeys/${id}`, { method: 'DELETE', accessToken });
+}
+
+// ── Timetable — schedule dated trips from journeys ──────────────────────────
+
+export interface ScheduleTripsResult {
+  created: number;
+  skipped: number;
+  tripIds: string[];
+}
+
+export function scheduleTrips(accessToken: string, input: { journeyId: string; dates: string[] }) {
+  return request<ScheduleTripsResult>('/operator/trips', {
+    method: 'POST',
+    body: JSON.stringify(input),
+    accessToken,
+  });
+}
+
+export function cancelOperatorTrip(accessToken: string, tripId: string) {
+  return request(`/operator/trips/${tripId}`, { method: 'DELETE', accessToken });
 }
 
 export function getOperatorRouteCatalog(accessToken: string) {

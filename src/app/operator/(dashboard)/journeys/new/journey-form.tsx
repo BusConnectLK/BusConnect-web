@@ -16,7 +16,6 @@ import {
   type OperatorPilot,
   type OperatorJourneyDetail,
 } from "@/lib/api";
-import { WEEKDAYS } from "@/lib/journey-format";
 
 interface StopRow {
   routeStopId: string;
@@ -46,10 +45,6 @@ export function JourneyForm({ initial }: { initial?: OperatorJourneyDetail }) {
   const [arriveLocation, setArriveLocation] = useState(initial?.arrive_location ?? "");
   const [arriveLocationUrl, setArriveLocationUrl] = useState(initial?.arrive_location_url ?? "");
   const [baseFare, setBaseFare] = useState(initial ? String(initial.base_fare) : "");
-  const [recurrence, setRecurrence] = useState<"daily" | "weekly">(initial?.recurrence ?? "daily");
-  const [weekdays, setWeekdays] = useState<Set<number>>(new Set(initial?.weekdays ?? []));
-  const [startDate, setStartDate] = useState(initial?.start_date ?? new Date().toISOString().slice(0, 10));
-  const [endDate, setEndDate] = useState(initial?.end_date ?? "");
   const [stops, setStops] = useState<StopRow[]>(
     initial
       ? [...initial.stops]
@@ -140,14 +135,6 @@ export function JourneyForm({ initial }: { initial?: OperatorJourneyDetail }) {
   function setStop(i: number, patch: Partial<StopRow>) {
     setStops((prev) => prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
   }
-  function toggleWeekday(d: number) {
-    setWeekdays((prev) => {
-      const next = new Set(prev);
-      if (next.has(d)) next.delete(d);
-      else next.add(d);
-      return next;
-    });
-  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -156,7 +143,6 @@ export function JourneyForm({ initial }: { initial?: OperatorJourneyDetail }) {
     if (!busId) return setError("Choose a bus.");
     if (!departTime || !arriveTime) return setError("Set the departure and arrival times.");
     if (!baseFare || Number(baseFare) < 0) return setError("Set a valid base fare.");
-    if (recurrence === "weekly" && weekdays.size === 0) return setError("Pick at least one day of the week.");
     if (stops.some((s) => !s.time)) return setError("Every stop needs a time in the timetable.");
 
     setBusy(true);
@@ -180,10 +166,6 @@ export function JourneyForm({ initial }: { initial?: OperatorJourneyDetail }) {
         arriveLocation: arriveLocation || undefined,
         arriveLocationUrl: arriveLocationUrl || undefined,
         baseFare: Number(baseFare),
-        recurrence,
-        weekdays: recurrence === "weekly" ? [...weekdays] : undefined,
-        startDate,
-        endDate: endDate || undefined,
         stops: stops.map((s) => ({
           routeStopId: s.routeStopId,
           time: s.time,
@@ -276,11 +258,15 @@ export function JourneyForm({ initial }: { initial?: OperatorJourneyDetail }) {
         )}
       </section>
 
-      {/* ── Schedule ────────────────────────────────────────────────────── */}
+      {/* ── Times ───────────────────────────────────────────────────────── */}
       <section className="card-lg p-6">
         <h2 className="ui text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-600">
-          Schedule
+          Times
         </h2>
+        <p className="ui mt-1 text-xs text-slate-500 dark:text-zinc-500">
+          The service&apos;s departure/arrival times. You choose which dates it runs later, from the
+          Timetable.
+        </p>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className={labelCls}>
             Departure time
@@ -295,51 +281,6 @@ export function JourneyForm({ initial }: { initial?: OperatorJourneyDetail }) {
           <input type="checkbox" checked={arriveNextDay} onChange={(e) => setArriveNextDay(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand dark:border-zinc-700" />
           Arrives the next day (overnight)
         </label>
-
-        <div className="mt-5">
-          <p className="ui mb-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">Runs on</p>
-          <div className="flex gap-2">
-            {(["daily", "weekly"] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setRecurrence(r)}
-                className={`ui rounded-lg px-4 py-2 text-sm font-medium capitalize transition-colors ${
-                  recurrence === r ? "bg-brand text-brand-fg" : "bg-slate-100 text-slate-600 dark:bg-zinc-900 dark:text-zinc-400"
-                }`}
-              >
-                {r === "daily" ? "Every day" : "Selected days"}
-              </button>
-            ))}
-          </div>
-          {recurrence === "weekly" && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {WEEKDAYS.map((d, i) => (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => toggleWeekday(i)}
-                  className={`ui rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                    weekdays.has(i) ? "bg-brand text-brand-fg" : "bg-slate-100 text-slate-600 dark:bg-zinc-900 dark:text-zinc-400"
-                  }`}
-                >
-                  {d}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <label className={labelCls}>
-            Start date
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required className="field text-sm" />
-          </label>
-          <label className={labelCls}>
-            End date <span className="font-normal text-slate-400 dark:text-zinc-500">(optional)</span>
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="field text-sm" />
-          </label>
-        </div>
       </section>
 
       {/* ── Departure & arrival locations ───────────────────────────────── */}

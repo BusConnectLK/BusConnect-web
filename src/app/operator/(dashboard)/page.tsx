@@ -23,7 +23,7 @@ import {
   type OperatorAnalytics,
   type OperatorJourney,
 } from "@/lib/api";
-import { formatTime, recurrenceLabel } from "@/lib/journey-format";
+import { formatTime } from "@/lib/journey-format";
 
 const STATUS_STYLE: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
@@ -219,7 +219,7 @@ export default async function OperatorOverviewPage() {
 
           {shownJourneys.length === 0 ? (
             <div className="card mt-4 p-8 text-center text-slate-500 dark:text-zinc-400">
-              No journeys yet — create one to put a bus on sale for every date it runs.
+              No journeys yet — create a reusable service, then schedule its dates from the Timetable.
               <div>
                 <Link href="/operator/journeys/new" className="btn-primary mt-4">
                   <PlusCircle size={16} /> Create your first journey
@@ -242,7 +242,7 @@ export default async function OperatorOverviewPage() {
                       </span>
                     </div>
                     <p className="ui mt-0.5 text-sm text-slate-500 dark:text-zinc-400">
-                      {formatTime(j.depart_time)} → {formatTime(j.arrive_time)} · {recurrenceLabel(j.recurrence, j.weekdays)}
+                      {formatTime(j.depart_time)} → {formatTime(j.arrive_time)}
                     </p>
                     <p className="ui mt-0.5 text-xs text-slate-400 dark:text-zinc-500">
                       {j.bus?.reg_no ?? "—"} · {j.bus?.bus_type?.name ?? "—"}
@@ -269,13 +269,21 @@ export default async function OperatorOverviewPage() {
         {shownTrips.length === 0 ? (
           <div className="card mt-4 p-10 text-center text-slate-500 dark:text-zinc-400">
             {role === "owner"
-              ? "No upcoming departures — create a journey and BusConnect will put seats on sale for every date it runs."
+              ? journeys.length === 0
+                ? "No upcoming departures — create a journey, then schedule its dates from the Timetable."
+                : "No upcoming departures — schedule some dates for your journeys from the Timetable."
               : "No trips yet — you'll see them here once your operator assigns you to a bus."}
-            {role === "owner" && journeys.length === 0 && (
+            {role === "owner" && (
               <div>
-                <Link href="/operator/journeys/new" className="btn-primary mt-4">
-                  <PlusCircle size={16} /> Create your first journey
-                </Link>
+                {journeys.length === 0 ? (
+                  <Link href="/operator/journeys/new" className="btn-primary mt-4">
+                    <PlusCircle size={16} /> Create your first journey
+                  </Link>
+                ) : (
+                  <Link href="/operator/timetable" className="btn-primary mt-4">
+                    <PlusCircle size={16} /> Schedule trips
+                  </Link>
+                )}
               </div>
             )}
           </div>

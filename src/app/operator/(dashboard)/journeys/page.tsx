@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, CalendarClock, ChevronRight, PlusCircle, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { listJourneys, ApiError, type OperatorJourney } from "@/lib/api";
-import { formatTime, recurrenceLabel, durationLabel } from "@/lib/journey-format";
+import { formatTime, durationLabel } from "@/lib/journey-format";
 
 const STATUS_STYLE: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
@@ -95,8 +95,6 @@ export default async function OperatorJourneysPage() {
                   )}
                   <span className="text-slate-400">·</span>
                   <span>{durationLabel(j.depart_time, j.arrive_time, j.arrive_day_offset)}</span>
-                  <span className="text-slate-400">·</span>
-                  <span>{recurrenceLabel(j.recurrence, j.weekdays)}</span>
                 </p>
                 <p className="ui mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-zinc-500">
                   <span>
