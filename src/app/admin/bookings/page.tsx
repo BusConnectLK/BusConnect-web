@@ -99,7 +99,7 @@ export default function AdminBookingsPage() {
           <div key={b.id} className="card p-5">
             <div className="flex items-center justify-between">
               <p className="font-medium">
-                {b.trip?.route?.operator?.name ?? "—"} · Seats {b.seats.join(", ")}
+                {b.trip?.bus?.operator?.name ?? "—"} · Seats {b.seats.join(", ")}
               </p>
               <span className={`ui rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLE[b.status] ?? ""}`}>
                 {b.status.replace("_", " ")}

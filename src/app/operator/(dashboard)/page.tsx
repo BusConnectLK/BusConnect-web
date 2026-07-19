@@ -158,8 +158,8 @@ export default async function OperatorOverviewPage() {
           </div>
         </div>
         {role === "owner" && (
-          <Link href="/operator/trips/new" className="btn-primary">
-            <PlusCircle size={16} /> Schedule trip
+          <Link href="/operator/journeys/new" className="btn-primary">
+            <PlusCircle size={16} /> Create journey
           </Link>
         )}
       </div>
@@ -185,11 +185,11 @@ export default async function OperatorOverviewPage() {
       {trips.length === 0 ? (
         <div className="card mt-5 p-10 text-center text-slate-500 dark:text-zinc-400">
           {role === "owner"
-            ? "No trips scheduled yet."
+            ? "No trips yet — create a journey and BusConnect will put seats on sale for every date it runs."
             : "No trips yet — you'll see them here once your operator assigns you to a bus."}
           {role === "owner" && (
-            <Link href="/operator/trips/new" className="btn-primary mt-4">
-              <PlusCircle size={16} /> Schedule your first trip
+            <Link href="/operator/journeys/new" className="btn-primary mt-4">
+              <PlusCircle size={16} /> Create your first journey
             </Link>
           )}
         </div>

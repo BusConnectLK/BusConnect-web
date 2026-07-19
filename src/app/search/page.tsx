@@ -7,8 +7,7 @@ function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("en-LK", { hour: "2-digit", minute: "2-digit" });
 }
 
-function duration(depart: string, arrive: string | null) {
-  if (!arrive) return null;
+function duration(depart: string, arrive: string) {
   const mins = Math.round((new Date(arrive).getTime() - new Date(depart).getTime()) / 60000);
   const h = Math.floor(mins / 60);
   const m = mins % 60;
@@ -16,7 +15,9 @@ function duration(depart: string, arrive: string | null) {
 }
 
 function TripCard({ trip }: { trip: TripSearchResult }) {
-  const dur = duration(trip.depart_at, trip.arrive_est);
+  const dur = duration(trip.boarding_at, trip.drop_at);
+  const overnight =
+    new Date(trip.drop_at).toDateString() !== new Date(trip.boarding_at).toDateString();
   return (
     <div className="card card-hover overflow-hidden">
       {/* poster header */}
@@ -24,30 +25,31 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
         className="relative flex aspect-[16/9] items-start justify-between p-4"
         style={{ background: "linear-gradient(135deg, #004aad 0%, #062b63 100%)" }}
       >
-        <DateBadge iso={trip.depart_at} />
+        <DateBadge iso={trip.boarding_at} />
         <span className="ui rounded-md bg-white/15 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white backdrop-blur">
-          {trip.bus.bus_type.class.replace("_", " ")}
+          {trip.bus_type_class.replace("_", " ")}
         </span>
         <div className="absolute bottom-4 left-4 flex items-center gap-2 text-white">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 font-heading text-sm font-bold backdrop-blur">
-            {trip.bus.operator.name.slice(0, 1)}
+            {trip.operator_name.slice(0, 1)}
           </span>
-          <span className="font-heading text-lg font-semibold">{trip.bus.operator.name}</span>
+          <span className="font-heading text-lg font-semibold">{trip.operator_name}</span>
         </div>
       </div>
 
       <div className="p-5">
-        <div className="ui flex items-center justify-between text-sm text-slate-600 dark:text-zinc-400">
-          <span>{trip.bus.bus_type.name}</span>
+        <p className="ui text-xs font-medium text-slate-500 dark:text-zinc-500">{trip.route_name}</p>
+        <div className="ui mt-1 flex items-center justify-between text-sm text-slate-600 dark:text-zinc-400">
+          <span>{trip.bus_type_name}</span>
           <span className="flex items-center gap-1">
             <Star size={13} className="fill-amber-400 text-amber-400" />
-            {trip.bus.operator.rating.toFixed(1)} · {trip.bus.operator.reliability_score.toFixed(0)}%
+            {trip.operator_rating.toFixed(1)} · {trip.operator_reliability_score.toFixed(0)}%
           </span>
         </div>
 
-        {trip.bus.amenities.length > 0 && (
+        {trip.bus_amenities.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {trip.bus.amenities.map((a) => (
+            {trip.bus_amenities.map((a) => (
               <span
                 key={a}
                 className="ui rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-zinc-800 dark:text-zinc-400"
@@ -61,14 +63,21 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
         <div className="mt-4 flex items-end justify-between border-t border-slate-200 pt-4 dark:border-zinc-800">
           <div>
             <p className="ui flex items-center gap-1 text-xs uppercase tracking-wide text-slate-500 dark:text-zinc-500">
-              <Clock size={12} /> {formatTime(trip.depart_at)}
-              {dur && ` · ${dur}`}
+              <Clock size={12} /> {formatTime(trip.boarding_at)} · {dur}
+              {overnight && (
+                <span className="rounded bg-amber-100 px-1 py-px font-semibold text-amber-700 normal-case tracking-normal dark:bg-amber-950/50 dark:text-amber-300">
+                  +1 day
+                </span>
+              )}
             </p>
             <p className="mt-0.5 font-heading text-2xl font-bold text-brand dark:text-blue-400">
-              LKR {Number(trip.base_fare).toLocaleString("en-LK")}
+              LKR {Number(trip.fare).toLocaleString("en-LK")}
             </p>
           </div>
-          <Link href={`/trips/${trip.id}`} className="btn-primary">
+          <Link
+            href={`/trips/${trip.trip_id}?from=${trip.from_stop_id}&to=${trip.to_stop_id}`}
+            className="btn-primary"
+          >
             <Armchair size={16} /> Select seats
           </Link>
         </div>
@@ -134,7 +143,7 @@ export default async function SearchResultsPage({
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {trips.map((trip) => (
-          <TripCard key={trip.id} trip={trip} />
+          <TripCard key={`${trip.trip_id}-${trip.from_stop_id}-${trip.to_stop_id}`} trip={trip} />
         ))}
       </div>
     </div>

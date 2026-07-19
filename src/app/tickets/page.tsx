@@ -10,7 +10,7 @@ interface BookingRow {
   created_at: string;
   trip: {
     depart_at: string;
-    route: { operator: { name: string } | null } | null;
+    bus: { operator: { name: string } | null } | null;
   } | null;
 }
 
@@ -41,7 +41,7 @@ export default async function TicketsPage() {
   const { data } = await supabase
     .from("bookings")
     .select(
-      "id, seats, amount, status, created_at, trip:trips ( depart_at, route:routes ( operator:operators ( name ) ) )",
+      "id, seats, amount, status, created_at, trip:trips ( depart_at, bus:buses ( operator:operators ( name ) ) )",
     )
     .order("created_at", { ascending: false });
 
@@ -73,7 +73,7 @@ export default async function TicketsPage() {
             >
               <div className="min-w-0">
                 <p className="font-heading font-semibold">
-                  {b.trip?.route?.operator?.name ?? "Trip"}
+                  {b.trip?.bus?.operator?.name ?? "Trip"}
                 </p>
                 <p className="ui mt-0.5 flex items-center gap-1.5 text-sm text-slate-500 dark:text-zinc-400">
                   <CalendarDays size={13} />

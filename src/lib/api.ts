@@ -40,24 +40,32 @@ async function request<T>(
 
 // ── Types (mirror BusConnect-api response shapes) ───────────────────────────
 
+/**
+ * One row per bookable (trip, boarding stop, drop stop) match — `search_trips`
+ * resolves the actual board/drop instants and fare for the requested stop
+ * pair, which may be any two stops the bus passes (not just route endpoints).
+ */
 export interface TripSearchResult {
-  id: string;
+  trip_id: string;
+  route_id: string;
+  route_name: string;
+  from_stop_id: string;
+  to_stop_id: string;
+  boarding_at: string;
+  drop_at: string;
+  fare: number;
   depart_at: string;
   arrive_est: string | null;
-  base_fare: number;
   status: string;
-  route: {
-    id: string;
-    name: string;
-    origin_id: string;
-    dest_id: string;
-  };
-  bus: {
-    reg_no: string;
-    amenities: string[];
-    operator: { id: string; name: string; rating: number; reliability_score: number };
-    bus_type: { name: string; class: string; seat_count: number };
-  };
+  bus_reg_no: string;
+  bus_amenities: string[];
+  bus_type_name: string;
+  bus_type_class: string;
+  bus_type_seat_count: number;
+  operator_id: string;
+  operator_name: string;
+  operator_rating: number;
+  operator_reliability_score: number;
 }
 
 /**
@@ -81,13 +89,21 @@ export interface SeatMap {
   taken: string[];
 }
 
-export interface RouteStop {
-  id: string;
-  route_id: string;
-  location_id: string;
+/** A trip's per-stop timetable row (real times — from the journey when it has one). */
+export interface TripStopTime {
+  route_stop_id: string;
   seq: number;
-  scheduled_offset_min: number;
-  location?: { id: string; name_en: string } | null;
+  location_id: string;
+  location_name: string;
+  scheduled_at: string | null;
+  can_board: boolean;
+  can_drop: boolean;
+}
+
+export interface TripFare {
+  from_stop_id: string;
+  to_stop_id: string;
+  fare: number;
 }
 
 export interface TripDetail {
@@ -101,7 +117,6 @@ export interface TripDetail {
     name: string;
     origin_id: string;
     dest_id: string;
-    stops: RouteStop[];
   };
   bus: {
     reg_no: string;
@@ -109,6 +124,8 @@ export interface TripDetail {
     operator: { id: string; name: string; rating: number; reliability_score: number } | null;
     bus_type: { name: string; class: string; seat_count: number; layout_json: SeatLayout | null };
   };
+  fares: TripFare[];
+  stops: TripStopTime[];
 }
 
 export interface Booking {
@@ -281,6 +298,7 @@ export interface OperatorBus {
 }
 
 export interface RouteStopEntry {
+  id?: string; // route_stops.id — present via the operator catalog reader
   seq: number;
   location: { id: string; name_en: string } | null;
 }
@@ -298,6 +316,112 @@ export interface RouteCatalogEntry {
 export interface OperatorFleet {
   routes: { id: string; name: string; origin_id: string; dest_id: string }[];
   buses: OperatorBus[];
+}
+
+// ── Journeys (operator recurring services) ──────────────────────────────────
+
+export interface OperatorJourney {
+  id: string;
+  code: string | null;
+  depart_time: string;
+  arrive_time: string;
+  arrive_day_offset: number;
+  base_fare: number;
+  recurrence: 'daily' | 'weekly';
+  weekdays: number[];
+  start_date: string;
+  end_date: string | null;
+  status: 'active' | 'paused';
+  created_at: string;
+  route: { id: string; name: string } | null;
+  bus: { reg_no: string; bus_type: { name: string; class: string } | null } | null;
+  driver: { name: string } | null;
+  conductor: { name: string } | null;
+}
+
+export interface JourneyStopDetail {
+  id: string;
+  route_stop_id: string;
+  seq: number;
+  scheduled_time: string;
+  day_offset: number;
+  can_board: boolean;
+  can_drop: boolean;
+  route_stop: { location: { id: string; name_en: string } | null } | null;
+}
+
+export interface OperatorJourneyDetail extends Omit<OperatorJourney, 'route' | 'bus'> {
+  depart_location: string | null;
+  depart_location_url: string | null;
+  arrive_location: string | null;
+  arrive_location_url: string | null;
+  route: { id: string; name: string; origin_id: string; dest_id: string } | null;
+  bus: { id: string; reg_no: string; bus_type: { name: string; class: string; seat_count: number } | null } | null;
+  driver: { id: string; name: string } | null;
+  conductor: { id: string; name: string } | null;
+  stops: JourneyStopDetail[];
+}
+
+export interface JourneyStopInput {
+  routeStopId: string;
+  time: string;
+  dayOffset?: number;
+  canBoard?: boolean;
+  canDrop?: boolean;
+}
+
+export interface UpsertJourneyInput {
+  routeId: string;
+  busId: string;
+  departTime: string;
+  arriveTime: string;
+  arriveDayOffset?: number;
+  departLocation?: string;
+  departLocationUrl?: string;
+  arriveLocation?: string;
+  arriveLocationUrl?: string;
+  baseFare: number;
+  recurrence: 'daily' | 'weekly';
+  weekdays?: number[];
+  startDate: string;
+  endDate?: string;
+  stops: JourneyStopInput[];
+}
+
+export function listJourneys(accessToken: string) {
+  return request<OperatorJourney[]>('/operator/journeys', { accessToken });
+}
+
+export function getJourney(accessToken: string, id: string) {
+  return request<OperatorJourneyDetail>(`/operator/journeys/${id}`, { accessToken });
+}
+
+export function createJourney(accessToken: string, input: UpsertJourneyInput) {
+  return request<OperatorJourneyDetail>('/operator/journeys', {
+    method: 'POST',
+    body: JSON.stringify(input),
+    accessToken,
+  });
+}
+
+export function updateJourney(accessToken: string, id: string, input: UpsertJourneyInput) {
+  return request<OperatorJourneyDetail>(`/operator/journeys/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+    accessToken,
+  });
+}
+
+export function setJourneyStatus(accessToken: string, id: string, status: 'active' | 'paused') {
+  return request<OperatorJourney>(`/operator/journeys/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+    accessToken,
+  });
+}
+
+export function deleteJourney(accessToken: string, id: string) {
+  return request(`/operator/journeys/${id}`, { method: 'DELETE', accessToken });
 }
 
 export function getOperatorRouteCatalog(accessToken: string) {
@@ -508,17 +632,6 @@ export function updateOperatorProfile(accessToken: string, input: UpdateOperator
   });
 }
 
-export function createOperatorTrip(
-  accessToken: string,
-  body: { routeId: string; busId: string; departAt: string; arriveEst?: string; baseFare: number },
-) {
-  return request<OperatorTrip>('/operator/trips', {
-    method: 'POST',
-    body: JSON.stringify(body),
-    accessToken,
-  });
-}
-
 // ── Admin dashboard (token required; caller must be linked via admin_users) ────
 
 export interface AdminOperator {
@@ -569,7 +682,7 @@ export interface AdminBooking {
   amount: number;
   status: string;
   created_at: string;
-  trip: { depart_at: string; route: { operator: { name: string } | null } | null } | null;
+  trip: { depart_at: string; bus: { operator: { name: string } | null } | null } | null;
   tickets?: { id: string; status: string }[];
   payments?: { id: string; status: string; amount: number }[];
   refunds?: { id: string; amount: number; status: string }[];

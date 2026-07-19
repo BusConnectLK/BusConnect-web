@@ -7,7 +7,6 @@ import {
   type TripDetail,
   type SeatMap,
 } from "@/lib/api";
-import { listLocations } from "@/lib/locations";
 import { SeatSelector } from "./seat-selector";
 
 function formatDateTime(iso: string) {
@@ -20,15 +19,19 @@ function formatDateTime(iso: string) {
   });
 }
 
-function stopTime(departIso: string, offsetMin: number) {
-  return new Date(new Date(departIso).getTime() + offsetMin * 60000).toLocaleTimeString(
-    "en-LK",
-    { hour: "2-digit", minute: "2-digit" },
-  );
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("en-LK", { hour: "2-digit", minute: "2-digit" });
 }
 
-export default async function TripPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function TripPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string; to?: string }>;
+}) {
   const { id } = await params;
+  const { from, to } = await searchParams;
 
   let trip: TripDetail | null = null;
   let seatmap: SeatMap | null = null;
@@ -53,12 +56,20 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
     );
   }
 
-  const locations = await listLocations();
-  const nameOf = (locId: string) => locations.find((l) => l.id === locId)?.name_en ?? "Stop";
+  const stops = [...trip.stops].sort((a, b) => a.seq - b.seq);
+  // Fall back to the route's full endpoints when the page is opened directly
+  // (no ?from=&to= from a search result), e.g. a shared/bookmarked link.
+  const fromStopId = (from && stops.some((s) => s.route_stop_id === from) ? from : stops[0]?.route_stop_id) ?? "";
+  const toStopId =
+    (to && stops.some((s) => s.route_stop_id === to) ? to : stops[stops.length - 1]?.route_stop_id) ?? "";
 
-  const stops = [...trip.route.stops].sort((a, b) => a.seq - b.seq);
-  const fromStopId = stops[0]?.id ?? "";
-  const toStopId = stops[stops.length - 1]?.id ?? "";
+  const fareOverride = trip.fares.find(
+    (f) => f.from_stop_id === fromStopId && f.to_stop_id === toStopId,
+  );
+  const farePerSeat = Number(fareOverride?.fare ?? trip.base_fare);
+
+  const boardStop = stops.find((s) => s.route_stop_id === fromStopId);
+  const dropStop = stops.find((s) => s.route_stop_id === toStopId);
 
   const operator = trip.bus.operator;
   const operatorName = operator?.name ?? "Operator";
@@ -86,13 +97,14 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
               {operatorName}
             </h1>
             <p className="ui text-sm text-white/80">
-              {trip.bus.bus_type.name} · {trip.bus.bus_type.class.replace("_", " ")} · Bus {trip.bus.reg_no}
+              {trip.route.name} · {trip.bus.bus_type.name} · {trip.bus.bus_type.class.replace("_", " ")} · Bus{" "}
+              {trip.bus.reg_no}
             </p>
           </div>
         </div>
         <div className="ui mt-5 flex flex-wrap gap-2 text-sm">
           <span className="rounded-lg bg-white/15 px-3 py-1.5 font-medium text-white backdrop-blur">
-            Departs {formatDateTime(trip.depart_at)}
+            Board {boardStop ? formatDateTime(boardStop.scheduled_at ?? trip.depart_at) : formatDateTime(trip.depart_at)}
           </span>
           <span className="flex items-center gap-1 rounded-lg bg-white/15 px-3 py-1.5 font-medium text-white backdrop-blur">
             <Star size={13} className="fill-amber-300 text-amber-300" />
@@ -113,7 +125,7 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
             layout={seatmap?.layout ?? trip.bus.bus_type.layout_json ?? null}
             seatCount={trip.bus.bus_type.seat_count}
             initialTaken={seatmap?.taken ?? []}
-            farePerSeat={Number(trip.base_fare)}
+            farePerSeat={farePerSeat}
             fromStopId={fromStopId}
             toStopId={toStopId}
           />
@@ -123,23 +135,57 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
           <div className="lg:sticky lg:top-32">
             <div className="card p-5">
               <h3 className="font-heading font-semibold">Your journey</h3>
+              {boardStop && dropStop && (
+                <p className="ui mt-1 text-xs text-slate-500 dark:text-zinc-500">
+                  Boarding at <span className="font-medium text-slate-700 dark:text-zinc-300">{boardStop.location_name}</span>,
+                  dropping at <span className="font-medium text-slate-700 dark:text-zinc-300">{dropStop.location_name}</span>
+                </p>
+              )}
               <ol className="mt-4 space-y-4">
-                {stops.map((s, i) => (
-                  <li key={s.id} className="flex gap-3">
-                    <div className="flex flex-col items-center">
-                      <MapPin size={16} className="text-brand dark:text-blue-400" />
-                      {i < stops.length - 1 && (
-                        <span className="my-1 w-px flex-1 bg-slate-200 dark:bg-zinc-800" />
-                      )}
-                    </div>
-                    <div className="-mt-0.5">
-                      <p className="font-medium">{nameOf(s.location_id)}</p>
-                      <p className="ui text-xs text-slate-500 dark:text-zinc-500">
-                        {stopTime(trip.depart_at, s.scheduled_offset_min)}
-                      </p>
-                    </div>
-                  </li>
-                ))}
+                {stops.map((s) => {
+                  const isBoard = s.route_stop_id === fromStopId;
+                  const isDrop = s.route_stop_id === toStopId;
+                  const inSegment = boardStop && dropStop && s.seq >= boardStop.seq && s.seq <= dropStop.seq;
+                  return (
+                    <li key={s.route_stop_id} className="flex gap-3">
+                      <div className="flex flex-col items-center">
+                        <MapPin
+                          size={16}
+                          className={
+                            isBoard || isDrop
+                              ? "text-brand dark:text-blue-400"
+                              : inSegment
+                                ? "text-slate-400 dark:text-zinc-500"
+                                : "text-slate-300 dark:text-zinc-700"
+                          }
+                        />
+                        {s.seq < stops.length && (
+                          <span className="my-1 w-px flex-1 bg-slate-200 dark:bg-zinc-800" />
+                        )}
+                      </div>
+                      <div className="-mt-0.5">
+                        <p
+                          className={`font-medium ${!inSegment ? "text-slate-400 dark:text-zinc-600" : ""}`}
+                        >
+                          {s.location_name}
+                          {isBoard && (
+                            <span className="ui ml-1.5 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                              Board
+                            </span>
+                          )}
+                          {isDrop && (
+                            <span className="ui ml-1.5 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                              Drop
+                            </span>
+                          )}
+                        </p>
+                        <p className="ui text-xs text-slate-500 dark:text-zinc-500">
+                          {s.scheduled_at ? formatTime(s.scheduled_at) : "—"}
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
               </ol>
 
               {trip.bus.amenities.length > 0 && (
