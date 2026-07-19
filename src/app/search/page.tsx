@@ -27,9 +27,18 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
       >
         <DateBadge iso={trip.boarding_at} />
         <div className="absolute bottom-4 left-4 flex items-center gap-2 text-white">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 font-heading text-sm font-bold backdrop-blur">
-            {trip.operator_name.slice(0, 1)}
-          </span>
+          {trip.operator_logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={trip.operator_logo_url}
+              alt={`${trip.operator_name} logo`}
+              className="h-9 w-9 shrink-0 rounded-xl border border-white/30 bg-white object-cover"
+            />
+          ) : (
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 font-heading text-sm font-bold backdrop-blur">
+              {trip.operator_name.slice(0, 1)}
+            </span>
+          )}
           <span className="font-heading text-lg font-semibold">{trip.operator_name}</span>
         </div>
       </div>

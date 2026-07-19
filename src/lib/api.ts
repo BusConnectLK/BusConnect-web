@@ -64,8 +64,23 @@ export interface TripSearchResult {
   bus_type_seat_count: number;
   operator_id: string;
   operator_name: string;
+  operator_logo_url: string | null;
   operator_rating: number;
   operator_reliability_score: number;
+}
+
+export interface CrewMember {
+  name: string;
+  photoUrl: string | null;
+}
+
+export interface TripCrew {
+  driver: CrewMember | null;
+  conductor: CrewMember | null;
+}
+
+export function getTripCrew(tripId: string) {
+  return request<TripCrew>(`/trips/${tripId}/crew`);
 }
 
 /**
@@ -121,7 +136,7 @@ export interface TripDetail {
   bus: {
     reg_no: string;
     amenities: string[];
-    operator: { id: string; name: string; rating: number; reliability_score: number } | null;
+    operator: { id: string; name: string; logo_url: string | null; rating: number; reliability_score: number } | null;
     bus_type: { name: string; class: string; seat_count: number; layout_json: SeatLayout | null };
   };
   fares: TripFare[];

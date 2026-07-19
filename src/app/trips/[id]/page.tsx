@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { ArrowLeft, Star, ShieldCheck, MapPin } from "lucide-react";
+import { ArrowLeft, Star, ShieldCheck, MapPin, User } from "lucide-react";
 import {
   getTrip,
   getSeatmap,
+  getTripCrew,
   ApiError,
   type TripDetail,
   type SeatMap,
+  type TripCrew,
 } from "@/lib/api";
 import { SeatSelector } from "./seat-selector";
 
@@ -35,10 +37,12 @@ export default async function TripPage({
 
   let trip: TripDetail | null = null;
   let seatmap: SeatMap | null = null;
+  let crew: TripCrew | null = null;
   let error: string | null = null;
 
   try {
     [trip, seatmap] = await Promise.all([getTrip(id), getSeatmap(id)]);
+    crew = await getTripCrew(id).catch(() => null);
   } catch (e) {
     error = e instanceof ApiError ? e.message : "Could not reach BusConnect-api. Is it running?";
   }
@@ -89,9 +93,18 @@ export default async function TripPage({
         style={{ background: "linear-gradient(135deg, #004aad 0%, #05235a 100%)" }}
       >
         <div className="flex items-center gap-3 text-white">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 font-heading text-lg font-bold backdrop-blur">
-            {operatorName.slice(0, 1)}
-          </span>
+          {operator?.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={operator.logo_url}
+              alt={`${operatorName} logo`}
+              className="h-12 w-12 shrink-0 rounded-2xl border border-white/30 bg-white object-cover"
+            />
+          ) : (
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 font-heading text-lg font-bold backdrop-blur">
+              {operatorName.slice(0, 1)}
+            </span>
+          )}
           <div>
             <h1 className="font-heading text-2xl font-bold tracking-tight text-white sm:text-3xl">
               {operatorName}
@@ -206,6 +219,18 @@ export default async function TripPage({
                 </div>
               )}
 
+              {(crew?.driver || crew?.conductor) && (
+                <div className="mt-5 border-t border-slate-200 pt-4 dark:border-zinc-800">
+                  <p className="ui text-xs uppercase tracking-wide text-slate-500 dark:text-zinc-500">
+                    Your crew
+                  </p>
+                  <div className="mt-2.5 flex flex-wrap gap-4">
+                    {crew.driver && <CrewBadge role="Driver" member={crew.driver} />}
+                    {crew.conductor && <CrewBadge role="Conductor" member={crew.conductor} />}
+                  </div>
+                </div>
+              )}
+
               <div className="ui mt-5 flex items-center gap-2 border-t border-slate-200 pt-4 text-xs text-slate-500 dark:border-zinc-800 dark:text-zinc-500">
                 <ShieldCheck size={15} className="text-emerald-500" />
                 Secure checkout · Instant e-ticket · QR boarding
@@ -213,6 +238,29 @@ export default async function TripPage({
             </div>
           </div>
         </aside>
+      </div>
+    </div>
+  );
+}
+
+function CrewBadge({ role, member }: { role: string; member: { name: string; photoUrl: string | null } }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      {member.photoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={member.photoUrl}
+          alt={`${member.name} photo`}
+          className="h-10 w-10 shrink-0 rounded-full border border-slate-200 object-cover dark:border-zinc-800"
+        />
+      ) : (
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-dashed border-slate-300 text-slate-400 dark:border-zinc-700 dark:text-zinc-600">
+          <User size={16} />
+        </div>
+      )}
+      <div>
+        <p className="ui text-[11px] uppercase tracking-wide text-slate-500 dark:text-zinc-500">{role}</p>
+        <p className="text-sm font-medium">{member.name}</p>
       </div>
     </div>
   );
