@@ -167,15 +167,11 @@ export default async function SearchResultsPage({
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight">
-            Available buses for {pageTitleDate(effectiveDate)}
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <DateFilter from={from} to={to} date={effectiveDate} />
-        </div>
+      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+        <h1 className="font-heading text-2xl font-bold tracking-tight">
+          Available buses for {pageTitleDate(effectiveDate)}
+        </h1>
+        <DateFilter from={from} to={to} date={effectiveDate} />
       </div>
 
       {error && (
