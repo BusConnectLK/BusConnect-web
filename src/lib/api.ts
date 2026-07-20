@@ -1080,6 +1080,11 @@ export function reopenPayout(accessToken: string, tripId: string) {
   return request(`/admin/payouts/${tripId}`, { method: 'DELETE', accessToken });
 }
 
+/** Permanently erase a fully paid-out trip (admin cleanup) — blocked unless already settled. */
+export function deleteSettledTrip(accessToken: string, tripId: string) {
+  return request(`/admin/trips/${tripId}`, { method: 'DELETE', accessToken });
+}
+
 export function getAdminPayoutSlipUrl(accessToken: string, tripId: string) {
   return request<{ url: string }>(`/admin/payouts/${tripId}/slip-url`, { accessToken });
 }
