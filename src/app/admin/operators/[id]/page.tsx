@@ -19,6 +19,7 @@ import { getAdminOperator, ApiError, type AdminOperator } from "@/lib/api";
 import { StatusActions } from "../status-actions";
 import { ViewIdButton } from "../view-id-button";
 import { DeleteOperatorButton } from "./delete-operator-button";
+import { CommissionEditor } from "./commission-editor";
 
 const STATUS_STYLE: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
@@ -210,6 +211,18 @@ export default async function AdminOperatorDetailPage({
             This operator hasn&apos;t added bank details yet.
           </p>
         )}
+      </div>
+
+      {/* ── Commission ──────────────────────────────────────────────────────── */}
+      <div className="card-lg mt-4 p-6">
+        <h2 className="ui text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-600">
+          Platform commission
+        </h2>
+        <p className="ui mt-1 text-xs text-slate-500 dark:text-zinc-500">
+          BusConnect&apos;s cut of this operator&apos;s trip fares. Applies to future settlements; already-paid
+          trips keep their original rate.
+        </p>
+        <CommissionEditor operatorId={operator.id} initialPct={operator.commission_pct} />
       </div>
 
       {/* ── Danger zone ─────────────────────────────────────────────────────── */}

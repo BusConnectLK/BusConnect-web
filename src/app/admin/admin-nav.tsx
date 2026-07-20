@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Building2, Wallet, Search, Bus, Route, IdCard, CalendarRange } from "lucide-react";
+import { LayoutDashboard, Building2, Wallet, Search, Bus, Route, IdCard, CalendarRange, HandCoins } from "lucide-react";
 
 const items = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
   { label: "Operators", href: "/admin/operators", icon: Building2 },
   { label: "Timetable", href: "/admin/timetable", icon: CalendarRange },
+  { label: "Payouts", href: "/admin/payouts", icon: HandCoins },
   { label: "Fleet", href: "/admin/fleet", icon: Bus },
   { label: "Routes", href: "/admin/routes", icon: Route },
   { label: "Pilots", href: "/admin/pilots", icon: IdCard },

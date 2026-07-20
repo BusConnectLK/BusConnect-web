@@ -718,7 +718,16 @@ export interface AdminOperator {
   address: string | null;
   id_document_path: string | null;
   payout_account: OperatorPayoutAccount | null;
+  commission_pct: number;
   owner_email?: string | null;
+}
+
+export function setOperatorCommission(accessToken: string, operatorId: string, commissionPct: number) {
+  return request<{ id: string; commission_pct: number }>(`/admin/operators/${operatorId}/commission`, {
+    method: 'PATCH',
+    body: JSON.stringify({ commissionPct }),
+    accessToken,
+  });
 }
 
 export interface AdminRefund {
@@ -989,4 +998,120 @@ export interface AdminTrip {
 export function listAdminTrips(accessToken: string, upcomingOnly = false) {
   const qs = upcomingOnly ? '?upcomingOnly=true' : '';
   return request<AdminTrip[]>(`/admin/trips${qs}`, { accessToken });
+}
+
+// ── Payouts (admin) ─────────────────────────────────────────────────────────
+
+export interface AdminPayoutRow {
+  id: string; // trip id
+  depart_at: string;
+  status: string;
+  route: { id: string; name: string } | null;
+  bus: {
+    reg_no: string;
+    bus_type: { name: string; class: string } | null;
+    operator: { id: string; name: string; commission_pct: number } | null;
+  } | null;
+  seats_sold: number;
+  booking_count: number;
+  gross: number;
+  commission_pct: number;
+  commission_amount: number;
+  net_amount: number;
+  payout_status: 'paid' | 'pending';
+  paid_at: string | null;
+  reference: string | null;
+  settleable: boolean;
+}
+
+export interface AdminPayoutDetail {
+  id: string;
+  depart_at: string;
+  status: string;
+  base_fare: number;
+  route: { id: string; name: string } | null;
+  bus: {
+    reg_no: string;
+    bus_type: { name: string; class: string; seat_count: number } | null;
+    operator: {
+      id: string;
+      name: string;
+      commission_pct: number;
+      payout_account: OperatorPayoutAccount | null;
+    } | null;
+  } | null;
+  bookings: { id: string; seats: string[]; amount: number; status: string; created_at: string }[];
+  seats_sold: number;
+  gross: number;
+  commission_pct: number;
+  commission_amount: number;
+  net_amount: number;
+  payout: {
+    reference: string | null;
+    paid_at: string;
+    gross_amount: number;
+    commission_amount: number;
+    net_amount: number;
+  } | null;
+  settleable: boolean;
+}
+
+export function listAdminPayouts(accessToken: string) {
+  return request<AdminPayoutRow[]>('/admin/payouts', { accessToken });
+}
+
+export function getAdminPayout(accessToken: string, tripId: string) {
+  return request<AdminPayoutDetail>(`/admin/payouts/${tripId}`, { accessToken });
+}
+
+export function settlePayout(
+  accessToken: string,
+  tripId: string,
+  body: { slipPath: string; reference?: string },
+) {
+  return request(`/admin/payouts/${tripId}`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    accessToken,
+  });
+}
+
+export function reopenPayout(accessToken: string, tripId: string) {
+  return request(`/admin/payouts/${tripId}`, { method: 'DELETE', accessToken });
+}
+
+export function getAdminPayoutSlipUrl(accessToken: string, tripId: string) {
+  return request<{ url: string }>(`/admin/payouts/${tripId}/slip-url`, { accessToken });
+}
+
+// ── Revenue (operator) ──────────────────────────────────────────────────────
+
+export interface OperatorRevenueRow {
+  trip_id: string;
+  depart_at: string;
+  status: string;
+  route: { id: string; name: string } | null;
+  bus: { reg_no: string; bus_type: { name: string; class: string } | null } | null;
+  seats_sold: number;
+  gross: number;
+  commission_pct: number;
+  commission_amount: number;
+  net_amount: number;
+  payout_status: 'paid' | 'pending';
+  paid_at: string | null;
+  reference: string | null;
+  has_slip: boolean;
+}
+
+export interface OperatorRevenue {
+  rows: OperatorRevenueRow[];
+  totals: { grossEarned: number; netEarned: number; paidOut: number; pending: number };
+}
+
+export function getOperatorRevenue(accessToken: string) {
+  return request<OperatorRevenue>('/operator/revenue', { accessToken });
+}
+
+export function getOperatorPayoutSlipUrl(accessToken: string, tripId: string) {
+  return request<{ url: string }>(`/operator/revenue/${tripId}/slip-url`, { accessToken });
 }

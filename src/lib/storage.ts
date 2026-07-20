@@ -54,6 +54,22 @@ export async function uploadPilotPhoto(userId: string, file: File): Promise<stri
   return path;
 }
 
+/**
+ * Private bucket — payout transfer slip (admin uploads; Storage RLS restricts
+ * writes to admins). Keyed by trip so each trip's slip is easy to find.
+ * Returns a storage PATH; viewed later via a signed URL from BusConnect-api.
+ */
+export async function uploadPayoutSlip(tripId: string, file: File): Promise<string> {
+  const supabase = createClient();
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  const path = `${tripId}/slip-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('payout-slips')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw error;
+  return path;
+}
+
 /** Public bucket — admin-uploaded route photo, shown on passenger-facing route cards. */
 export async function uploadRouteImage(userId: string, file: File): Promise<string> {
   const supabase = createClient();
