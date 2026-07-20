@@ -175,9 +175,6 @@ export default async function SearchResultsPage({
         </div>
         <div className="flex items-center gap-2">
           <DateFilter from={from} to={to} date={effectiveDate} />
-          <Link href="/" className="btn-secondary">
-            Edit search
-          </Link>
         </div>
       </div>
 
