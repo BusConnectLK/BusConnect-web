@@ -3,6 +3,11 @@ import { Star, Clock } from "lucide-react";
 import { searchTrips, ApiError, type TripSearchResult } from "@/lib/api";
 import { DateBadge } from "@/components/ui";
 import { ImageCarousel } from "@/components/image-carousel";
+import { DateFilter } from "./date-filter";
+
+function todayIso() {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Colombo" });
+}
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("en-LK", { hour: "2-digit", minute: "2-digit" });
@@ -20,7 +25,7 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
   const overnight =
     new Date(trip.drop_at).toDateString() !== new Date(trip.boarding_at).toDateString();
   return (
-    <div className="card card-hover overflow-hidden">
+    <div className="card card-hover overflow-hidden text-[0.7rem]">
       {/* poster header */}
       <div className="relative aspect-video">
         {trip.bus_images.length > 0 ? (
@@ -31,45 +36,45 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
             style={{ background: "linear-gradient(135deg, #004aad 0%, #062b63 100%)" }}
           />
         )}
-        <div className="pointer-events-none absolute inset-x-0 top-0 p-4">
+        <div className="pointer-events-none absolute inset-x-0 top-0 p-2.5">
           <DateBadge iso={trip.boarding_at} />
         </div>
-        <div className="pointer-events-none absolute bottom-4 left-4 flex items-center gap-2 text-white">
+        <div className="pointer-events-none absolute bottom-2.5 left-2.5 flex items-center gap-1.5 text-white">
           {trip.operator_logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={trip.operator_logo_url}
               alt={`${trip.operator_name} logo`}
-              className="h-9 w-9 shrink-0 rounded-xl border border-white/30 bg-white object-cover"
+              className="h-6 w-6 shrink-0 rounded-lg border border-white/30 bg-white object-cover"
             />
           ) : (
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 font-heading text-sm font-bold backdrop-blur">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/20 font-heading text-xs font-bold backdrop-blur">
               {trip.operator_name.slice(0, 1)}
             </span>
           )}
-          <span className="font-heading text-lg font-semibold drop-shadow">{trip.operator_name}</span>
+          <span className="font-heading text-sm font-semibold drop-shadow">{trip.operator_name}</span>
         </div>
       </div>
 
-      <div className="p-5">
-        <span className="pill">{trip.bus_type_class.replace("_", " ")}</span>
-        <h3 className="mt-2 font-heading text-lg font-bold leading-snug tracking-tight">
+      <div className="p-3.5">
+        <span className="pill !px-1.5 !py-0.5 !text-[9px]">{trip.bus_type_class.replace("_", " ")}</span>
+        <h3 className="mt-1.5 font-heading text-sm font-bold leading-snug tracking-tight">
           {trip.route_name}
         </h3>
-        <div className="ui mt-1 flex items-center justify-between text-sm text-slate-600 dark:text-zinc-400">
+        <div className="ui mt-0.5 flex items-center justify-between text-[0.7rem] text-slate-600 dark:text-zinc-400">
           <span>{trip.bus_type_name}</span>
           <span className="flex items-center gap-1">
-            <Star size={13} className="fill-amber-400 text-amber-400" />
+            <Star size={10} className="fill-amber-400 text-amber-400" />
             {trip.operator_rating.toFixed(1)} · {trip.operator_reliability_score.toFixed(0)}%
           </span>
         </div>
 
         {trip.bus_amenities.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
+          <div className="mt-2 flex flex-wrap gap-1">
             {trip.bus_amenities.map((a) => (
               <span
                 key={a}
-                className="ui rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-zinc-800 dark:text-zinc-400"
+                className="ui rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-600 dark:bg-zinc-800 dark:text-zinc-400"
               >
                 {a}
               </span>
@@ -77,26 +82,26 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
           </div>
         )}
 
-        <div className="mt-4 border-t border-slate-200 pt-4 dark:border-zinc-800">
-          <p className="ui flex items-center gap-1 text-xs uppercase tracking-wide text-slate-500 dark:text-zinc-500">
-            <Clock size={12} /> {formatTime(trip.boarding_at)} · {dur}
+        <div className="mt-2.5 border-t border-slate-200 pt-2.5 dark:border-zinc-800">
+          <p className="ui flex items-center gap-1 text-[9px] uppercase tracking-wide text-slate-500 dark:text-zinc-500">
+            <Clock size={9} /> {formatTime(trip.boarding_at)} · {dur}
             {overnight && (
               <span className="rounded bg-amber-100 px-1 py-px font-semibold text-amber-700 normal-case tracking-normal dark:bg-amber-950/50 dark:text-amber-300">
                 +1 day
               </span>
             )}
           </p>
-          <div className="mt-1.5">
-            <p className="ui text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-500">
+          <div className="mt-1">
+            <p className="ui text-[8px] font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-500">
               LKR
             </p>
-            <p className="font-heading text-2xl font-bold leading-tight text-brand dark:text-blue-400">
+            <p className="font-heading text-base font-bold leading-tight text-brand dark:text-blue-400">
               {Number(trip.fare).toLocaleString("en-LK")}
             </p>
           </div>
           <Link
             href={`/trips/${trip.trip_id}?from=${trip.from_stop_id}&to=${trip.to_stop_id}`}
-            className="btn-primary mt-4 w-full"
+            className="btn-primary mt-2.5 w-full !py-2 !text-xs"
           >
             Select seats
           </Link>
@@ -113,7 +118,7 @@ export default async function SearchResultsPage({
 }) {
   const { from, to, date } = await searchParams;
 
-  if (!from || !to || !date) {
+  if (!from || !to) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <p className="text-slate-600 dark:text-zinc-400">
@@ -127,26 +132,32 @@ export default async function SearchResultsPage({
     );
   }
 
+  // No date in the URL yet (e.g. a bookmarked from/to link) — default to today.
+  const effectiveDate = date || todayIso();
+
   let trips: TripSearchResult[] = [];
   let error: string | null = null;
   try {
-    trips = await searchTrips({ from, to, date });
+    trips = await searchTrips({ from, to, date: effectiveDate });
   } catch (e) {
     error = e instanceof ApiError ? e.message : "Could not reach BusConnect-api. Is it running?";
   }
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-7 flex items-center justify-between">
+      <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-heading text-2xl font-bold tracking-tight">Available buses</h1>
           <p className="ui mt-1 text-sm text-slate-500 dark:text-zinc-400">
-            {trips.length} {trips.length === 1 ? "trip" : "trips"} on {date}
+            {trips.length} {trips.length === 1 ? "trip" : "trips"} on {effectiveDate}
           </p>
         </div>
-        <Link href="/" className="btn-secondary">
-          Edit search
-        </Link>
+        <div className="flex items-center gap-2">
+          <DateFilter from={from} to={to} date={effectiveDate} />
+          <Link href="/" className="btn-secondary">
+            Edit search
+          </Link>
+        </div>
       </div>
 
       {error && (
@@ -157,11 +168,11 @@ export default async function SearchResultsPage({
 
       {!error && trips.length === 0 && (
         <div className="card p-12 text-center text-slate-500 dark:text-zinc-400">
-          No trips found for this route and date.
+          No trips found for this route on {effectiveDate}. Try another date above.
         </div>
       )}
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {trips.map((trip) => (
           <TripCard key={`${trip.trip_id}-${trip.from_stop_id}-${trip.to_stop_id}`} trip={trip} />
         ))}
