@@ -9,6 +9,28 @@ function todayIso() {
   return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Colombo" });
 }
 
+function ordinal(day: number) {
+  if (day >= 11 && day <= 13) return `${day}th`;
+  switch (day % 10) {
+    case 1:
+      return `${day}st`;
+    case 2:
+      return `${day}nd`;
+    case 3:
+      return `${day}rd`;
+    default:
+      return `${day}th`;
+  }
+}
+
+/** "today" for the current date, else "22nd June". */
+function pageTitleDate(dateIso: string) {
+  if (dateIso === todayIso()) return "today";
+  const d = new Date(`${dateIso}T00:00:00`);
+  const month = d.toLocaleDateString("en-LK", { month: "long" });
+  return `${ordinal(d.getDate())} ${month}`;
+}
+
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("en-LK", { hour: "2-digit", minute: "2-digit" });
 }
@@ -147,10 +169,9 @@ export default async function SearchResultsPage({
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight">Available buses</h1>
-          <p className="ui mt-1 text-sm text-slate-500 dark:text-zinc-400">
-            {trips.length} {trips.length === 1 ? "trip" : "trips"} on {effectiveDate}
-          </p>
+          <h1 className="font-heading text-2xl font-bold tracking-tight">
+            Available buses for {pageTitleDate(effectiveDate)}
+          </h1>
         </div>
         <div className="flex items-center gap-2">
           <DateFilter from={from} to={to} date={effectiveDate} />

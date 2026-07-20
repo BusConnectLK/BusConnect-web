@@ -122,11 +122,11 @@ function PopularRoutes({ routes }: { routes: Awaited<ReturnType<typeof listPopul
       <SectionHeading
         id="routes"
         title="Popular routes"
-        subtitle="Ranked by real scheduled trips across active operators right now."
+        subtitle="Every route BusConnect covers, ranked by real scheduled trips where buses are already running."
       />
       {routes.length === 0 ? (
         <p className="ui mt-9 text-sm text-slate-500 dark:text-zinc-500">
-          No upcoming trips yet — check back once operators have scheduled some.
+          No routes published yet — check back soon.
         </p>
       ) : (
         <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -153,8 +153,9 @@ function PopularRoutes({ routes }: { routes: Awaited<ReturnType<typeof listPopul
                     <span className="truncate">{r.destName}</span>
                   </h3>
                   <p className="ui mt-1 text-sm text-slate-500 dark:text-zinc-400">
-                    {r.tripCount} {r.tripCount === 1 ? "trip" : "trips"} scheduled today
-                    {dur && ` · ${dur}`}
+                    {r.tripCount > 0
+                      ? `${r.tripCount} ${r.tripCount === 1 ? "trip" : "trips"} scheduled today${dur ? ` · ${dur}` : ""}`
+                      : "No buses scheduled yet"}
                   </p>
                 </div>
               </Link>
