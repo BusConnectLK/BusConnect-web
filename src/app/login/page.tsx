@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { Loader2, Phone, Mail, MailCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/logo";
 
@@ -19,43 +19,22 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
 
-  const [method, setMethod] = useState<"phone" | "email">("phone");
-
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-16 sm:px-6">
-      <div className="card p-7">
-        <div className="mb-6 flex justify-center">
-          <Logo height={32} />
+      <div className="card p-8">
+        <div className="mb-8 flex justify-center">
+          <Logo height={44} />
         </div>
-        <h1 className="font-heading text-2xl font-bold tracking-tight">Sign in</h1>
-        <p className="ui mt-2 text-sm text-slate-600 dark:text-zinc-400">
-          Choose how you&apos;d like to receive your code.
+        <h1 className="font-heading text-center text-2xl font-bold tracking-tight">Sign in</h1>
+        <p className="ui mt-2 text-center text-sm text-slate-600 dark:text-zinc-400">
+          Enter your phone number to get a one-time code.
         </p>
 
-        {/* method switcher */}
-        <div className="ui mt-5 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-zinc-800">
-          {(["phone", "email"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMethod(m)}
-              className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium capitalize transition-colors ${
-                method === m
-                  ? "bg-white text-slate-900 shadow-sm dark:bg-zinc-950 dark:text-white"
-                  : "text-slate-500 dark:text-zinc-400"
-              }`}
-            >
-              {m === "phone" ? <Phone size={15} /> : <Mail size={15} />}
-              {m}
-            </button>
-          ))}
+        <div className="mt-7">
+          <PhoneForm next={next} router={router} />
         </div>
 
-        <div className="mt-6">
-          {method === "phone" ? <PhoneForm next={next} router={router} /> : <EmailForm next={next} />}
-        </div>
-
-        <div className="my-5 flex items-center gap-3">
+        <div className="my-6 flex items-center gap-3">
           <span className="h-px flex-1 bg-slate-200 dark:bg-zinc-800" />
           <span className="ui text-xs text-slate-400 dark:text-zinc-500">or</span>
           <span className="h-px flex-1 bg-slate-200 dark:bg-zinc-800" />
@@ -197,58 +176,6 @@ function PhoneForm({
       </Label>
       {error && <ErrorText>{error}</ErrorText>}
       <SubmitButton loading={loading} idle="Send code" busy="Sending…" />
-    </form>
-  );
-}
-
-/* ── Email magic link (works with Supabase's built-in email) ────────────── */
-function EmailForm({ next }: { next: string }) {
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function sendLink(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    const redirect = `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`;
-    const { error } = await createClient().auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: redirect },
-    });
-    setLoading(false);
-    if (error) return setError(error.message);
-    setSent(true);
-  }
-
-  if (sent) {
-    return (
-      <div className="flex flex-col items-center gap-3 py-4 text-center">
-        <MailCheck size={32} className="text-brand dark:text-blue-400" />
-        <p className="font-heading font-semibold">Check your inbox</p>
-        <p className="ui text-sm text-slate-600 dark:text-zinc-400">
-          We sent a sign-in link to <span className="font-medium">{email}</span>. Open it on this device.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <form onSubmit={sendLink} className="flex flex-col gap-4">
-      <Label text="Email address">
-        <input
-          type="email"
-          inputMode="email"
-          placeholder="you@email.lk"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="field"
-        />
-      </Label>
-      {error && <ErrorText>{error}</ErrorText>}
-      <SubmitButton loading={loading} idle="Email me a link" busy="Sending…" />
     </form>
   );
 }
