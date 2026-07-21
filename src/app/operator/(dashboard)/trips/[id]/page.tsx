@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Wallet, Armchair } from "lucide-react";
+import { ArrowLeft, Wallet, Armchair, UserCheck, ScanLine, User, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOperatorManifest, ApiError, type OperatorManifest, type SeatLayout } from "@/lib/api";
 
@@ -12,6 +12,9 @@ const STATUS_STYLE: Record<string, string> = {
 
 function defaultLayout(seatCount: number): SeatLayout {
   return { rows: Math.ceil(seatCount / 4), cols: ["A", "B", null, "C", "D"] };
+}
+function dateTime(iso: string) {
+  return new Date(iso).toLocaleString("en-LK", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 export default async function OperatorManifestPage({
@@ -49,22 +52,45 @@ export default async function OperatorManifestPage({
     );
   }
 
+  const isPilot = manifest.role === "pilot";
   const layout = manifest.layout ?? defaultLayout(40);
   const taken = new Set(manifest.taken);
+  const confirmed = manifest.bookings.filter((b) => b.status === "confirmed");
 
   return (
     <div>
-      <h1 className="font-heading text-2xl font-bold tracking-tight">Trip manifest</h1>
+      <Link
+        href="/operator"
+        className="ui inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
+      >
+        <ArrowLeft size={15} /> Back to dashboard
+      </Link>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-2xl font-bold tracking-tight">
+            {manifest.route_name ?? "Trip manifest"}
+          </h1>
+          <p className="ui mt-1 text-sm text-slate-500 dark:text-zinc-400">
+            {dateTime(manifest.depart_at)} · Bus {manifest.bus?.reg_no ?? "—"}
+          </p>
+        </div>
+        <Link href="/operator/scan" className="btn-primary shrink-0">
+          <ScanLine size={16} /> Scan tickets
+        </Link>
+      </div>
+
+      {/* stat tiles */}
+      <div className={`mt-6 grid gap-3 ${isPilot ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3"}`}>
         <div className="card flex items-center gap-3 p-5">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-brand-soft-dark dark:text-blue-300">
-            <Wallet size={18} />
+            <UserCheck size={18} />
           </span>
           <div>
-            <p className="ui text-xs uppercase tracking-wide text-slate-500 dark:text-zinc-500">Revenue</p>
-            <p className="font-heading text-xl font-bold text-brand dark:text-blue-400">
-              LKR {Number(manifest.revenue).toLocaleString("en-LK")}
+            <p className="ui text-xs uppercase tracking-wide text-slate-500 dark:text-zinc-500">Boarded</p>
+            <p className="font-heading text-xl font-bold">
+              {manifest.boarded_count}
+              <span className="text-slate-400"> / {manifest.confirmed_count}</span>
             </p>
           </div>
         </div>
@@ -77,6 +103,19 @@ export default async function OperatorManifestPage({
             <p className="font-heading text-xl font-bold">{manifest.taken.length}</p>
           </div>
         </div>
+        {!isPilot && (
+          <div className="card flex items-center gap-3 p-5">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-brand-soft-dark dark:text-blue-300">
+              <Wallet size={18} />
+            </span>
+            <div>
+              <p className="ui text-xs uppercase tracking-wide text-slate-500 dark:text-zinc-500">Revenue</p>
+              <p className="font-heading text-xl font-bold text-brand dark:text-blue-400">
+                LKR {Number(manifest.revenue).toLocaleString("en-LK")}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-12">
@@ -86,9 +125,6 @@ export default async function OperatorManifestPage({
           <div className="card p-5">
             <div className="flex flex-col items-center gap-2">
               {(() => {
-                // Matches seatLabels()'s iteration order in the passenger
-                // seat-selector: labels[i] overrides the computed `${row}${col}`
-                // label when a custom numbering scheme was registered.
                 let flatIndex = 0;
                 return Array.from({ length: layout.rows }).map((_, r) => {
                   const row = r + 1;
@@ -120,40 +156,57 @@ export default async function OperatorManifestPage({
           </div>
         </div>
 
-        {/* bookings list */}
+        {/* passenger list */}
         <div className="lg:col-span-7">
-          <h2 className="mb-3 font-heading text-lg font-semibold">Bookings</h2>
-          {manifest.bookings.length === 0 ? (
+          <h2 className="mb-3 font-heading text-lg font-semibold">Passengers</h2>
+          {confirmed.length === 0 ? (
             <div className="card p-10 text-center text-slate-500 dark:text-zinc-400">
-              No bookings yet for this trip.
+              No confirmed passengers yet for this trip.
             </div>
           ) : (
             <div className="flex flex-col gap-2">
               {manifest.bookings.map((b) => (
-                <div key={b.id} className="card flex items-center justify-between p-4">
-                  <div>
-                    <p className="font-medium">Seats {b.seats.join(", ")}</p>
-                    <p className="ui text-xs text-slate-500 dark:text-zinc-500">
-                      Ref {b.id.slice(0, 8).toUpperCase()} ·{" "}
-                      {new Date(b.created_at).toLocaleString("en-LK", {
-                        day: "numeric",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                <div key={b.id} className="card flex items-center justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-1.5 font-medium">
+                      <User size={14} className="shrink-0 text-slate-400" />
+                      {b.passenger_name ?? "Passenger"}
+                    </p>
+                    <p className="ui mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500 dark:text-zinc-500">
+                      <span>Seats {b.seats.join(", ")}</span>
+                      {b.passenger_phone && (
+                        <span className="flex items-center gap-1">
+                          <Phone size={11} /> {b.passenger_phone}
+                        </span>
+                      )}
+                      <span>Ref {b.id.slice(0, 6).toUpperCase()}</span>
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-heading font-bold text-brand dark:text-blue-400">
-                      LKR {Number(b.amount).toLocaleString("en-LK")}
-                    </p>
-                    <span
-                      className={`ui mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
-                        STATUS_STYLE[b.status] ?? STATUS_STYLE.pending
-                      }`}
-                    >
-                      {b.status.replace("_", " ")}
-                    </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {b.status === "confirmed" ? (
+                      b.boarded ? (
+                        <span className="ui flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                          <UserCheck size={12} /> Boarded
+                        </span>
+                      ) : (
+                        <span className="ui rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:bg-zinc-800 dark:text-zinc-400">
+                          Not boarded
+                        </span>
+                      )
+                    ) : (
+                      <span
+                        className={`ui rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
+                          STATUS_STYLE[b.status] ?? STATUS_STYLE.pending
+                        }`}
+                      >
+                        {b.status.replace("_", " ")}
+                      </span>
+                    )}
+                    {!isPilot && (
+                      <span className="font-heading text-sm font-bold text-brand dark:text-blue-400">
+                        LKR {Number(b.amount).toLocaleString("en-LK")}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}

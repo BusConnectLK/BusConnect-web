@@ -22,7 +22,7 @@ declare global {
   }
 }
 
-export function Scanner() {
+export function TicketScanner() {
   const [token, setToken] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);

@@ -279,14 +279,46 @@ export interface OperatorManifestBooking {
   amount: number;
   status: string;
   created_at: string;
+  passenger_name: string | null;
+  passenger_phone: string | null;
+  boarded: boolean;
 }
 
 export interface OperatorManifest {
   trip_id: string;
+  role: "owner" | "pilot";
+  route_name: string | null;
+  bus: { reg_no: string; bus_type: { name: string; class: string } | null } | null;
+  depart_at: string;
   layout: SeatLayout | null;
   taken: string[];
   bookings: OperatorManifestBooking[];
+  boarded_count: number;
+  confirmed_count: number;
   revenue: number;
+}
+
+export interface MyAssignment {
+  role: "owner" | "pilot";
+  operator: { id: string; name: string; logo_url: string | null; status: string };
+  pilot: { id: string; name: string; assigned_role: "driver" | "conductor" | null; status: string } | null;
+  bus:
+    | {
+        id: string;
+        reg_no: string;
+        status: string;
+        amenities: string[];
+        front_image_url: string | null;
+        side_image_urls: string[] | null;
+        interior_image_url: string | null;
+        seat_layout_image_url: string | null;
+        bus_type: { name: string; class: string; seat_count: number } | null;
+      }
+    | null;
+}
+
+export function getMyAssignment(accessToken: string) {
+  return request<MyAssignment>("/operator/my-assignment", { accessToken });
 }
 
 export interface OperatorAnalytics {

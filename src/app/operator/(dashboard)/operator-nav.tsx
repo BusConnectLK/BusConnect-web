@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Bus, Route, CalendarClock, CalendarRange, Wallet, UserPlus, UserCircle } from "lucide-react";
+import { LayoutDashboard, Bus, Route, CalendarClock, CalendarRange, Wallet, UserPlus, UserCircle, ScanLine } from "lucide-react";
 
 const items = [
   { label: "Overview", href: "/operator", icon: LayoutDashboard, ownerOnly: false },
@@ -12,6 +12,7 @@ const items = [
   { label: "Fleet", href: "/operator/fleet", icon: Bus, ownerOnly: true },
   { label: "Routes", href: "/operator/routes", icon: Route, ownerOnly: true },
   { label: "Pilots", href: "/operator/pilots", icon: UserPlus, ownerOnly: true },
+  { label: "Scan tickets", href: "/operator/scan", icon: ScanLine, ownerOnly: false },
   { label: "Profile", href: "/operator/profile", icon: UserCircle, ownerOnly: false },
 ] as const;
 

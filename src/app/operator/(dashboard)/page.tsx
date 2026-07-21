@@ -8,8 +8,9 @@ import {
   ArrowRight,
   Clock,
   Ban,
-  QrCode,
   CalendarClock,
+  Bus as BusIcon,
+  ScanLine,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -17,11 +18,13 @@ import {
   listOperatorTrips,
   getOperatorAnalytics,
   listJourneys,
+  getMyAssignment,
   ApiError,
   type OperatorMembership,
   type OperatorTrip,
   type OperatorAnalytics,
   type OperatorJourney,
+  type MyAssignment,
 } from "@/lib/api";
 import { formatTime } from "@/lib/journey-format";
 
@@ -128,6 +131,7 @@ export default async function OperatorOverviewPage() {
   let trips: OperatorTrip[] = [];
   let analytics: OperatorAnalytics | null = null;
   let journeys: OperatorJourney[] = [];
+  let assignment: MyAssignment | null = null;
   try {
     if (role === "owner") {
       [trips, analytics, journeys] = await Promise.all([
@@ -136,7 +140,10 @@ export default async function OperatorOverviewPage() {
         listJourneys(session.access_token),
       ]);
     } else {
-      trips = await listOperatorTrips(session.access_token);
+      [trips, assignment] = await Promise.all([
+        listOperatorTrips(session.access_token),
+        getMyAssignment(session.access_token).catch(() => null),
+      ]);
     }
   } catch (e) {
     return (
@@ -176,17 +183,71 @@ export default async function OperatorOverviewPage() {
           )}
           <div>
             <p className="ui text-sm text-slate-500 dark:text-zinc-400">
-              {role === "owner" ? "Operator dashboard" : "Pilot dashboard"}
+              {role === "owner"
+                ? "Operator dashboard"
+                : assignment?.pilot?.assigned_role
+                  ? `${assignment.pilot.assigned_role[0].toUpperCase()}${assignment.pilot.assigned_role.slice(1)} dashboard`
+                  : "Crew dashboard"}
             </p>
             <h1 className="font-heading text-2xl font-bold tracking-tight">{operator.name}</h1>
           </div>
         </div>
-        {role === "owner" && (
+        {role === "owner" ? (
           <Link href="/operator/journeys/new" className="btn-primary shrink-0">
             <PlusCircle size={16} /> Create journey
           </Link>
+        ) : (
+          <Link href="/operator/scan" className="btn-primary shrink-0">
+            <ScanLine size={16} /> Scan tickets
+          </Link>
         )}
       </div>
+
+      {/* ── Conductor/driver: your assigned bus ─────────────────────────── */}
+      {role === "pilot" && (
+        <section className="mt-6">
+          <div className="mb-3 flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-brand-soft-dark dark:text-blue-300">
+              <BusIcon size={18} />
+            </span>
+            <h2 className="font-heading text-xl font-semibold">Your assignment</h2>
+          </div>
+          {assignment?.bus ? (
+            <div className="card p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-heading text-lg font-bold tracking-tight">{assignment.bus.reg_no}</p>
+                  <p className="ui mt-0.5 text-sm text-slate-500 dark:text-zinc-400">
+                    {assignment.bus.bus_type?.name ?? "—"} · {assignment.bus.bus_type?.seat_count ?? "—"} seats
+                  </p>
+                </div>
+                {assignment.pilot?.assigned_role && (
+                  <span className="ui rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand dark:bg-brand-soft-dark dark:text-blue-300">
+                    {assignment.pilot.assigned_role}
+                  </span>
+                )}
+              </div>
+              {assignment.bus.amenities.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {assignment.bus.amenities.map((a) => (
+                    <span
+                      key={a}
+                      className="ui rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-zinc-800 dark:text-zinc-400"
+                    >
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="card p-6 text-center text-sm text-slate-500 dark:text-zinc-400">
+              You&apos;re not assigned to a bus yet — your operator will assign you to one, and your trips
+              will show up here.
+            </div>
+          )}
+        </section>
+      )}
 
       {role === "owner" && (
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -292,7 +353,7 @@ export default async function OperatorOverviewPage() {
             {shownTrips.map((t) => (
               <Link
                 key={t.id}
-                href={role === "owner" ? `/operator/trips/${t.id}` : `/operator/trips/${t.id}/scan`}
+                href={`/operator/trips/${t.id}`}
                 className="card card-hover flex items-center justify-between p-4"
               >
                 <div className="min-w-0">
@@ -307,7 +368,7 @@ export default async function OperatorOverviewPage() {
                     <p className="font-medium">{formatDateTime(t.depart_at)}</p>
                     <p className="ui text-xs capitalize text-slate-500 dark:text-zinc-400">{t.status}</p>
                   </div>
-                  {role === "pilot" && <QrCode size={18} className="text-brand dark:text-blue-400" />}
+                  <ChevronRight size={16} className="text-slate-400" />
                 </div>
               </Link>
             ))}

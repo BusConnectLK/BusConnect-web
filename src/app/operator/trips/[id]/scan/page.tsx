@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { Scanner } from "./scanner";
+import { TicketScanner } from "@/components/ticket-scanner";
 
 export default async function ScanTicketPage({ params }: { params: Promise<{ id: string }> }) {
   await params; // trip id isn't needed by the API (the token itself carries + is scoped server-side)
@@ -36,7 +36,7 @@ export default async function ScanTicketPage({ params }: { params: Promise<{ id:
       </p>
 
       <div className="mt-6">
-        <Scanner />
+        <TicketScanner />
       </div>
     </div>
   );
