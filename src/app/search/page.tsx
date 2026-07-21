@@ -56,9 +56,9 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
 
   return (
     <div className="card card-hover overflow-hidden">
-      <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-6">
-        {/* thumbnail */}
-        <div className="relative h-32 w-full shrink-0 overflow-hidden rounded-xl sm:h-24 sm:w-44">
+      <div className="flex flex-col sm:flex-row">
+        {/* thumbnail — flush to the card edge, full height on desktop */}
+        <div className="relative h-36 w-full shrink-0 sm:h-auto sm:w-56">
           {trip.bus_images.length > 0 ? (
             <ImageCarousel images={trip.bus_images} alt={`${trip.bus_reg_no} photos`} />
           ) : (
@@ -82,6 +82,7 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
           )}
         </div>
 
+        <div className="flex flex-1 flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-6">
         {/* main content */}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-3">
@@ -154,6 +155,7 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
             Select seats
           </Link>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -44,17 +44,17 @@ export function ImageCarousel({
             type="button"
             onClick={(e) => go(e, -1)}
             aria-label="Previous photo"
-            className="absolute left-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60"
+            className="absolute left-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] transition-opacity hover:opacity-70"
           >
-            <ChevronLeft size={15} />
+            <ChevronLeft size={17} />
           </button>
           <button
             type="button"
             onClick={(e) => go(e, 1)}
             aria-label="Next photo"
-            className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60"
+            className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] transition-opacity hover:opacity-70"
           >
-            <ChevronRight size={15} />
+            <ChevronRight size={17} />
           </button>
           <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5">
             {images.map((_, i) => (
