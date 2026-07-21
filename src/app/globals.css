@@ -6,7 +6,8 @@
 /* ── BusConnect design tokens ────────────────────────────────────────────────
    Brand: cobalt #004aad. Light + dark themes use Tailwind slate/zinc/white/black
    directly (per the UX spec); only the brand + fonts are custom here.
-   Fonts: Outfit (headings), IBM Plex Sans (body/long-form), Inter (UI/nav/meta).
+   Fonts: IBM Plex Sans (font-sans, body default) · Outfit (font-heading, h1-h6)
+   · Inter (font-inter / .ui, labels + nav + chrome + buttons + form fields).
    ──────────────────────────────────────────────────────────────────────── */
 @theme {
   --color-brand: #004aad;
@@ -15,16 +16,16 @@
   --color-brand-soft: #e6eefb;
   --color-brand-soft-dark: #0d1f3f;
 
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-ibm);
   --font-heading: var(--font-outfit);
-  --font-body: var(--font-ibm);
+  --font-inter: var(--font-inter);
 }
 
 @layer base {
   /* Ambient cobalt glow, baked into the body's own background so it can't be
      clipped by z-index/stacking-context issues — glass cards blur *this*. */
   body {
-    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     @apply text-slate-900 dark:text-white;
     background-color: #ffffff;
@@ -42,7 +43,7 @@
       radial-gradient(40% 30% at 90% 8%, rgba(90, 151, 236, 0.2) 0%, transparent 70%),
       radial-gradient(55% 40% at 50% 108%, rgba(0, 74, 173, 0.24) 0%, transparent 70%);
   }
-  h1, h2, h3, h4, h5 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading), var(--font-sans), sans-serif;
     letter-spacing: -0.02em;
   }
@@ -51,14 +52,14 @@
 @layer components {
   /* Primary CTA — cobalt with soft colored shadow */
   .btn-primary {
-    font-family: var(--font-sans), sans-serif;
+    font-family: var(--font-inter), sans-serif;
     @apply inline-flex items-center justify-center gap-2 rounded-none bg-brand px-6 py-3
       font-semibold text-brand-fg transition-colors duration-300
       hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60;
   }
   /* Secondary — outlined, subtle */
   .btn-secondary {
-    font-family: var(--font-sans), sans-serif;
+    font-family: var(--font-inter), sans-serif;
     @apply inline-flex items-center justify-center gap-2 rounded-none border border-slate-200
       bg-white px-6 py-3 font-medium text-slate-900 transition-colors duration-300
       hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60
@@ -66,7 +67,7 @@
   }
   /* Seamless form input — gray fill, transparent border, brand focus ring */
   .field {
-    font-family: var(--font-sans), sans-serif;
+    font-family: var(--font-inter), sans-serif;
     @apply w-full rounded-xl border border-transparent bg-slate-50 px-4 py-3 text-slate-900
       outline-none transition duration-300 placeholder:text-slate-400
       focus:border-transparent focus:ring-2 focus:ring-brand
@@ -90,11 +91,11 @@
   }
   /* Category / class pill */
   .pill {
-    font-family: var(--font-sans), sans-serif;
+    font-family: var(--font-inter), sans-serif;
     @apply inline-flex items-center gap-1 rounded-md bg-brand-soft px-2.5 py-1 text-xs font-bold
       uppercase tracking-wide text-brand dark:bg-brand-soft-dark dark:text-blue-300;
   }
   .ui {
-    font-family: var(--font-sans), sans-serif;
+    font-family: var(--font-inter), sans-serif;
   }
 }
