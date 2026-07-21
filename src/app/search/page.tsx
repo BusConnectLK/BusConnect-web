@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star, ArrowRight } from "lucide-react";
+import { Star, ArrowRight, Bus } from "lucide-react";
 import { searchTrips, ApiError, type TripSearchResult } from "@/lib/api";
 import { ImageCarousel } from "@/components/image-carousel";
 import { DateFilter } from "./date-filter";
@@ -56,9 +56,9 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
 
   return (
     <div className="card card-hover overflow-hidden">
-      <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-5">
+      <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-6">
         {/* thumbnail */}
-        <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-xl sm:h-20 sm:w-32">
+        <div className="relative h-32 w-full shrink-0 overflow-hidden rounded-xl sm:h-24 sm:w-44">
           {trip.bus_images.length > 0 ? (
             <ImageCarousel images={trip.bus_images} alt={`${trip.bus_reg_no} photos`} />
           ) : (
@@ -71,10 +71,10 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
                 <img
                   src={trip.operator_logo_url}
                   alt={`${trip.operator_name} logo`}
-                  className="h-10 w-10 rounded-lg border border-white/30 bg-white object-cover"
+                  className="h-12 w-12 rounded-lg border border-white/30 bg-white object-cover"
                 />
               ) : (
-                <span className="font-heading text-xl font-bold text-white">
+                <span className="font-heading text-2xl font-bold text-white">
                   {trip.operator_name.slice(0, 1)}
                 </span>
               )}
@@ -84,24 +84,26 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
 
         {/* main content */}
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="pill">{trip.bus_type_class.replace("_", " ")}</span>
-            <span className="ui text-sm font-medium text-slate-600 dark:text-zinc-400">
-              {trip.operator_name} · {trip.bus_type_name}
+            <span className="ui flex items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-zinc-400">
+              <Bus size={14} className="shrink-0 text-slate-400 dark:text-zinc-500" />
+              {trip.operator_name} <span className="text-slate-300 dark:text-zinc-700">·</span>{" "}
+              {trip.bus_reg_no}
             </span>
-            <span className="ui ml-auto flex items-center gap-1 text-xs text-slate-500 dark:text-zinc-500 sm:ml-0">
+            <span className="ui ml-auto flex shrink-0 items-center gap-1 text-xs font-medium text-slate-500 dark:text-zinc-500">
               <Star size={12} className="fill-amber-400 text-amber-400" />
               {trip.operator_rating.toFixed(1)} · {trip.operator_reliability_score.toFixed(0)}%
             </span>
           </div>
 
-          <div className="mt-3 flex items-center gap-3 sm:gap-5">
+          <div className="mt-4 flex items-center gap-4 sm:gap-6">
             <div>
-              <p className="font-heading text-xl font-bold leading-none">{formatTime(trip.boarding_at)}</p>
-              <p className="ui mt-1 truncate text-xs text-slate-500 dark:text-zinc-500">{origin}</p>
+              <p className="font-heading text-2xl font-bold leading-none">{formatTime(trip.boarding_at)}</p>
+              <p className="ui mt-1 truncate text-sm text-slate-500 dark:text-zinc-500">{origin}</p>
             </div>
             <div className="flex flex-1 flex-col items-center gap-1 text-slate-400 dark:text-zinc-600">
-              <span className="ui text-[11px] font-medium">
+              <span className="ui text-xs font-medium">
                 {dur}
                 {overnight && (
                   <span className="ml-1 rounded bg-amber-100 px-1 py-px text-[10px] font-semibold text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
@@ -111,18 +113,18 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
               </span>
               <div className="flex w-full items-center gap-1">
                 <span className="h-px flex-1 bg-slate-200 dark:bg-zinc-700" />
-                <ArrowRight size={13} />
+                <ArrowRight size={14} />
                 <span className="h-px flex-1 bg-slate-200 dark:bg-zinc-700" />
               </div>
             </div>
             <div className="text-right">
-              <p className="font-heading text-xl font-bold leading-none">{formatTime(trip.drop_at)}</p>
-              <p className="ui mt-1 truncate text-xs text-slate-500 dark:text-zinc-500">{destination}</p>
+              <p className="font-heading text-2xl font-bold leading-none">{formatTime(trip.drop_at)}</p>
+              <p className="ui mt-1 truncate text-sm text-slate-500 dark:text-zinc-500">{destination}</p>
             </div>
           </div>
 
           {amenities.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
+            <div className="mt-4 flex flex-wrap gap-1.5">
               {amenities.map((a) => (
                 <span
                   key={a}
@@ -141,13 +143,13 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
             <p className="ui text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-500">
               LKR
             </p>
-            <p className="font-heading text-xl font-bold leading-tight text-brand dark:text-blue-400">
+            <p className="font-heading text-2xl font-bold leading-tight text-brand dark:text-blue-400">
               {Number(trip.fare).toLocaleString("en-LK")}
             </p>
           </div>
           <Link
             href={`/trips/${trip.trip_id}?from=${trip.from_stop_id}&to=${trip.to_stop_id}`}
-            className="btn-primary py-2! px-5! text-sm!"
+            className="btn-primary py-2.5! px-6! text-sm!"
           >
             Select seats
           </Link>
@@ -190,7 +192,7 @@ export default async function SearchResultsPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <h1 className="font-heading text-2xl font-bold tracking-tight">
           Available buses for {pageTitleDate(effectiveDate)}
