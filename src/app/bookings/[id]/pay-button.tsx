@@ -48,11 +48,11 @@ export function PayButton({ bookingId }: { bookingId: string }) {
       <button type="button" onClick={pay} disabled={busy} className="btn-primary w-full py-4">
         {busy ? (
           <>
-            <Loader2 size={18} className="animate-spin" /> Redirecting to PayHere…
+            <Loader2 size={18} className="animate-spin" /> Redirecting to WebXPay…
           </>
         ) : (
           <>
-            <CreditCard size={18} /> Pay with PayHere
+            <CreditCard size={18} /> Pay securely with WebXPay
           </>
         )}
       </button>

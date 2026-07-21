@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { Ticket, ChevronRight, CalendarDays } from "lucide-react";
+import QRCode from "qrcode";
+import { Ticket } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { TicketsList, type TicketBooking } from "./tickets-list";
 
 interface BookingRow {
   id: string;
@@ -10,16 +12,15 @@ interface BookingRow {
   created_at: string;
   trip: {
     depart_at: string;
-    bus: { operator: { name: string } | null } | null;
+    route: { name: string } | null;
+    bus: {
+      reg_no: string;
+      bus_type: { name: string; class: string } | null;
+      operator: { name: string; logo_url: string | null } | null;
+    } | null;
   } | null;
+  tickets: { qr_signature: string | null; status: string }[];
 }
-
-const STATUS_STYLE: Record<string, string> = {
-  confirmed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
-  pending: "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
-  cancelled: "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400",
-  refunded: "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400",
-};
 
 export default async function TicketsPage() {
   const supabase = await createClient();
@@ -37,15 +38,53 @@ export default async function TicketsPage() {
     );
   }
 
-  // RLS restricts this to the signed-in user's own bookings.
+  // RLS restricts bookings + tickets to the signed-in user's own rows.
   const { data } = await supabase
     .from("bookings")
     .select(
-      "id, seats, amount, status, created_at, trip:trips ( depart_at, bus:buses ( operator:operators ( name ) ) )",
+      `id, seats, amount, status, created_at,
+       trip:trips ( depart_at,
+         route:routes ( name ),
+         bus:buses ( reg_no, bus_type:bus_types ( name, class ),
+           operator:operators ( name, logo_url ) ) ),
+       tickets ( qr_signature, status )`,
     )
     .order("created_at", { ascending: false });
 
-  const bookings = (data ?? []) as unknown as BookingRow[];
+  const rows = (data ?? []) as unknown as BookingRow[];
+
+  // Pre-render the QR (the signed Ed25519 token itself, so a conductor's
+  // scanner verifies authenticity fully offline) for confirmed bookings.
+  const bookings: TicketBooking[] = await Promise.all(
+    rows.map(async (b) => {
+      const ticket = b.tickets?.[0];
+      const qrDataUrl =
+        b.status === "confirmed" && ticket?.qr_signature
+          ? await QRCode.toDataURL(ticket.qr_signature, {
+              width: 320,
+              margin: 1,
+              color: { dark: "#0b1b3f", light: "#ffffff" },
+            })
+          : null;
+      return {
+        id: b.id,
+        code: b.id.slice(0, 6).toUpperCase(),
+        seats: b.seats,
+        amount: Number(b.amount),
+        status: b.status,
+        createdAt: b.created_at,
+        departAt: b.trip?.depart_at ?? null,
+        routeName: b.trip?.route?.name ?? null,
+        operatorName: b.trip?.bus?.operator?.name ?? "Trip",
+        operatorLogo: b.trip?.bus?.operator?.logo_url ?? null,
+        busType: b.trip?.bus?.bus_type?.name ?? null,
+        busClass: b.trip?.bus?.bus_type?.class ?? null,
+        regNo: b.trip?.bus?.reg_no ?? null,
+        qrDataUrl,
+        ticketStatus: ticket?.status ?? null,
+      };
+    }),
+  );
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
@@ -53,7 +92,10 @@ export default async function TicketsPage() {
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-brand-soft-dark dark:text-blue-300">
           <Ticket size={18} />
         </span>
-        <h1 className="font-heading text-2xl font-bold tracking-tight">My tickets</h1>
+        <div>
+          <h1 className="font-heading text-2xl font-bold tracking-tight">My tickets</h1>
+          <p className="ui text-sm text-slate-500 dark:text-zinc-400">Your bookings &amp; QR codes for boarding</p>
+        </div>
       </div>
 
       {bookings.length === 0 ? (
@@ -64,48 +106,7 @@ export default async function TicketsPage() {
           </Link>
         </div>
       ) : (
-        <div className="mt-8 flex flex-col gap-3">
-          {bookings.map((b) => (
-            <Link
-              key={b.id}
-              href={`/bookings/${b.id}`}
-              className="card card-hover flex items-center justify-between p-4"
-            >
-              <div className="min-w-0">
-                <p className="font-heading font-semibold">
-                  {b.trip?.bus?.operator?.name ?? "Trip"}
-                </p>
-                <p className="ui mt-0.5 flex items-center gap-1.5 text-sm text-slate-500 dark:text-zinc-400">
-                  <CalendarDays size={13} />
-                  {b.trip?.depart_at
-                    ? new Date(b.trip.depart_at).toLocaleDateString("en-LK", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })
-                    : "—"}
-                  <span className="text-slate-300 dark:text-zinc-600">·</span>
-                  Seats {b.seats.join(", ")}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="font-heading font-bold text-brand dark:text-blue-400">
-                    LKR {Number(b.amount).toLocaleString("en-LK")}
-                  </p>
-                  <span
-                    className={`ui mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
-                      STATUS_STYLE[b.status] ?? STATUS_STYLE.pending
-                    }`}
-                  >
-                    {b.status.replace("_", " ")}
-                  </span>
-                </div>
-                <ChevronRight size={18} className="text-slate-400" />
-              </div>
-            </Link>
-          ))}
-        </div>
+        <TicketsList bookings={bookings} />
       )}
     </div>
   );
