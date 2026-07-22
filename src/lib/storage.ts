@@ -70,6 +70,18 @@ export async function uploadPayoutSlip(tripId: string, file: File): Promise<stri
   return path;
 }
 
+/** Public bucket — a passenger's own profile photo. */
+export async function uploadPassengerPhoto(userId: string, file: File): Promise<string> {
+  const supabase = createClient();
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  const path = `${userId}/avatar-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('passenger-photos')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw error;
+  return supabase.storage.from('passenger-photos').getPublicUrl(path).data.publicUrl;
+}
+
 /** Public bucket — admin-uploaded route photo, shown on passenger-facing route cards. */
 export async function uploadRouteImage(userId: string, file: File): Promise<string> {
   const supabase = createClient();

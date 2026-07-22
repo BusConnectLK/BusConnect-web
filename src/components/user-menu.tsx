@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Ticket, Building2, ShieldCheck, LogOut, ChevronDown } from "lucide-react";
+import { Ticket, Building2, ShieldCheck, LogOut, ChevronDown, UserCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMyRoles, type MyRoles } from "@/lib/api";
 
@@ -108,6 +108,9 @@ export function UserMenu() {
           </div>
 
           <div className="p-1.5">
+            <MenuLink href="/profile" icon={UserCircle} onClick={() => setOpen(false)}>
+              Profile
+            </MenuLink>
             <MenuLink href="/tickets" icon={Ticket} onClick={() => setOpen(false)}>
               My tickets
             </MenuLink>

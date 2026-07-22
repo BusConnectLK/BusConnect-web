@@ -664,6 +664,35 @@ export function getMyRoles(accessToken: string) {
   return request<MyRoles>('/me/roles', { accessToken });
 }
 
+export interface MyProfile {
+  id: string;
+  name: string | null;
+  phone: string | null;
+  email: string | null;
+  avatar_url: string | null;
+  lang: string;
+  created_at: string | null;
+}
+
+export function getMyProfile(accessToken: string) {
+  return request<MyProfile>('/me/profile', { accessToken });
+}
+
+export interface UpdateMyProfileInput {
+  name?: string;
+  phone?: string;
+  email?: string;
+  avatarUrl?: string;
+}
+
+export function updateMyProfile(accessToken: string, input: UpdateMyProfileInput) {
+  return request<MyProfile>('/me/profile', {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+    accessToken,
+  });
+}
+
 export function validateTicket(accessToken: string, token: string) {
   return request<
     | { ok: true; status: 'accepted'; ticketId: string }
