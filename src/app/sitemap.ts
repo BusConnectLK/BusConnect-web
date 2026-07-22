@@ -1,26 +1,21 @@
 import type { MetadataRoute } from "next";
+import { locales, defaultLocale } from "@/lib/i18n/config";
 
 /**
- * Only public, stable marketing pages belong here — /search results,
- * /trips/:id, and every authenticated dashboard route are either dynamic
- * (query-string dependent), ephemeral (a trip disappears once departed), or
- * private, so indexing them would just create duplicate-content / dead-link
- * noise for crawlers.
+ * The homepage is the only public, stable marketing page — /search results,
+ * /trips/:id, and dashboards are dynamic, ephemeral, or private. Each locale's
+ * home is listed with `alternates.languages` so Google understands they're
+ * translations of one page rather than duplicate content.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://busconnect.lk";
-  return [
-    {
-      url: base,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 1,
-    },
-    {
-      url: `${base}/login`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.3,
-    },
-  ];
+  const languages = Object.fromEntries(locales.map((l) => [l, `${base}/${l}`]));
+
+  return locales.map((l) => ({
+    url: `${base}/${l}`,
+    lastModified: new Date(),
+    changeFrequency: "daily",
+    priority: l === defaultLocale ? 1 : 0.8,
+    alternates: { languages },
+  }));
 }

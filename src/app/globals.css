@@ -67,13 +67,13 @@
      or gradient. Elevation comes entirely from the page→card lightness step
      (plus a soft shadow on cards in light mode). */
   body {
-    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-sans), var(--font-sinhala), var(--font-tamil), ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     color: var(--foreground);
     background-color: var(--background);
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-heading), var(--font-sans), sans-serif;
+    font-family: var(--font-heading), var(--font-sinhala), var(--font-tamil), var(--font-sans), sans-serif;
     letter-spacing: -0.02em;
   }
 }
@@ -81,21 +81,21 @@
 @layer components {
   /* Primary CTA — cobalt with soft colored shadow */
   .btn-primary {
-    font-family: var(--font-inter), sans-serif;
+    font-family: var(--font-inter), var(--font-sinhala), var(--font-tamil), sans-serif;
     @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5
       text-sm font-semibold text-brand-fg transition-colors duration-300
       hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60;
   }
   /* Secondary — Facebook neutral: subtle fill, no brand color */
   .btn-secondary {
-    font-family: var(--font-inter), sans-serif;
+    font-family: var(--font-inter), var(--font-sinhala), var(--font-tamil), sans-serif;
     @apply inline-flex items-center justify-center gap-2 rounded-lg border border-border
       bg-card px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-300
       hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60;
   }
   /* Seamless form input — Facebook gray fill on the card surface */
   .field {
-    font-family: var(--font-inter), sans-serif;
+    font-family: var(--font-inter), var(--font-sinhala), var(--font-tamil), sans-serif;
     @apply w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground
       outline-none transition duration-300 placeholder:text-muted-foreground
       focus:border-transparent focus:ring-2 focus:ring-brand;
@@ -116,11 +116,11 @@
   }
   /* Category / class pill */
   .pill {
-    font-family: var(--font-inter), sans-serif;
+    font-family: var(--font-inter), var(--font-sinhala), var(--font-tamil), sans-serif;
     @apply inline-flex items-center gap-1 rounded-md bg-brand-soft px-2.5 py-1 text-xs font-bold
       uppercase tracking-wide text-brand dark:bg-brand-soft-dark dark:text-blue-300;
   }
   .ui {
-    font-family: var(--font-inter), sans-serif;
+    font-family: var(--font-inter), var(--font-sinhala), var(--font-tamil), sans-serif;
   }
 }

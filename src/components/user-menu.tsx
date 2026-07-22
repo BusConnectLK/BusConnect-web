@@ -5,12 +5,16 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Ticket, Building2, ShieldCheck, LogOut, ChevronDown, UserCircle } from "lucide-react";
 import { useIdentity } from "@/lib/use-identity";
+import { useT, useLocale } from "@/lib/i18n/provider";
+import { localizePath } from "@/lib/i18n/navigation";
 
 export function UserMenu() {
   const router = useRouter();
   const { identity, roles, signOut: doSignOut } = useIdentity();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const t = useT("nav");
+  const locale = useLocale();
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -23,7 +27,7 @@ export function UserMenu() {
   async function signOut() {
     await doSignOut();
     setOpen(false);
-    router.push("/");
+    router.push(localizePath(locale, "/"));
     router.refresh();
   }
 
@@ -34,10 +38,10 @@ export function UserMenu() {
   if (identity === null) {
     return (
       <Link
-        href="/login"
+        href={localizePath(locale, "/login")}
         className="rounded-xl bg-brand px-4 py-2 font-semibold text-brand-fg transition-colors duration-300 hover:bg-brand-hover"
       >
-        Sign in
+        {t("signIn")}
       </Link>
     );
   }
@@ -66,20 +70,20 @@ export function UserMenu() {
           </div>
 
           <div className="p-1.5">
-            <MenuLink href="/profile" icon={UserCircle} onClick={() => setOpen(false)}>
-              Profile
+            <MenuLink href={localizePath(locale, "/profile")} icon={UserCircle} onClick={() => setOpen(false)}>
+              {t("profile")}
             </MenuLink>
-            <MenuLink href="/tickets" icon={Ticket} onClick={() => setOpen(false)}>
-              My tickets
+            <MenuLink href={localizePath(locale, "/tickets")} icon={Ticket} onClick={() => setOpen(false)}>
+              {t("myTickets")}
             </MenuLink>
             {roles?.isOperator && (
               <MenuLink href="/operator" icon={Building2} onClick={() => setOpen(false)}>
-                {roles.operatorRole === "pilot" ? "Conductor dashboard" : "Operator dashboard"}
+                {roles.operatorRole === "pilot" ? t("conductorDashboard") : t("operatorDashboard")}
               </MenuLink>
             )}
             {roles?.isAdmin && (
               <MenuLink href="/admin" icon={ShieldCheck} onClick={() => setOpen(false)}>
-                Admin dashboard
+                {t("adminDashboard")}
               </MenuLink>
             )}
           </div>
@@ -91,7 +95,7 @@ export function UserMenu() {
               className="ui flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
             >
               <LogOut size={16} />
-              Sign out
+              {t("signOut")}
             </button>
           </div>
         </div>

@@ -1,0 +1,56 @@
+{
+  "nav": {
+    "searchBuses": "Search buses",
+    "popularRoutes": "Popular routes",
+    "myTickets": "My tickets",
+    "howItWorks": "How it works",
+    "instantETickets": "Instant e-tickets",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "profile": "Profile",
+    "operatorDashboard": "Operator dashboard",
+    "conductorDashboard": "Conductor dashboard",
+    "adminDashboard": "Admin dashboard",
+    "browse": "Browse",
+    "account": "Account",
+    "menu": "Menu",
+    "close": "Close menu",
+    "tabSearch": "Search",
+    "tabRoutes": "Routes",
+    "tabTickets": "Tickets",
+    "tabProfile": "Profile"
+  },
+  "home": {
+    "heroTitlePrefix": "Every Journey,",
+    "heroTitleAccent": "Connected.",
+    "heroSubtitle": "Search live seat availability, compare operators and fares, book securely, and receive an instant QR e-ticket for your journey across Sri Lanka.",
+    "searchEmpty": "No routes seeded yet — add locations in Supabase to enable search.",
+    "popularRoutesTitle": "Popular routes",
+    "popularRoutesSubtitle": "The routes travellers book most on BusConnect.",
+    "noRoutes": "No routes published yet",
+    "noBusesScheduled": "No buses scheduled yet",
+    "buses": "buses",
+    "howTitle": "How it works",
+    "whyTitle": "Why BusConnect",
+    "operatorCtaTitle": "Run a bus fleet? Fill more seats.",
+    "operatorCtaBody": "List your buses on BusConnect and get a live manifest, dynamic pricing and revenue analytics - reach passengers across the country.",
+    "operatorCtaButton": "Operator dashboard"
+  },
+  "footer": {
+    "brandBlurb": "BusConnect is Sri Lanka's smartest online bus booking platform, making intercity travel simple with live seat availability, operator and fare comparisons, secure online booking, and instant QR e-tickets.",
+    "explore": "Explore",
+    "support": "Support",
+    "contact": "Contact",
+    "helpCentre": "Help centre",
+    "refunds": "Refunds",
+    "cancellations": "Cancellations",
+    "terms": "Terms",
+    "becomeOperator": "Become an operator",
+    "poweredBy": "Powered by MyScope (PVT) Ltd",
+    "availableIn": "Available in"
+  },
+  "common": {
+    "loading": "Loading…",
+    "today": "today"
+  }
+}

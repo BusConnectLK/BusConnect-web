@@ -12,34 +12,45 @@ import { listLocations } from "@/lib/locations";
 import { listPopularRoutes, formatDuration } from "@/lib/popular-routes";
 import { SearchForm } from "./search-form";
 import { SectionHeading } from "@/components/ui";
+import { getDictionary, type Dictionary } from "@/lib/i18n/dictionaries";
+import { isLocale, defaultLocale, type Locale } from "@/lib/i18n/config";
+import { localizePath } from "@/lib/i18n/navigation";
 
-export default async function Home() {
+export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale: Locale = isLocale(lang) ? lang : defaultLocale;
+  const dict = await getDictionary(locale);
   const [locations, popularRoutes] = await Promise.all([listLocations(), listPopularRoutes()]);
   return (
     <>
-      <Hero locations={locations} />
+      <Hero locations={locations} dict={dict} />
       <Stats />
-      <PopularRoutes routes={popularRoutes} />
+      <PopularRoutes routes={popularRoutes} dict={dict} locale={locale} />
       <HowItWorks />
       <Features />
-      <OperatorCta />
+      <OperatorCta dict={dict} />
     </>
   );
 }
 
 /* ── Hero + search widget ──────────────────────────────────────────────── */
-function Hero({ locations }: { locations: Awaited<ReturnType<typeof listLocations>> }) {
+function Hero({
+  locations,
+  dict,
+}: {
+  locations: Awaited<ReturnType<typeof listLocations>>;
+  dict: Dictionary;
+}) {
   return (
     <section className="relative overflow-hidden">
       <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-14 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="mt-5 font-heading text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl">
-            Every Journey, <span className="text-brand dark:text-blue-400">Connected.</span>
+            {dict.home.heroTitlePrefix}{" "}
+            <span className="text-brand dark:text-blue-400">{dict.home.heroTitleAccent}</span>
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-lg text-slate-600 dark:text-zinc-400">
-            Search live seat availability, compare operators and fares, book
-            securely, and receive an instant QR e ticket for your journey
-            across Sri Lanka.
+            {dict.home.heroSubtitle}
           </p>
         </div>
 
@@ -47,7 +58,7 @@ function Hero({ locations }: { locations: Awaited<ReturnType<typeof listLocation
           <SearchForm locations={locations} />
           {locations.length === 0 && (
             <p className="ui mt-3 text-center text-sm text-slate-500 dark:text-zinc-500">
-              No routes seeded yet — add locations in Supabase to enable search.
+              {dict.home.searchEmpty}
             </p>
           )}
         </div>
@@ -115,20 +126,26 @@ function Features() {
 }
 
 /* ── Popular routes ────────────────────────────────────────────────────── */
-function PopularRoutes({ routes }: { routes: Awaited<ReturnType<typeof listPopularRoutes>> }) {
+function PopularRoutes({
+  routes,
+  dict,
+  locale,
+}: {
+  routes: Awaited<ReturnType<typeof listPopularRoutes>>;
+  dict: Dictionary;
+  locale: Locale;
+}) {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <SectionHeading
         id="routes"
-        title="Popular routes"
-        subtitle="Every route BusConnect covers, ranked by real scheduled trips where buses are already running."
+        title={dict.home.popularRoutesTitle}
+        subtitle={dict.home.popularRoutesSubtitle}
       />
       {routes.length === 0 ? (
-        <p className="ui mt-9 text-sm text-slate-500 dark:text-zinc-500">
-          No routes published yet — check back soon.
-        </p>
+        <p className="ui mt-9 text-sm text-slate-500 dark:text-zinc-500">{dict.home.noRoutes}</p>
       ) : (
         <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {routes.map((r) => {
@@ -136,7 +153,7 @@ function PopularRoutes({ routes }: { routes: Awaited<ReturnType<typeof listPopul
             return (
               <Link
                 key={`${r.originId}-${r.destId}`}
-                href={`/search?from=${r.originId}&to=${r.destId}&date=${today}`}
+                href={localizePath(locale, `/search?from=${r.originId}&to=${r.destId}&date=${today}`)}
                 className="card card-hover overflow-hidden"
               >
                 {r.imageUrl && (
@@ -156,7 +173,7 @@ function PopularRoutes({ routes }: { routes: Awaited<ReturnType<typeof listPopul
                   <p className="ui mt-1 text-sm text-slate-500 dark:text-zinc-400">
                     {r.tripCount > 0
                       ? `${r.tripCount} ${r.tripCount === 1 ? "trip" : "trips"} scheduled today${dur ? ` · ${dur}` : ""}`
-                      : "No buses scheduled yet"}
+                      : dict.home.noBusesScheduled}
                   </p>
                 </div>
               </Link>
@@ -195,7 +212,7 @@ function HowItWorks() {
 }
 
 /* ── Operator CTA ──────────────────────────────────────────────────────── */
-function OperatorCta() {
+function OperatorCta({ dict }: { dict: Dictionary }) {
   return (
     <section id="operators" className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
       <div
@@ -204,17 +221,14 @@ function OperatorCta() {
       >
         <div className="max-w-2xl">
           <h2 className="font-heading text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            Run a bus fleet? Fill more seats.
+            {dict.home.operatorCtaTitle}
           </h2>
-          <p className="mt-3 text-white/80">
-            List your buses on BusConnect and get a live manifest, dynamic
-            pricing and revenue analytics - reach passengers across the country.
-          </p>
+          <p className="mt-3 text-white/80">{dict.home.operatorCtaBody}</p>
           <Link
             href="/operator"
             className="ui mt-6 inline-flex items-center justify-center rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-brand transition-colors duration-300 hover:bg-white/90"
           >
-            Operator dashboard
+            {dict.home.operatorCtaButton}
           </Link>
         </div>
       </div>

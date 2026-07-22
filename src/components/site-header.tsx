@@ -17,95 +17,92 @@ import {
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu, Avatar } from "./user-menu";
+import { LanguageSwitcher } from "./language-switcher";
 import { useIdentity } from "@/lib/use-identity";
+import { useT, useLocale } from "@/lib/i18n/provider";
+import { localizePath } from "@/lib/i18n/navigation";
 
 // "Operator dashboard" is deliberately not a static item here — the drawer's
 // Account section shows it (or "Become an operator") contextually based on
 // the signed-in user's actual role/status, which a fixed public nav link can't do.
 const navItems = [
-  { label: "Search buses", href: "/", icon: Search },
-  { label: "Popular routes", href: "/#routes", icon: Route },
+  { key: "searchBuses", href: "/", icon: Search },
+  { key: "popularRoutes", href: "/#routes", icon: Route },
 ] as const;
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
-  const today = new Date().toLocaleDateString("en-LK", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
+  const t = useT("nav");
+  const locale = useLocale();
 
   return (
     <>
-    <header className="sticky top-0 z-50">
-      {/* Top bar — utility */}
-      <div className="border-b border-border bg-card/80 backdrop-blur-md transition-colors duration-300">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <Logo />
+      <header className="sticky top-0 z-50">
+        {/* Top bar — utility */}
+        <div className="border-b border-border bg-card/80 backdrop-blur-md transition-colors duration-300">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+            <Logo href={localizePath(locale, "/")} />
 
-          <div className="ui flex items-center gap-3 text-sm">
-            <span className="hidden items-center gap-1.5 text-slate-500 dark:text-zinc-400 md:flex">
-              {today}
-            </span>
-            <span className="hidden rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground sm:inline">
-              EN · සිං · த
-            </span>
-            <ThemeToggle />
-            <span className="hidden sm:inline-flex">
-              <UserMenu />
-            </span>
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              aria-label="Menu"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted-foreground lg:hidden"
-            >
-              <Menu size={18} />
-            </button>
+            <div className="ui flex items-center gap-3 text-sm">
+              <LanguageSwitcher />
+              <ThemeToggle />
+              <span className="hidden sm:inline-flex">
+                <UserMenu />
+              </span>
+              <button
+                type="button"
+                onClick={() => setOpen(true)}
+                aria-label={t("menu")}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted-foreground lg:hidden"
+              >
+                <Menu size={18} />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Bottom bar — primary nav (brand) */}
-      <div className="hidden bg-brand text-brand-fg lg:block">
-        <nav className="mx-auto flex max-w-7xl items-center gap-1 px-4 sm:px-6 lg:px-8">
-          {navItems.map(({ label, href, icon: Icon }) => (
+        {/* Bottom bar — primary nav (brand) */}
+        <div className="hidden bg-brand text-brand-fg lg:block">
+          <nav className="mx-auto flex max-w-7xl items-center gap-1 px-4 sm:px-6 lg:px-8">
+            {navItems.map(({ key, href, icon: Icon }) => (
+              <Link
+                key={key}
+                href={localizePath(locale, href)}
+                className="ui flex items-center gap-2 border-b-2 border-transparent px-3 py-3 text-sm font-medium text-white/90 transition-colors duration-300 hover:border-white hover:text-white"
+              >
+                <Icon size={15} />
+                {t(key)}
+              </Link>
+            ))}
             <Link
-              key={label}
-              href={href}
+              href={localizePath(locale, "/tickets")}
               className="ui flex items-center gap-2 border-b-2 border-transparent px-3 py-3 text-sm font-medium text-white/90 transition-colors duration-300 hover:border-white hover:text-white"
             >
-              <Icon size={15} />
-              {label}
+              <Ticket size={15} />
+              {t("myTickets")}
             </Link>
-          ))}
-          <Link
-            href="/tickets"
-            className="ui flex items-center gap-2 border-b-2 border-transparent px-3 py-3 text-sm font-medium text-white/90 transition-colors duration-300 hover:border-white hover:text-white"
-          >
-            <Ticket size={15} />
-            My tickets
-          </Link>
-          <span className="ui ml-auto flex items-center gap-1.5 py-3 text-sm font-medium text-white/80">
-            <Ticket size={15} /> Instant e-tickets
-          </span>
-        </nav>
-      </div>
+            <span className="ui ml-auto flex items-center gap-1.5 py-3 text-sm font-medium text-white/80">
+              <Ticket size={15} /> {t("instantETickets")}
+            </span>
+          </nav>
+        </div>
 
-      <MobileDrawer open={open} onClose={() => setOpen(false)} />
-    </header>
-    <MobileBottomNav onOpenMenu={() => setOpen(true)} />
+        <MobileDrawer open={open} onClose={() => setOpen(false)} />
+      </header>
+      <MobileBottomNav onOpenMenu={() => setOpen(true)} />
     </>
   );
 }
 
 function MobileBottomNav({ onOpenMenu }: { onOpenMenu: () => void }) {
   const pathname = usePathname();
+  const t = useT("nav");
+  const locale = useLocale();
   const tabs = [
-    { label: "Search", href: "/", icon: Search },
-    { label: "Routes", href: "/#routes", icon: Route },
-    { label: "Tickets", href: "/tickets", icon: Ticket },
-    { label: "Profile", href: "/profile", icon: UserCircle },
+    { key: "tabSearch", href: "/", icon: Search },
+    { key: "tabRoutes", href: "/#routes", icon: Route },
+    { key: "tabTickets", href: "/tickets", icon: Ticket },
+    { key: "tabProfile", href: "/profile", icon: UserCircle },
   ] as const;
 
   return (
@@ -114,30 +111,29 @@ function MobileBottomNav({ onOpenMenu }: { onOpenMenu: () => void }) {
       aria-label="Primary"
     >
       <div className="grid grid-cols-5">
-        {tabs.map(({ label, href, icon: Icon }) => {
-          const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+        {tabs.map(({ key, href, icon: Icon }) => {
+          const localized = localizePath(locale, href);
+          const active = href === "/" ? pathname === localized : pathname.startsWith(localized);
           return (
             <Link
-              key={label}
-              href={href}
+              key={key}
+              href={localized}
               className={`ui flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
-                active
-                  ? "text-brand dark:text-blue-400"
-                  : "text-slate-500 dark:text-zinc-500"
+                active ? "text-brand dark:text-blue-400" : "text-muted-foreground"
               }`}
             >
               <Icon size={20} />
-              {label}
+              {t(key)}
             </Link>
           );
         })}
         <button
           type="button"
           onClick={onOpenMenu}
-          className="ui flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-slate-500 transition-colors dark:text-zinc-500"
+          className="ui flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-muted-foreground transition-colors"
         >
           <Menu size={20} />
-          Menu
+          {t("menu")}
         </button>
       </div>
     </nav>
@@ -147,17 +143,19 @@ function MobileBottomNav({ onOpenMenu }: { onOpenMenu: () => void }) {
 function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
   const { identity, roles, signOut: doSignOut } = useIdentity();
+  const t = useT("nav");
+  const locale = useLocale();
 
   async function signOut() {
     await doSignOut();
     onClose();
-    router.push("/");
+    router.push(localizePath(locale, "/"));
     router.refresh();
   }
 
   function go(href: string) {
     onClose();
-    router.push(href);
+    router.push(localizePath(locale, href));
   }
 
   const initial = identity ? (identity.fullName ?? identity.email).charAt(0).toUpperCase() : "";
@@ -182,11 +180,11 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
         }`}
       >
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <Logo />
+          <Logo href={localizePath(locale, "/")} />
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close menu"
+            aria-label={t("close")}
             className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted"
           >
             <X size={20} />
@@ -194,43 +192,43 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
         </div>
 
         <div className="ui flex-1 overflow-y-auto px-3 py-4">
-          <p className="px-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-600">
-            Browse
+          <p className="px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {t("browse")}
           </p>
           <nav className="mt-2 flex flex-col gap-1">
-            {navItems.map(({ label, href, icon: Icon }) => (
+            {navItems.map(({ key, href, icon: Icon }) => (
               <Link
-                key={label}
-                href={href}
+                key={key}
+                href={localizePath(locale, href)}
                 onClick={onClose}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 <Icon size={17} className="text-brand dark:text-blue-400" />
-                {label}
+                {t(key)}
               </Link>
             ))}
           </nav>
 
-          <p className="mt-6 px-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-600">
-            Account
+          <p className="mt-6 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {t("account")}
           </p>
           <nav className="mt-2 flex flex-col gap-1">
             <Link
-              href="/tickets"
+              href={localizePath(locale, "/tickets")}
               onClick={onClose}
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
             >
               <Ticket size={17} className="text-brand dark:text-blue-400" />
-              My tickets
+              {t("myTickets")}
             </Link>
             {identity && (
               <Link
-                href="/profile"
+                href={localizePath(locale, "/profile")}
                 onClick={onClose}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 <UserCircle size={17} className="text-brand dark:text-blue-400" />
-                Profile
+                {t("profile")}
               </Link>
             )}
             {roles?.isOperator && (
@@ -240,7 +238,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 <Building2 size={17} className="text-brand dark:text-blue-400" />
-                {roles.operatorRole === "pilot" ? "Conductor dashboard" : "Operator dashboard"}
+                {roles.operatorRole === "pilot" ? t("conductorDashboard") : t("operatorDashboard")}
               </Link>
             )}
             {roles?.isAdmin && (
@@ -250,7 +248,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 <ShieldCheck size={17} className="text-brand dark:text-blue-400" />
-                Admin dashboard
+                {t("adminDashboard")}
               </Link>
             )}
           </nav>
@@ -265,7 +263,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
                   {identity.fullName && (
                     <p className="truncate text-sm font-medium">{identity.fullName}</p>
                   )}
-                  <p className="truncate text-xs text-slate-500 dark:text-zinc-400">{identity.email}</p>
+                  <p className="truncate text-xs text-muted-foreground">{identity.email}</p>
                 </div>
               </div>
               <button
@@ -274,12 +272,12 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
                 className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/70"
               >
                 <LogOut size={16} />
-                Sign out
+                {t("signOut")}
               </button>
             </>
           ) : (
             <button type="button" onClick={() => go("/login")} className="btn-primary w-full">
-              Sign in
+              {t("signIn")}
             </button>
           )}
         </div>

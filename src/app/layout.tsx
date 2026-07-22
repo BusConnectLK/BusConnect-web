@@ -1,8 +1,18 @@
 import type { Metadata } from "next";
-import { Inter, Outfit, IBM_Plex_Sans } from "next/font/google";
+import { headers } from "next/headers";
+import {
+  Inter,
+  Outfit,
+  IBM_Plex_Sans,
+  Noto_Sans_Sinhala,
+  Noto_Sans_Tamil,
+} from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { ConditionalFooter } from "@/components/conditional-footer";
+import { I18nProvider } from "@/lib/i18n/provider";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { defaultLocale, isLocale } from "@/lib/i18n/config";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
@@ -10,6 +20,20 @@ const ibmPlex = IBM_Plex_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   variable: "--font-ibm",
+  display: "swap",
+});
+// Sinhala + Tamil glyph coverage (Inter/Outfit/IBM Plex are Latin-only) —
+// appended to the font stacks in globals.css so these scripts render properly.
+const notoSinhala = Noto_Sans_Sinhala({
+  subsets: ["sinhala"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sinhala",
+  display: "swap",
+});
+const notoTamil = Noto_Sans_Tamil({
+  subsets: ["tamil"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-tamil",
   display: "swap",
 });
 
@@ -94,16 +118,23 @@ try {
 } catch (e) {}
 `;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // The proxy sets x-locale from the URL's locale prefix (passenger routes) or
+  // the visitor's cookie/Accept-Language (everywhere else). Language switches
+  // are full reloads, so this stays in sync without soft-nav staleness.
+  const headerLocaleRaw = (await headers()).get("x-locale") ?? defaultLocale;
+  const locale = isLocale(headerLocaleRaw) ? headerLocaleRaw : defaultLocale;
+  const dict = await getDictionary(locale);
+
   return (
     <html
-      lang="en"
+      lang={locale}
       suppressHydrationWarning
-      className={`${inter.variable} ${outfit.variable} ${ibmPlex.variable} h-full`}
+      className={`${inter.variable} ${outfit.variable} ${ibmPlex.variable} ${notoSinhala.variable} ${notoTamil.variable} h-full`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
@@ -113,9 +144,11 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-full flex-col antialiased">
-        <SiteHeader />
-        <main className="flex flex-1 flex-col pb-16 lg:pb-0">{children}</main>
-        <ConditionalFooter />
+        <I18nProvider locale={locale} dict={dict}>
+          <SiteHeader />
+          <main className="flex flex-1 flex-col pb-16 lg:pb-0">{children}</main>
+          <ConditionalFooter />
+        </I18nProvider>
       </body>
     </html>
   );

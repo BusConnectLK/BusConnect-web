@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getMyRoles } from "@/lib/api";
+import { useT } from "@/lib/i18n/provider";
 
 /**
  * "Become an operator" — shown only to visitors who aren't already linked to
@@ -13,6 +14,7 @@ import { getMyRoles } from "@/lib/api";
  */
 export function OperatorFooterLink() {
   const [isOperator, setIsOperator] = useState<boolean | null>(null);
+  const t = useT("footer");
 
   useEffect(() => {
     let cancelled = false;
@@ -43,7 +45,7 @@ export function OperatorFooterLink() {
   return (
     <li>
       <Link href="/operator/apply" className="transition-colors hover:text-foreground">
-        Become an operator
+        {t("becomeOperator")}
       </Link>
     </li>
   );

@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { Logo } from "./logo";
 import { OperatorFooterLink } from "./operator-footer-link";
+import { useT, useLocale } from "@/lib/i18n/provider";
+import { localizePath } from "@/lib/i18n/navigation";
+import { localeNames, locales } from "@/lib/i18n/config";
 
 // lucide-react dropped brand/logo icons a while back, so Facebook and
 // Instagram are hand-drawn glyphs here (same approach as the Google icon
@@ -24,19 +29,19 @@ function InstagramIcon() {
 }
 
 export function SiteFooter() {
+  const t = useT("footer");
+  const tn = useT("nav");
+  const locale = useLocale();
+  const lp = (path: string) => localizePath(locale, path);
+
   return (
     <footer className="mt-24 border-t border-border bg-card text-foreground">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         {/* Columns */}
         <div className="grid gap-10 pb-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="max-w-xs">
-            <Logo />
-            <p className="ui mt-4 text-sm leading-relaxed text-muted-foreground">
-              BusConnect is Sri Lanka&apos;s Smartest online bus booking
-              platform, making travel simple with live seat
-              availability, operator and fare comparisons, secure online
-              booking, and instant QR e tickets.
-            </p>
+            <Logo href={lp("/")} />
+            <p className="ui mt-4 text-sm leading-relaxed text-muted-foreground">{t("brandBlurb")}</p>
             <div className="mt-5 flex gap-2.5">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                 <FacebookIcon />
@@ -48,38 +53,38 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h4 className="font-heading text-sm font-bold">Explore</h4>
+            <h4 className="font-heading text-sm font-bold">{t("explore")}</h4>
             <ul className="ui mt-4 flex flex-col gap-2.5 text-sm text-muted-foreground">
               <li>
-                <Link href="/" className="transition-colors hover:text-foreground">
-                  Search buses
+                <Link href={lp("/")} className="transition-colors hover:text-foreground">
+                  {tn("searchBuses")}
                 </Link>
               </li>
               <li>
-                <Link href="/#routes" className="transition-colors hover:text-foreground">
-                  Popular routes
+                <Link href={lp("/#routes")} className="transition-colors hover:text-foreground">
+                  {tn("popularRoutes")}
                 </Link>
               </li>
               <li>
-                <Link href="/#how" className="transition-colors hover:text-foreground">
-                  How it works
+                <Link href={lp("/#how")} className="transition-colors hover:text-foreground">
+                  {tn("howItWorks")}
                 </Link>
               </li>
               <OperatorFooterLink />
             </ul>
           </div>
           <FooterCol
-            title="Support"
+            title={t("support")}
             links={[
-              ["Help centre", "/#help"],
-              ["Refunds", "/#refunds"],
-              ["Cancellations", "/#cancellations"],
-              ["Terms", "/#terms"],
+              [t("helpCentre"), lp("/#help")],
+              [t("refunds"), lp("/#refunds")],
+              [t("cancellations"), lp("/#cancellations")],
+              [t("terms"), lp("/#terms")],
             ]}
           />
 
           <div>
-            <h4 className="font-heading text-sm font-bold">Contact</h4>
+            <h4 className="font-heading text-sm font-bold">{t("contact")}</h4>
             <ul className="ui mt-4 flex flex-col gap-3 text-sm text-muted-foreground">
               <li className="flex items-center gap-2.5">
                 <Phone size={16} className="text-brand dark:text-blue-400" /> +94 76 467 0645
@@ -95,8 +100,12 @@ export function SiteFooter() {
         </div>
 
         <div className="ui flex flex-col items-start justify-between gap-3 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center">
-          <p>© {new Date().getFullYear()} BusConnect · Powered by MyScope (PVT) Ltd</p>
-          <p>Available in English · සිංහල · தமிழ்</p>
+          <p>
+            © {new Date().getFullYear()} BusConnect · {t("poweredBy")}
+          </p>
+          <p>
+            {t("availableIn")} {locales.map((l) => localeNames[l]).join(" · ")}
+          </p>
         </div>
       </div>
     </footer>

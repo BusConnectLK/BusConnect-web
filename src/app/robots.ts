@@ -6,7 +6,16 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/operator", "/profile", "/tickets", "/bookings", "/auth"],
+        // Private/auth areas — the passenger ones now live under a locale
+        // prefix (/en/tickets, /si/profile…), so wildcard the locale segment.
+        disallow: [
+          "/admin",
+          "/operator",
+          "/auth",
+          "/*/profile",
+          "/*/tickets",
+          "/*/bookings",
+        ],
       },
     ],
     sitemap: "https://busconnect.lk/sitemap.xml",
