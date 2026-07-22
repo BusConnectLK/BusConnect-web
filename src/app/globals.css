@@ -4,16 +4,18 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ── BusConnect design tokens ────────────────────────────────────────────────
-   Brand: cobalt #004aad (oklch hue ≈259). Fonts: IBM Plex Sans (font-sans,
-   body default) · Outfit (font-heading, h1-h6) · Inter (font-inter / .ui,
-   labels + nav + chrome + buttons + form fields).
+   Brand: cobalt #004aad. Fonts: IBM Plex Sans (font-sans, body default) ·
+   Outfit (font-heading, h1-h6) · Inter (font-inter / .ui, labels + nav +
+   chrome + buttons + form fields).
 
    Surface tokens (background/card/popover/sidebar/border/foreground):
-   light mode is fully neutral (chroma 0); dark mode is NOT neutral gray —
-   every surface shares the brand's own hue (259) at different lightness
-   steps, so the whole app reads as "tinted dark cobalt" rather than a
-   generic dark-gray theme. Cards/popovers sit a full step lighter than the
-   page background so they visibly float above it.
+   dark mode follows the Facebook app pattern — neutral near-black charcoal
+   surfaces (chroma ~0, NOT tinted with the brand hue), stepped by
+   lightness (background darkest, card/popover a step lighter so they read
+   as "elevated" via a flat lighter fill rather than a shadow). The brand
+   blue is deliberately left untouched/vivid (buttons, links, focus rings)
+   so it still pops against the neutral backdrop, same as Facebook keeps
+   its own blue accent saturated against grey #18191A/#242526 surfaces.
    ──────────────────────────────────────────────────────────────────────── */
 @theme {
   --color-brand: #004aad;
@@ -36,12 +38,12 @@
   --foreground: oklch(0.145 0 0);
 }
 .dark {
-  --background: oklch(0.105 0.055 259);
-  --card: oklch(0.24 0.05 259);
-  --popover: oklch(0.24 0.05 259);
-  --sidebar: oklch(0.13 0.05 259);
-  --border: oklch(0.55 0.09 259 / 16%);
-  --foreground: oklch(0.96 0.008 259);
+  --background: oklch(0.213 0.003 248); /* ≈ #18191A */
+  --card: oklch(0.264 0.002 248); /* ≈ #242526 */
+  --popover: oklch(0.264 0.002 248);
+  --sidebar: oklch(0.213 0.003 248);
+  --border: oklch(0.352 0.002 248); /* ≈ #3A3B3C */
+  --foreground: oklch(0.925 0.007 268); /* ≈ #E4E6EB */
 }
 @theme inline {
   --color-background: var(--background);
@@ -53,8 +55,9 @@
 }
 
 @layer base {
-  /* Ambient cobalt glow, baked into the body's own background so it can't be
-     clipped by z-index/stacking-context issues — glass cards blur *this*. */
+  /* Ambient cobalt glow — light mode only. Facebook-style dark mode below is
+     deliberately flat/neutral with no glow: elevation comes from the
+     background→card lightness step, not gradients or shadows. */
   body {
     font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -69,10 +72,7 @@
   }
   :where(.dark) body {
     background-color: var(--background);
-    background-image:
-      radial-gradient(45% 35% at 12% -8%, rgba(61, 130, 230, 0.3) 0%, transparent 70%),
-      radial-gradient(40% 30% at 90% 8%, rgba(90, 151, 236, 0.2) 0%, transparent 70%),
-      radial-gradient(55% 40% at 50% 108%, rgba(0, 74, 173, 0.24) 0%, transparent 70%);
+    background-image: none;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading), var(--font-sans), sans-serif;
@@ -108,12 +108,12 @@
   .card {
     @apply rounded-none border border-slate-200/70 bg-white/70 shadow-sm shadow-slate-900/[0.03]
       backdrop-blur-xl transition-colors duration-300
-      dark:border-border dark:bg-card/80 dark:shadow-none;
+      dark:border-border dark:bg-card dark:shadow-none dark:backdrop-blur-none;
   }
   .card-lg {
     @apply rounded-none border border-slate-200/70 bg-white/70 shadow-sm shadow-slate-900/[0.03]
       backdrop-blur-xl transition-colors duration-300
-      dark:border-border dark:bg-card/80 dark:shadow-none;
+      dark:border-border dark:bg-card dark:shadow-none dark:backdrop-blur-none;
   }
   .card-hover {
     @apply hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg hover:shadow-slate-900/5
