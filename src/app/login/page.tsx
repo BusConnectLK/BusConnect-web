@@ -1,10 +1,51 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import Script from "next/script";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/logo";
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+interface GoogleCredentialResponse {
+  credential: string;
+}
+interface GoogleIdApi {
+  initialize(config: {
+    client_id: string;
+    callback: (response: GoogleCredentialResponse) => void;
+    nonce: string;
+    use_fedcm_for_prompt?: boolean;
+  }): void;
+  renderButton(
+    parent: HTMLElement,
+    options: {
+      type?: string;
+      theme?: string;
+      size?: string;
+      shape?: string;
+      text?: string;
+      width?: string;
+    },
+  ): void;
+}
+declare global {
+  interface Window {
+    google?: { accounts: { id: GoogleIdApi } };
+  }
+}
+
+/** SHA-256 hex digest — Supabase's ID-token sign-in wants the *hashed* nonce
+ * baked into the Google credential, and the original raw nonce back at
+ * verification time, as replay protection. */
+async function sha256Hex(value: string) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 export default function LoginPage() {
   return (
@@ -46,60 +87,68 @@ function LoginForm() {
   );
 }
 
-/* ── Google OAuth (redirects to Google, comes back via /auth/confirm) ───── */
+/* ── Google Identity Services (native sign-in — the consent screen shows
+   busconnect.lk, since Google talks to this domain directly instead of
+   redirecting through Supabase's own domain) ─────────────────────────────── */
 function GoogleButton({ next }: { next: string }) {
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const buttonRef = useRef<HTMLDivElement>(null);
+  const nonceRef = useRef<string>("");
+  const [scriptReady, setScriptReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function signIn() {
-    setError(null);
-    setLoading(true);
-    const redirect = `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`;
-    const { error } = await createClient().auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: redirect },
-    });
-    // On success the browser navigates away to Google immediately; we only
-    // reach here (still mounted) if something went wrong before the redirect.
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    }
-  }
+  useEffect(() => {
+    if (!scriptReady || !GOOGLE_CLIENT_ID || !buttonRef.current || !window.google) return;
+
+    let cancelled = false;
+    void (async () => {
+      const nonce = crypto.randomUUID();
+      const hashedNonce = await sha256Hex(nonce);
+      if (cancelled || !window.google || !buttonRef.current) return;
+      nonceRef.current = nonce;
+
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: async ({ credential }) => {
+          setError(null);
+          const { error } = await createClient().auth.signInWithIdToken({
+            provider: "google",
+            token: credential,
+            nonce: nonceRef.current,
+          });
+          if (error) return setError(error.message);
+          router.push(next);
+          router.refresh();
+        },
+        nonce: hashedNonce,
+        use_fedcm_for_prompt: true,
+      });
+      window.google.accounts.id.renderButton(buttonRef.current, {
+        theme: "outline",
+        size: "large",
+        shape: "rectangular",
+        text: "continue_with",
+        width: "360",
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [scriptReady, router, next]);
+
+  if (!GOOGLE_CLIENT_ID) return null;
 
   return (
     <div>
-      <button type="button" onClick={signIn} disabled={loading} className="btn-secondary w-full">
-        {loading ? <Loader2 size={18} className="animate-spin" /> : <GoogleIcon />}
-        {loading ? "Redirecting…" : "Continue with Google"}
-      </button>
-      {error && (
-        <p className="ui mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
-      )}
+      <Script
+        src="https://accounts.google.com/gsi/client"
+        strategy="afterInteractive"
+        onReady={() => setScriptReady(true)}
+      />
+      <div ref={buttonRef} className="flex w-full justify-center [&>div]:w-full" />
+      {error && <p className="ui mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
     </div>
-  );
-}
-
-function GoogleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="#4285F4"
-        d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.48a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.58-5.17 3.58-8.82Z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.88-3.02c-1.08.72-2.46 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.12A12 12 0 0 0 12 24Z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54V6.61H1.27a12 12 0 0 0 0 10.78l4-3.12Z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 4.77c1.76 0 3.35.6 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.27 6.61l4 3.12C6.22 6.88 8.87 4.77 12 4.77Z"
-      />
-    </svg>
   );
 }
 
