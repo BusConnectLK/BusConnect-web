@@ -12,8 +12,10 @@ export function SiteFooter() {
           <div className="max-w-xs">
             <Logo onDark />
             <p className="ui mt-4 text-sm leading-relaxed text-zinc-400">
-              Sri Lanka&apos;s smartest bus booking platform. live seat maps,
-              secure payments and instant QR e-tickets across every major route.
+              BusConnect is Sri Lanka&apos;s Smartest online bus booking
+              platform, making travel simple with live seat
+              availability, operator and fare comparisons, secure online
+              booking, and instant QR e tickets.
             </p>
             <div className="mt-5 flex gap-2.5">
               {[AtSign, MessageCircle, Mail].map((Icon, i) => (

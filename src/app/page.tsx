@@ -34,11 +34,12 @@ function Hero({ locations }: { locations: Awaited<ReturnType<typeof listLocation
       <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-14 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="mt-5 font-heading text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl">
-            Book bus tickets the <span className="text-brand dark:text-blue-400">smart</span> way
+            Every Journey, <span className="text-brand dark:text-blue-400">Connected.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-lg text-slate-600 dark:text-zinc-400">
-            Search every major intercity route in Sri Lanka, pick your exact
-            seat in real time, and pay securely. All in one place.
+            Search live seat availability, compare operators and fares, book
+            securely, and receive an instant QR e ticket for your journey
+            across Sri Lanka.
           </p>
         </div>
 
