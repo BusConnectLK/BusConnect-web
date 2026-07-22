@@ -16,14 +16,14 @@ const ibmPlex = IBM_Plex_Sans({
 const SITE_URL = "https://busconnect.lk";
 const SITE_NAME = "BusConnect";
 const TAGLINE = "Every Journey, Connected.";
-const SITE_DESCRIPTION = `BusConnect – ${TAGLINE} Sri Lanka's Smartest online bus booking platform. Search live seat availability, compare operators and fares, book securely, and receive instant QR e tickets.`;
+const SITE_DESCRIPTION = `BusConnect – ${TAGLINE} Sri Lanka's Smartest Online Bus Booking Platform. Search Live Seat Availability, Compare Operators and Fares, Book Securely, and Receive Instant QR E tickets.`;
 const BRAND_DESCRIPTION =
-  "BusConnect is Sri Lanka's Smartest online bus booking platform, making travel simple with live seat availability, operator and fare comparisons, secure online booking, and instant QR e tickets.";
+  "BusConnect is Sri Lanka's Smartest Online Bus Booking Platform, Making Travel Simple With Live Seat Availability, Operator and Fare Comparisons, Secure Online Booking, and Instant QR E tickets.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `BusConnect — ${TAGLINE}`,
+    default: SITE_NAME,
     template: `%s · ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   applicationName: SITE_NAME,
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
-  icons: { icon: "/favicon.ico" },
+  icons: { icon: "/icon.png", shortcut: "/icon.png", apple: "/icon.png" },
   openGraph: {
     type: "website",
     locale: "en_LK",
