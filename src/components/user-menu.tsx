@@ -28,7 +28,7 @@ export function UserMenu() {
   }
 
   if (identity === undefined) {
-    return <span className="h-9 w-20 animate-pulse rounded-xl bg-slate-100 dark:bg-zinc-800" />;
+    return <span className="h-9 w-20 animate-pulse rounded-xl bg-muted" />;
   }
 
   if (identity === null) {
@@ -49,19 +49,19 @@ export function UserMenu() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 rounded-full border border-slate-200 py-1 pl-1 pr-2.5 transition-colors hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+        className="flex items-center gap-1.5 rounded-full border border-border py-1 pl-1 pr-2.5 transition-colors hover:bg-muted"
       >
         <Avatar avatarUrl={identity.avatarUrl} initial={initial} size={28} />
-        <ChevronDown size={14} className={`text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={14} className={`text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
-        <div className="ui absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="flex items-center gap-3 border-b border-slate-100 p-4 dark:border-zinc-900">
+        <div className="ui absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-popover shadow-lg shadow-black/10 dark:shadow-black/40">
+          <div className="flex items-center gap-3 border-b border-border p-4">
             <Avatar avatarUrl={identity.avatarUrl} initial={initial} size={40} />
             <div className="min-w-0">
-              {identity.fullName && <p className="truncate text-sm font-medium">{identity.fullName}</p>}
-              <p className="truncate text-xs text-slate-500 dark:text-zinc-400">{identity.email}</p>
+              {identity.fullName && <p className="truncate text-sm font-medium text-foreground">{identity.fullName}</p>}
+              <p className="truncate text-xs text-muted-foreground">{identity.email}</p>
             </div>
           </div>
 
@@ -84,11 +84,11 @@ export function UserMenu() {
             )}
           </div>
 
-          <div className="border-t border-slate-100 p-1.5 dark:border-zinc-900">
+          <div className="border-t border-border p-1.5">
             <button
               type="button"
               onClick={signOut}
-              className="ui flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
+              className="ui flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
             >
               <LogOut size={16} />
               Sign out
@@ -153,9 +153,9 @@ function MenuLink({
     <Link
       href={href}
       onClick={onClick}
-      className="ui flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+      className="ui flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
     >
-      <Icon size={16} className="text-slate-400 dark:text-zinc-500" />
+      <Icon size={16} className="text-muted-foreground" />
       {children}
     </Link>
   );

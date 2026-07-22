@@ -8,14 +8,16 @@
    Outfit (font-heading, h1-h6) · Inter (font-inter / .ui, labels + nav +
    chrome + buttons + form fields).
 
-   Surface tokens (background/card/popover/sidebar/border/foreground):
-   dark mode follows the Facebook app pattern — neutral near-black charcoal
-   surfaces (chroma ~0, NOT tinted with the brand hue), stepped by
-   lightness (background darkest, card/popover a step lighter so they read
-   as "elevated" via a flat lighter fill rather than a shadow). The brand
-   blue is deliberately left untouched/vivid (buttons, links, focus rings)
-   so it still pops against the neutral backdrop, same as Facebook keeps
-   its own blue accent saturated against grey #18191A/#242526 surfaces.
+   Surface tokens follow the Facebook app palette in BOTH modes:
+   · Light: gray page (#F0F2F5) with white cards/dropdowns (#FFFFFF) that
+     float above it via color + soft shadow; dividers #DADDE1; text #050505,
+     secondary #65676B; input/hover fill #F0F2F5.
+   · Dark: neutral near-black charcoal (NOT brand-tinted) — page #18191A,
+     cards/dropdowns a flat step lighter #242526, dividers/hover #3A3B3C;
+     text #E4E6EB, secondary #B0B3B8. Elevation is a lighter fill, not a shadow.
+   The brand blue is left untouched/vivid on buttons, links and focus rings
+   so it pops against the neutral canvas, exactly as Facebook keeps its own
+   blue accent saturated against grey surfaces.
    ──────────────────────────────────────────────────────────────────────── */
 @theme {
   --color-brand: #004aad;
@@ -30,12 +32,14 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --card: oklch(1 0 0);
+  --background: oklch(0.96 0.005 258); /* ≈ #F0F2F5 */
+  --card: oklch(1 0 0); /* #FFFFFF */
   --popover: oklch(1 0 0);
-  --sidebar: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --foreground: oklch(0.145 0 0);
+  --sidebar: oklch(1 0 0);
+  --border: oklch(0.896 0.006 256); /* ≈ #DADDE1 */
+  --foreground: oklch(0.115 0 0); /* ≈ #050505 */
+  --muted: oklch(0.96 0.005 258); /* input/hover fill ≈ #F0F2F5 */
+  --muted-foreground: oklch(0.513 0.007 264); /* ≈ #65676B */
 }
 .dark {
   --background: oklch(0.213 0.003 248); /* ≈ #18191A */
@@ -44,6 +48,8 @@
   --sidebar: oklch(0.213 0.003 248);
   --border: oklch(0.352 0.002 248); /* ≈ #3A3B3C */
   --foreground: oklch(0.925 0.007 268); /* ≈ #E4E6EB */
+  --muted: oklch(0.352 0.002 248); /* hover/input fill ≈ #3A3B3C */
+  --muted-foreground: oklch(0.766 0.008 261); /* ≈ #B0B3B8 */
 }
 @theme inline {
   --color-background: var(--background);
@@ -52,27 +58,19 @@
   --color-sidebar: var(--sidebar);
   --color-border: var(--border);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
 }
 
 @layer base {
-  /* Ambient cobalt glow — light mode only. Facebook-style dark mode below is
-     deliberately flat/neutral with no glow: elevation comes from the
-     background→card lightness step, not gradients or shadows. */
+  /* Facebook-flat canvas in both modes: a single neutral page color, no glow
+     or gradient. Elevation comes entirely from the page→card lightness step
+     (plus a soft shadow on cards in light mode). */
   body {
     font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
-    @apply text-slate-900 dark:text-white;
-    background-color: #ffffff;
-    background-image:
-      radial-gradient(45% 35% at 12% -8%, rgba(0, 74, 173, 0.14) 0%, transparent 70%),
-      radial-gradient(40% 30% at 90% 8%, rgba(47, 111, 224, 0.1) 0%, transparent 70%),
-      radial-gradient(55% 40% at 50% 108%, rgba(0, 74, 173, 0.08) 0%, transparent 70%);
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-  }
-  :where(.dark) body {
+    color: var(--foreground);
     background-color: var(--background);
-    background-image: none;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading), var(--font-sans), sans-serif;
@@ -88,37 +86,33 @@
       text-sm font-semibold text-brand-fg transition-colors duration-300
       hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60;
   }
-  /* Secondary — outlined, subtle */
+  /* Secondary — Facebook neutral: subtle fill, no brand color */
   .btn-secondary {
     font-family: var(--font-inter), sans-serif;
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200
-      bg-white px-5 py-2.5 text-sm font-medium text-slate-900 transition-colors duration-300
-      hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60
-      dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-border
+      bg-card px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-300
+      hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60;
   }
-  /* Seamless form input — gray fill, transparent border, brand focus ring */
+  /* Seamless form input — Facebook gray fill on the card surface */
   .field {
     font-family: var(--font-inter), sans-serif;
-    @apply w-full rounded-xl border border-transparent bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900
-      outline-none transition duration-300 placeholder:text-slate-400
-      focus:border-transparent focus:ring-2 focus:ring-brand
-      dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-500;
+    @apply w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground
+      outline-none transition duration-300 placeholder:text-muted-foreground
+      focus:border-transparent focus:ring-2 focus:ring-brand;
   }
-  /* Card surfaces — frosted glass over the ambient body glow */
+  /* Card surfaces — Facebook style: opaque, rounded, soft shadow in light,
+     flat lighter fill + hairline border in dark (no shadow). */
   .card {
-    @apply rounded-none border border-slate-200/70 bg-white/70 shadow-sm shadow-slate-900/[0.03]
-      backdrop-blur-xl transition-colors duration-300
-      dark:border-border dark:bg-card dark:shadow-none dark:backdrop-blur-none;
+    @apply rounded-lg border border-border bg-card shadow-sm shadow-black/[0.04]
+      transition-colors duration-300 dark:shadow-none;
   }
   .card-lg {
-    @apply rounded-none border border-slate-200/70 bg-white/70 shadow-sm shadow-slate-900/[0.03]
-      backdrop-blur-xl transition-colors duration-300
-      dark:border-border dark:bg-card dark:shadow-none dark:backdrop-blur-none;
+    @apply rounded-lg border border-border bg-card shadow-sm shadow-black/[0.04]
+      transition-colors duration-300 dark:shadow-none;
   }
   .card-hover {
-    @apply hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg hover:shadow-slate-900/5
-      dark:hover:border-brand/40 dark:hover:shadow-black/40;
-    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s, background-color 0.3s;
+    @apply hover:shadow-md hover:shadow-black/10 dark:hover:bg-muted;
+    transition: box-shadow 0.2s, background-color 0.2s, border-color 0.2s;
   }
   /* Category / class pill */
   .pill {

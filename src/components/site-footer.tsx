@@ -25,23 +25,23 @@ function InstagramIcon() {
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 bg-slate-900 text-white">
+    <footer className="mt-24 border-t border-border bg-card text-foreground">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         {/* Columns */}
         <div className="grid gap-10 pb-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="max-w-xs">
-            <Logo onDark />
-            <p className="ui mt-4 text-sm leading-relaxed text-zinc-400">
+            <Logo />
+            <p className="ui mt-4 text-sm leading-relaxed text-muted-foreground">
               BusConnect is Sri Lanka&apos;s Smartest online bus booking
               platform, making travel simple with live seat
               availability, operator and fare comparisons, secure online
               booking, and instant QR e tickets.
             </p>
             <div className="mt-5 flex gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                 <FacebookIcon />
               </span>
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                 <InstagramIcon />
               </span>
             </div>
@@ -49,19 +49,19 @@ export function SiteFooter() {
 
           <div>
             <h4 className="font-heading text-sm font-bold">Explore</h4>
-            <ul className="ui mt-4 flex flex-col gap-2.5 text-sm text-zinc-400">
+            <ul className="ui mt-4 flex flex-col gap-2.5 text-sm text-muted-foreground">
               <li>
-                <Link href="/" className="transition-colors hover:text-white">
+                <Link href="/" className="transition-colors hover:text-foreground">
                   Search buses
                 </Link>
               </li>
               <li>
-                <Link href="/#routes" className="transition-colors hover:text-white">
+                <Link href="/#routes" className="transition-colors hover:text-foreground">
                   Popular routes
                 </Link>
               </li>
               <li>
-                <Link href="/#how" className="transition-colors hover:text-white">
+                <Link href="/#how" className="transition-colors hover:text-foreground">
                   How it works
                 </Link>
               </li>
@@ -80,21 +80,21 @@ export function SiteFooter() {
 
           <div>
             <h4 className="font-heading text-sm font-bold">Contact</h4>
-            <ul className="ui mt-4 flex flex-col gap-3 text-sm text-zinc-400">
+            <ul className="ui mt-4 flex flex-col gap-3 text-sm text-muted-foreground">
               <li className="flex items-center gap-2.5">
-                <Phone size={16} className="text-blue-400" /> +94 76 467 0645
+                <Phone size={16} className="text-brand dark:text-blue-400" /> +94 76 467 0645
               </li>
               <li className="flex items-center gap-2.5">
-                <Mail size={16} className="text-blue-400" /> hello@busconnect.lk
+                <Mail size={16} className="text-brand dark:text-blue-400" /> hello@busconnect.lk
               </li>
               <li className="flex items-center gap-2.5">
-                <MapPin size={16} className="text-blue-400" /> Colombo, Sri Lanka
+                <MapPin size={16} className="text-brand dark:text-blue-400" /> Colombo, Sri Lanka
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="ui flex flex-col items-start justify-between gap-3 border-t border-zinc-800 pt-6 text-sm text-zinc-500 sm:flex-row sm:items-center">
+        <div className="ui flex flex-col items-start justify-between gap-3 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center">
           <p>© {new Date().getFullYear()} BusConnect · Powered by MyScope (PVT) Ltd</p>
           <p>Available in English · සිංහල · தமிழ்</p>
         </div>
@@ -107,10 +107,10 @@ function FooterCol({ title, links }: { title: string; links: [string, string][] 
   return (
     <div>
       <h4 className="font-heading text-sm font-bold">{title}</h4>
-      <ul className="ui mt-4 flex flex-col gap-2.5 text-sm text-zinc-400">
+      <ul className="ui mt-4 flex flex-col gap-2.5 text-sm text-muted-foreground">
         {links.map(([label, href]) => (
           <li key={label}>
-            <Link href={href} className="transition-colors hover:text-white">
+            <Link href={href} className="transition-colors hover:text-foreground">
               {label}
             </Link>
           </li>

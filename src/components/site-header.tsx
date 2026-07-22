@@ -39,7 +39,7 @@ export function SiteHeader() {
     <>
     <header className="sticky top-0 z-50">
       {/* Top bar — utility */}
-      <div className="border-b border-slate-200 bg-white/80 backdrop-blur-md transition-colors duration-300 dark:border-zinc-800 dark:bg-black/80">
+      <div className="border-b border-border bg-card/80 backdrop-blur-md transition-colors duration-300">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <Logo />
 
@@ -47,7 +47,7 @@ export function SiteHeader() {
             <span className="hidden items-center gap-1.5 text-slate-500 dark:text-zinc-400 md:flex">
               {today}
             </span>
-            <span className="hidden rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-500 dark:border-zinc-800 dark:text-zinc-400 sm:inline">
+            <span className="hidden rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground sm:inline">
               EN · සිං · த
             </span>
             <ThemeToggle />
@@ -58,7 +58,7 @@ export function SiteHeader() {
               type="button"
               onClick={() => setOpen(true)}
               aria-label="Menu"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 dark:border-zinc-800 dark:text-zinc-400 lg:hidden"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted-foreground lg:hidden"
             >
               <Menu size={18} />
             </button>
@@ -110,7 +110,7 @@ function MobileBottomNav({ onOpenMenu }: { onOpenMenu: () => void }) {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md dark:border-zinc-800 dark:bg-black/95 lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
       aria-label="Primary"
     >
       <div className="grid grid-cols-5">
@@ -177,17 +177,17 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
 
       {/* panel */}
       <div
-        className={`absolute right-0 top-0 flex h-full w-full max-w-xs flex-col bg-white shadow-xl transition-transform duration-300 dark:bg-zinc-950 ${
+        className={`absolute right-0 top-0 flex h-full w-full max-w-xs flex-col bg-card shadow-xl transition-transform duration-300 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-zinc-900">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <Logo />
           <button
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted"
           >
             <X size={20} />
           </button>
@@ -203,7 +203,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
                 key={label}
                 href={href}
                 onClick={onClose}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 <Icon size={17} className="text-brand dark:text-blue-400" />
                 {label}
@@ -218,7 +218,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
             <Link
               href="/tickets"
               onClick={onClose}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
             >
               <Ticket size={17} className="text-brand dark:text-blue-400" />
               My tickets
@@ -227,7 +227,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
               <Link
                 href="/profile"
                 onClick={onClose}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 <UserCircle size={17} className="text-brand dark:text-blue-400" />
                 Profile
@@ -237,7 +237,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
               <Link
                 href="/operator"
                 onClick={onClose}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 <Building2 size={17} className="text-brand dark:text-blue-400" />
                 {roles.operatorRole === "pilot" ? "Conductor dashboard" : "Operator dashboard"}
@@ -247,7 +247,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
               <Link
                 href="/admin"
                 onClick={onClose}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 <ShieldCheck size={17} className="text-brand dark:text-blue-400" />
                 Admin dashboard
@@ -256,10 +256,10 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
           </nav>
         </div>
 
-        <div className="ui border-t border-slate-100 p-4 dark:border-zinc-900">
+        <div className="ui border-t border-border p-4">
           {identity ? (
             <>
-              <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 dark:bg-zinc-900">
+              <div className="flex items-center gap-3 rounded-xl bg-muted p-3">
                 <Avatar avatarUrl={identity.avatarUrl} initial={initial} size={40} />
                 <div className="min-w-0">
                   {identity.fullName && (

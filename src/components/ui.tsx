@@ -6,11 +6,11 @@ export function DateBadge({ iso }: { iso: string }) {
   const month = d.toLocaleString("en-US", { month: "short" }).toUpperCase();
   const day = d.getDate();
   return (
-    <div className="ui w-12 overflow-hidden rounded-xl bg-white text-center shadow-lg dark:bg-zinc-950">
+    <div className="ui w-12 overflow-hidden rounded-xl bg-card text-center shadow-lg dark:shadow-black/40">
       <div className="bg-brand py-0.5 text-[10px] font-bold tracking-wide text-brand-fg">
         {month}
       </div>
-      <div className="py-1 font-heading text-xl font-bold leading-none text-slate-900 dark:text-white">
+      <div className="py-1 font-heading text-xl font-bold leading-none text-foreground">
         {day}
       </div>
     </div>

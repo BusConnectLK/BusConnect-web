@@ -42,7 +42,7 @@ export function OperatorFooterLink() {
 
   return (
     <li>
-      <Link href="/operator/apply" className="transition-colors hover:text-white">
+      <Link href="/operator/apply" className="transition-colors hover:text-foreground">
         Become an operator
       </Link>
     </li>
