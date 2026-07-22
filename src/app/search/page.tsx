@@ -150,7 +150,7 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
           </div>
           <Link
             href={`/trips/${trip.trip_id}?from=${trip.from_stop_id}&to=${trip.to_stop_id}`}
-            className="btn-primary py-2.5! px-6! text-sm!"
+            className="btn-primary"
           >
             Select seats
           </Link>

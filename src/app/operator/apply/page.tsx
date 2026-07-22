@@ -195,7 +195,7 @@ export default function ApplyOperatorPage() {
 
         {error && <p className="ui text-sm text-red-600 dark:text-red-400">{error}</p>}
 
-        <button type="submit" disabled={busy} className="btn-primary mt-1 py-3.5">
+        <button type="submit" disabled={busy} className="btn-primary mt-1">
           {busy ? <Loader2 size={18} className="animate-spin" /> : <Send size={16} />}
           {busy ? status ?? "Submitting…" : "Submit application"}
         </button>

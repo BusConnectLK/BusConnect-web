@@ -101,7 +101,7 @@ export function BankDetailsForm({ payoutAccount }: { payoutAccount: OperatorPayo
         <p className="ui text-sm text-emerald-600 dark:text-emerald-400">Saved.</p>
       )}
 
-      <button type="submit" disabled={busy} className="btn-primary self-start py-3">
+      <button type="submit" disabled={busy} className="btn-primary self-start">
         {busy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
         {busy ? "Saving…" : "Save bank details"}
       </button>

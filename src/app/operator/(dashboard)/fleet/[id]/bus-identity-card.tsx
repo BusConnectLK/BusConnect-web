@@ -233,7 +233,7 @@ export function BusIdentityCard({ bus }: { bus: OperatorBusDetail }) {
         {error && <p className="ui text-sm text-red-600 dark:text-red-400">{error}</p>}
 
         <div className="flex items-center gap-2">
-          <button type="submit" disabled={busy} className="btn-primary py-3">
+          <button type="submit" disabled={busy} className="btn-primary">
             {busy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             {busy ? "Saving…" : "Save"}
           </button>

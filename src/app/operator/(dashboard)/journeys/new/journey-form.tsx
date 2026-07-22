@@ -370,7 +370,7 @@ export function JourneyForm({ initial }: { initial?: OperatorJourneyDetail }) {
 
       {error && <p className="ui text-sm text-red-600 dark:text-red-400">{error}</p>}
 
-      <button type="submit" disabled={busy} className="btn-primary self-start py-3.5">
+      <button type="submit" disabled={busy} className="btn-primary self-start">
         {busy ? (
           <Loader2 size={18} className="animate-spin" />
         ) : editing ? (

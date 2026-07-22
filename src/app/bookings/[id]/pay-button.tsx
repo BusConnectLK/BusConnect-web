@@ -45,7 +45,7 @@ export function PayButton({ bookingId }: { bookingId: string }) {
 
   return (
     <div>
-      <button type="button" onClick={pay} disabled={busy} className="btn-primary w-full py-4">
+      <button type="button" onClick={pay} disabled={busy} className="btn-primary w-full">
         {busy ? (
           <>
             <Loader2 size={18} className="animate-spin" /> Redirecting to WebXPay…

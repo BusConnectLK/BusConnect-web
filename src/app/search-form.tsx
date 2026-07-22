@@ -93,7 +93,7 @@ export function SearchForm({ locations }: { locations: Location[] }) {
         />
       </Field>
 
-      <button type="submit" disabled={!from || !to} className="btn-primary h-12">
+      <button type="submit" disabled={!from || !to} className="btn-primary">
         <Search size={17} />
         Search
       </button>

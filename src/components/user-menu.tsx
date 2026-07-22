@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Ticket, Building2, ShieldCheck, LogOut, ChevronDown, UserCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { getMyRoles, type MyRoles } from "@/lib/api";
+import { getMyRoles, getMyProfile, type MyRoles } from "@/lib/api";
 
 interface Identity {
   email: string;
@@ -33,12 +33,22 @@ export function UserMenu() {
       }
       // Google (and most OAuth) sign-ins populate these on user_metadata;
       // phone/email OTP sign-ins won't have them, so the UI falls back to
-      // an initial-letter avatar for those.
+      // an initial-letter avatar for those. The passenger's own edited
+      // /me/profile (name + photo) takes priority over both when set.
       const meta = session.user.user_metadata ?? {};
+      let profileName: string | undefined;
+      let profileAvatar: string | undefined;
+      try {
+        const profile = await getMyProfile(session.access_token);
+        profileName = profile.name ?? undefined;
+        profileAvatar = profile.avatar_url ?? undefined;
+      } catch {
+        // fall through to auth metadata below
+      }
       setIdentity({
         email: session.user.email ?? "",
-        fullName: (meta.full_name as string) ?? (meta.name as string) ?? undefined,
-        avatarUrl: (meta.avatar_url as string) ?? (meta.picture as string) ?? undefined,
+        fullName: profileName ?? (meta.full_name as string) ?? (meta.name as string) ?? undefined,
+        avatarUrl: profileAvatar ?? (meta.avatar_url as string) ?? (meta.picture as string) ?? undefined,
       });
       try {
         setRoles(await getMyRoles(session.access_token));
@@ -51,7 +61,11 @@ export function UserMenu() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => void load());
-    return () => subscription.unsubscribe();
+    window.addEventListener("passenger-profile-updated", load);
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("passenger-profile-updated", load);
+    };
   }, []);
 
   useEffect(() => {

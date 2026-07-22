@@ -159,7 +159,7 @@ export function ScheduleForm({ journeys }: { journeys: OperatorJourney[] }) {
       {error && <p className="ui mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
       {notice && <p className="ui mt-4 text-sm text-emerald-600 dark:text-emerald-400">{notice}</p>}
 
-      <button type="submit" disabled={busy} className="btn-primary mt-5 py-3">
+      <button type="submit" disabled={busy} className="btn-primary mt-5">
         {busy ? <Loader2 size={16} className="animate-spin" /> : <CalendarPlus size={16} />}
         {busy
           ? "Scheduling…"

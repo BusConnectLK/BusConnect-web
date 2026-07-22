@@ -145,7 +145,7 @@ export function ProfileForm({
       )}
 
       {editable && (
-        <button type="submit" disabled={busy} className="btn-primary self-start py-3">
+        <button type="submit" disabled={busy} className="btn-primary self-start">
           {busy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
           {busy ? status ?? "Saving…" : "Save changes"}
         </button>

@@ -275,7 +275,7 @@ export function RegisterBusForm() {
         <p className="ui text-sm text-red-600 dark:text-red-400">{error}</p>
       )}
 
-      <button type="submit" disabled={busy} className="btn-primary self-start py-3.5">
+      <button type="submit" disabled={busy} className="btn-primary self-start">
         {busy ? status ?? "Submitting…" : "Submit for approval"}
       </button>
     </form>

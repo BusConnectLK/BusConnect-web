@@ -69,7 +69,7 @@ function GoogleButton({ next }: { next: string }) {
 
   return (
     <div>
-      <button type="button" onClick={signIn} disabled={loading} className="btn-secondary w-full py-3">
+      <button type="button" onClick={signIn} disabled={loading} className="btn-secondary w-full">
         {loading ? <Loader2 size={18} className="animate-spin" /> : <GoogleIcon />}
         {loading ? "Redirecting…" : "Continue with Google"}
       </button>
@@ -194,7 +194,7 @@ function ErrorText({ children }: { children: React.ReactNode }) {
 }
 function SubmitButton({ loading, idle, busy }: { loading: boolean; idle: string; busy: string }) {
   return (
-    <button type="submit" disabled={loading} className="btn-primary mt-1 py-3.5">
+    <button type="submit" disabled={loading} className="btn-primary mt-1">
       {loading && <Loader2 size={18} className="animate-spin" />}
       {loading ? busy : idle}
     </button>

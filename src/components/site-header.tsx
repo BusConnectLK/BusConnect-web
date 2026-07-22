@@ -92,7 +92,7 @@ export function SiteHeader() {
             <Link
               href="/login"
               onClick={() => setOpen(false)}
-              className="btn-primary mt-2 w-full py-3"
+              className="btn-primary mt-2 w-full"
             >
               Sign in
             </Link>

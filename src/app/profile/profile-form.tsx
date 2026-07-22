@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -19,6 +19,21 @@ export function ProfileForm({ profile }: { profile: MyProfile }) {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  // Signed in via Google -> Google owns the email; signed in via phone OTP ->
+  // that phone number is the login credential itself. Either way, the field
+  // that identifies the account isn't safe to edit here.
+  const [provider, setProvider] = useState<string | null>(null);
+
+  useEffect(() => {
+    void createClient()
+      .auth.getSession()
+      .then(({ data: { session } }) => {
+        setProvider(session?.user.app_metadata?.provider ?? null);
+      });
+  }, []);
+
+  const emailLocked = provider === "google";
+  const phoneLocked = provider === "phone";
 
   function onPhotoChange(file: File | null) {
     setPhoto(file);
@@ -46,11 +61,12 @@ export function ProfileForm({ profile }: { profile: MyProfile }) {
       setStatus("Saving…");
       await updateMyProfile(session.access_token, {
         name: name || undefined,
-        phone: phone || undefined,
-        email: email || undefined,
+        phone: phoneLocked ? undefined : phone || undefined,
+        email: emailLocked ? undefined : email || undefined,
         avatarUrl,
       });
       setSaved(true);
+      window.dispatchEvent(new Event("passenger-profile-updated"));
       router.refresh();
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not save changes.");
@@ -85,8 +101,14 @@ export function ProfileForm({ profile }: { profile: MyProfile }) {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="+94 7X XXX XXXX"
-          className="field"
+          disabled={phoneLocked}
+          className={`field ${phoneLocked ? "opacity-70" : ""}`}
         />
+        {phoneLocked && (
+          <span className="text-xs text-slate-400 dark:text-zinc-500">
+            This is your sign-in number and can&apos;t be changed here.
+          </span>
+        )}
       </label>
 
       <label className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -97,8 +119,14 @@ export function ProfileForm({ profile }: { profile: MyProfile }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@email.lk"
-          className="field"
+          disabled={emailLocked}
+          className={`field ${emailLocked ? "opacity-70" : ""}`}
         />
+        {emailLocked && (
+          <span className="text-xs text-slate-400 dark:text-zinc-500">
+            Managed by your Google account and can&apos;t be changed here.
+          </span>
+        )}
       </label>
 
       {error && <p className="ui text-sm text-red-600 dark:text-red-400">{error}</p>}
@@ -106,7 +134,7 @@ export function ProfileForm({ profile }: { profile: MyProfile }) {
         <p className="ui text-sm text-emerald-600 dark:text-emerald-400">Saved.</p>
       )}
 
-      <button type="submit" disabled={busy} className="btn-primary self-start py-3">
+      <button type="submit" disabled={busy} className="btn-primary self-start">
         {busy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
         {busy ? status ?? "Saving…" : "Save changes"}
       </button>

@@ -82,7 +82,7 @@ export function AmenitiesPicker({
           placeholder="Add another amenity not listed above"
           className="field text-sm"
         />
-        <button type="button" onClick={addCustom} className="btn-secondary shrink-0 whitespace-nowrap px-3 py-3">
+        <button type="button" onClick={addCustom} className="btn-secondary shrink-0 whitespace-nowrap px-3">
           <Plus size={16} /> Add
         </button>
       </div>
