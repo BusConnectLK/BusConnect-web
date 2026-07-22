@@ -93,41 +93,33 @@ export function ProfileForm({ profile }: { profile: MyProfile }) {
         />
       </label>
 
-      <label className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
-        Phone number
-        <input
-          type="tel"
-          inputMode="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="+94 7X XXX XXXX"
-          disabled={phoneLocked}
-          className={`field ${phoneLocked ? "opacity-70" : ""}`}
-        />
-        {phoneLocked && (
-          <span className="text-xs text-slate-400 dark:text-zinc-500">
-            This is your sign-in number and can&apos;t be changed here.
-          </span>
-        )}
-      </label>
+      {!phoneLocked && (
+        <label className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
+          Phone number
+          <input
+            type="tel"
+            inputMode="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+94 7X XXX XXXX"
+            className="field"
+          />
+        </label>
+      )}
 
-      <label className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
-        Email address
-        <input
-          type="email"
-          inputMode="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@email.lk"
-          disabled={emailLocked}
-          className={`field ${emailLocked ? "opacity-70" : ""}`}
-        />
-        {emailLocked && (
-          <span className="text-xs text-slate-400 dark:text-zinc-500">
-            Managed by your Google account and can&apos;t be changed here.
-          </span>
-        )}
-      </label>
+      {!emailLocked && (
+        <label className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
+          Email address
+          <input
+            type="email"
+            inputMode="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@email.lk"
+            className="field"
+          />
+        </label>
+      )}
 
       {error && <p className="ui text-sm text-red-600 dark:text-red-400">{error}</p>}
       {saved && !error && (
