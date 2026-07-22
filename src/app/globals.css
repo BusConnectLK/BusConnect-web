@@ -4,10 +4,16 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ── BusConnect design tokens ────────────────────────────────────────────────
-   Brand: cobalt #004aad. Light + dark themes use Tailwind slate/zinc/white/black
-   directly (per the UX spec); only the brand + fonts are custom here.
-   Fonts: IBM Plex Sans (font-sans, body default) · Outfit (font-heading, h1-h6)
-   · Inter (font-inter / .ui, labels + nav + chrome + buttons + form fields).
+   Brand: cobalt #004aad (oklch hue ≈259). Fonts: IBM Plex Sans (font-sans,
+   body default) · Outfit (font-heading, h1-h6) · Inter (font-inter / .ui,
+   labels + nav + chrome + buttons + form fields).
+
+   Surface tokens (background/card/popover/sidebar/border/foreground):
+   light mode is fully neutral (chroma 0); dark mode is NOT neutral gray —
+   every surface shares the brand's own hue (259) at different lightness
+   steps, so the whole app reads as "tinted dark cobalt" rather than a
+   generic dark-gray theme. Cards/popovers sit a full step lighter than the
+   page background so they visibly float above it.
    ──────────────────────────────────────────────────────────────────────── */
 @theme {
   --color-brand: #004aad;
@@ -19,6 +25,31 @@
   --font-sans: var(--font-ibm);
   --font-heading: var(--font-outfit);
   --font-inter: var(--font-inter);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --card: oklch(1 0 0);
+  --popover: oklch(1 0 0);
+  --sidebar: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --foreground: oklch(0.145 0 0);
+}
+.dark {
+  --background: oklch(0.105 0.055 259);
+  --card: oklch(0.24 0.05 259);
+  --popover: oklch(0.24 0.05 259);
+  --sidebar: oklch(0.13 0.05 259);
+  --border: oklch(0.55 0.09 259 / 16%);
+  --foreground: oklch(0.96 0.008 259);
+}
+@theme inline {
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-popover: var(--popover);
+  --color-sidebar: var(--sidebar);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
 }
 
 @layer base {
@@ -37,7 +68,7 @@
     background-repeat: no-repeat;
   }
   :where(.dark) body {
-    background-color: #000000;
+    background-color: var(--background);
     background-image:
       radial-gradient(45% 35% at 12% -8%, rgba(61, 130, 230, 0.3) 0%, transparent 70%),
       radial-gradient(40% 30% at 90% 8%, rgba(90, 151, 236, 0.2) 0%, transparent 70%),
@@ -77,16 +108,16 @@
   .card {
     @apply rounded-none border border-slate-200/70 bg-white/70 shadow-sm shadow-slate-900/[0.03]
       backdrop-blur-xl transition-colors duration-300
-      dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none;
+      dark:border-border dark:bg-card/80 dark:shadow-none;
   }
   .card-lg {
     @apply rounded-none border border-slate-200/70 bg-white/70 shadow-sm shadow-slate-900/[0.03]
       backdrop-blur-xl transition-colors duration-300
-      dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none;
+      dark:border-border dark:bg-card/80 dark:shadow-none;
   }
   .card-hover {
     @apply hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg hover:shadow-slate-900/5
-      dark:hover:border-white/20 dark:hover:shadow-black/40;
+      dark:hover:border-brand/40 dark:hover:shadow-black/40;
     transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s, background-color 0.3s;
   }
   /* Category / class pill */
