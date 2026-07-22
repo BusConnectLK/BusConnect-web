@@ -563,6 +563,7 @@ export interface OperatorPilot {
 export interface OperatorPilotDetail extends OperatorPilot {
   operator_id: string;
   bus: { reg_no: string; bus_type: { name: string; class: string } | null } | null;
+  linked_email: string | null;
 }
 
 export interface MyRoles {

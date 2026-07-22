@@ -107,9 +107,19 @@ export default async function OperatorPilotDetailPage({
           BusConnect account
         </h2>
         {pilot.user_id ? (
-          <p className="ui mt-3 text-sm text-emerald-600 dark:text-emerald-400">
-            Linked — this pilot can sign in and scan boarding tickets for their assigned trips.
-          </p>
+          <div className="ui mt-3 flex items-center justify-between gap-3 rounded-xl bg-emerald-50 px-4 py-3 dark:bg-emerald-950/30">
+            <div>
+              <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                {pilot.linked_email ?? "Linked account"}
+              </p>
+              <p className="mt-0.5 text-xs text-emerald-600/80 dark:text-emerald-400/70">
+                Can sign in and scan boarding tickets for their assigned trips.
+              </p>
+            </div>
+            <span className="ui shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+              Linked
+            </span>
+          </div>
         ) : (
           <div className="mt-3">
             <LinkAccountForm pilotId={pilot.id} />
