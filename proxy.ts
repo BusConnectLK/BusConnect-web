@@ -6,9 +6,10 @@ import { NextResponse, type NextRequest } from "next/server";
  * short-lived access token (1hr default) is never silently renewed server
  * side, so any session — phone OTP, Google, whatever — quietly stops working
  * once it expires, even though the refresh token itself is still valid.
- * src/lib/supabase/server.ts assumes this middleware exists; it didn't until now.
+ * src/lib/supabase/server.ts assumes this proxy exists; it didn't until now.
+ * (Next.js 16 renamed the middleware.ts convention to proxy.ts.)
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

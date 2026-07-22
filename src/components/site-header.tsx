@@ -1,14 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   Menu,
   X,
   Search,
   Route,
-  HelpCircle,
   Ticket,
   UserCircle,
   Building2,
@@ -26,7 +25,6 @@ import { useIdentity } from "@/lib/use-identity";
 const navItems = [
   { label: "Search buses", href: "/", icon: Search },
   { label: "Popular routes", href: "/#routes", icon: Route },
-  { label: "How it works", href: "/#how", icon: HelpCircle },
 ] as const;
 
 export function SiteHeader() {
@@ -38,6 +36,7 @@ export function SiteHeader() {
   });
 
   return (
+    <>
     <header className="sticky top-0 z-50">
       {/* Top bar — utility */}
       <div className="border-b border-slate-200 bg-white/80 backdrop-blur-md transition-colors duration-300 dark:border-zinc-800 dark:bg-black/80">
@@ -95,6 +94,53 @@ export function SiteHeader() {
 
       <MobileDrawer open={open} onClose={() => setOpen(false)} />
     </header>
+    <MobileBottomNav onOpenMenu={() => setOpen(true)} />
+    </>
+  );
+}
+
+function MobileBottomNav({ onOpenMenu }: { onOpenMenu: () => void }) {
+  const pathname = usePathname();
+  const tabs = [
+    { label: "Search", href: "/", icon: Search },
+    { label: "Routes", href: "/#routes", icon: Route },
+    { label: "Tickets", href: "/tickets", icon: Ticket },
+    { label: "Profile", href: "/profile", icon: UserCircle },
+  ] as const;
+
+  return (
+    <nav
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md dark:border-zinc-800 dark:bg-black/95 lg:hidden"
+      aria-label="Primary"
+    >
+      <div className="grid grid-cols-5">
+        {tabs.map(({ label, href, icon: Icon }) => {
+          const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+          return (
+            <Link
+              key={label}
+              href={href}
+              className={`ui flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
+                active
+                  ? "text-brand dark:text-blue-400"
+                  : "text-slate-500 dark:text-zinc-500"
+              }`}
+            >
+              <Icon size={20} />
+              {label}
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          onClick={onOpenMenu}
+          className="ui flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-slate-500 transition-colors dark:text-zinc-500"
+        >
+          <Menu size={20} />
+          Menu
+        </button>
+      </div>
+    </nav>
   );
 }
 

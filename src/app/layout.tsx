@@ -110,7 +110,7 @@ export default function RootLayout({
       </head>
       <body className="flex min-h-full flex-col antialiased">
         <SiteHeader />
-        <main className="flex flex-1 flex-col">{children}</main>
+        <main className="flex flex-1 flex-col pb-16 lg:pb-0">{children}</main>
         <ConditionalFooter />
       </body>
     </html>
