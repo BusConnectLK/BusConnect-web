@@ -101,6 +101,7 @@ function GoogleButton({ next }: { next: string }) {
     if (!scriptReady || !GOOGLE_CLIENT_ID || !buttonRef.current || !window.google) return;
 
     let cancelled = false;
+    let cleanupResize: (() => void) | undefined;
     void (async () => {
       const nonce = crypto.randomUUID();
       const hashedNonce = await sha256Hex(nonce);
@@ -123,17 +124,31 @@ function GoogleButton({ next }: { next: string }) {
         nonce: hashedNonce,
         use_fedcm_for_prompt: true,
       });
-      window.google.accounts.id.renderButton(buttonRef.current, {
-        theme: "outline",
-        size: "large",
-        shape: "rectangular",
-        text: "continue_with",
-        width: "360",
-      });
+
+      // Google's button width must be a fixed pixel value (no responsive
+      // percentage support) — measure the actual available space instead of
+      // hardcoding one, or it overflows narrower screens and gets clipped.
+      // Re-measure on resize/rotation so it stays correctly sized.
+      function renderAtCurrentWidth() {
+        if (!buttonRef.current || !window.google) return;
+        buttonRef.current.innerHTML = "";
+        const width = Math.min(400, Math.round(buttonRef.current.offsetWidth));
+        window.google.accounts.id.renderButton(buttonRef.current, {
+          theme: "outline",
+          size: "large",
+          shape: "rectangular",
+          text: "continue_with",
+          width: String(width),
+        });
+      }
+      renderAtCurrentWidth();
+      window.addEventListener("resize", renderAtCurrentWidth);
+      cleanupResize = () => window.removeEventListener("resize", renderAtCurrentWidth);
     })();
 
     return () => {
       cancelled = true;
+      cleanupResize?.();
     };
   }, [scriptReady, router, next]);
 
