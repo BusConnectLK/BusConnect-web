@@ -13,10 +13,72 @@ const ibmPlex = IBM_Plex_Sans({
   display: "swap",
 });
 
+const SITE_URL = "https://busconnect.lk";
+const SITE_NAME = "BusConnect";
+const SITE_DESCRIPTION =
+  "BusConnect (busconnect.lk) is Sri Lanka's Smartest online bus booking platform. Search live seat availability, compare operators and fares, book securely, and receive an instant QR e ticket for your journey.";
+
 export const metadata: Metadata = {
-  title: "BusConnect — Book intercity buses in Sri Lanka",
-  description:
-    "The smartest way to reserve bus seats in Sri Lanka. Live seat maps, secure payments, instant e-tickets across every major route.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "BusConnect — Book Intercity Bus Tickets Online in Sri Lanka",
+    template: `%s · ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  keywords: [
+    "BusConnect",
+    "bus booking Sri Lanka",
+    "online bus tickets Sri Lanka",
+    "intercity bus seats",
+    "bus seat reservation",
+    "bus e-ticket Sri Lanka",
+  ],
+  applicationName: SITE_NAME,
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
+  icons: { icon: "/favicon.ico" },
+  openGraph: {
+    type: "website",
+    locale: "en_LK",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: "BusConnect — Book Intercity Bus Tickets Online in Sri Lanka",
+    description: SITE_DESCRIPTION,
+    images: [{ url: "/logo.png" }],
+  },
+  twitter: {
+    card: "summary",
+    title: "BusConnect — Book Intercity Bus Tickets Online in Sri Lanka",
+    description: SITE_DESCRIPTION,
+    images: ["/logo.png"],
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: `${SITE_URL}/logo.png`,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: SITE_NAME,
+      description: SITE_DESCRIPTION,
+      publisher: { "@id": `${SITE_URL}/#organization` },
+      inLanguage: "en-LK",
+    },
+    {
+      "@type": "SiteNavigationElement",
+      name: ["Search buses", "Popular routes", "My tickets", "How it works"],
+      url: [`${SITE_URL}/`, `${SITE_URL}/#routes`, `${SITE_URL}/tickets`, `${SITE_URL}/#how`],
+    },
+  ],
 };
 
 // Set theme class before paint to avoid a flash of the wrong theme.
@@ -41,6 +103,10 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body className="flex min-h-full flex-col antialiased">
         <SiteHeader />
