@@ -1,19 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Menu, X, Search, Route, HelpCircle, Ticket } from "lucide-react";
+import {
+  Menu,
+  X,
+  Search,
+  Route,
+  HelpCircle,
+  Ticket,
+  UserCircle,
+  Building2,
+  ShieldCheck,
+  LogOut,
+} from "lucide-react";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
-import { UserMenu } from "./user-menu";
+import { UserMenu, Avatar } from "./user-menu";
+import { useIdentity } from "@/lib/use-identity";
 
-// "Operator dashboard" is deliberately not a static item here — UserMenu
-// shows it (or "Become an operator") contextually based on the signed-in
-// user's actual role/status, which a fixed public nav link can't do.
+// "Operator dashboard" is deliberately not a static item here — the drawer's
+// Account section shows it (or "Become an operator") contextually based on
+// the signed-in user's actual role/status, which a fixed public nav link can't do.
 const navItems = [
   { label: "Search buses", href: "/", icon: Search },
   { label: "Popular routes", href: "/#routes", icon: Route },
-  { label: "My tickets", href: "/tickets", icon: Ticket },
   { label: "How it works", href: "/#how", icon: HelpCircle },
 ] as const;
 
@@ -45,11 +57,11 @@ export function SiteHeader() {
             </span>
             <button
               type="button"
-              onClick={() => setOpen((v) => !v)}
+              onClick={() => setOpen(true)}
               aria-label="Menu"
               className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 dark:border-zinc-800 dark:text-zinc-400 lg:hidden"
             >
-              {open ? <X size={18} /> : <Menu size={18} />}
+              <Menu size={18} />
             </button>
           </div>
         </div>
@@ -68,37 +80,164 @@ export function SiteHeader() {
               {label}
             </Link>
           ))}
+          <Link
+            href="/tickets"
+            className="ui flex items-center gap-2 border-b-2 border-transparent px-3 py-3 text-sm font-medium text-white/90 transition-colors duration-300 hover:border-white hover:text-white"
+          >
+            <Ticket size={15} />
+            My tickets
+          </Link>
           <span className="ui ml-auto flex items-center gap-1.5 py-3 text-sm font-medium text-white/80">
             <Ticket size={15} /> Instant e-tickets
           </span>
         </nav>
       </div>
 
-      {/* Mobile overlay menu */}
-      {open && (
-        <div className="border-b border-slate-200 bg-white dark:border-zinc-800 dark:bg-black lg:hidden">
-          <nav className="mx-auto flex max-w-7xl flex-col px-4 py-2 sm:px-6">
+      <MobileDrawer open={open} onClose={() => setOpen(false)} />
+    </header>
+  );
+}
+
+function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const router = useRouter();
+  const { identity, roles, signOut: doSignOut } = useIdentity();
+
+  async function signOut() {
+    await doSignOut();
+    onClose();
+    router.push("/");
+    router.refresh();
+  }
+
+  function go(href: string) {
+    onClose();
+    router.push(href);
+  }
+
+  const initial = identity ? (identity.fullName ?? identity.email).charAt(0).toUpperCase() : "";
+
+  return (
+    <div
+      className={`fixed inset-0 z-50 lg:hidden ${open ? "" : "pointer-events-none"}`}
+      aria-hidden={!open}
+    >
+      {/* backdrop */}
+      <div
+        onClick={onClose}
+        className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${
+          open ? "opacity-100" : "opacity-0"
+        }`}
+      />
+
+      {/* panel */}
+      <div
+        className={`absolute right-0 top-0 flex h-full w-full max-w-xs flex-col bg-white shadow-xl transition-transform duration-300 dark:bg-zinc-950 ${
+          open ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-zinc-900">
+          <Logo />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close menu"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="ui flex-1 overflow-y-auto px-3 py-4">
+          <p className="px-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-600">
+            Browse
+          </p>
+          <nav className="mt-2 flex flex-col gap-1">
             {navItems.map(({ label, href, icon: Icon }) => (
               <Link
                 key={label}
                 href={href}
-                onClick={() => setOpen(false)}
-                className="ui flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                onClick={onClose}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
               >
                 <Icon size={17} className="text-brand dark:text-blue-400" />
                 {label}
               </Link>
             ))}
+          </nav>
+
+          <p className="mt-6 px-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-600">
+            Account
+          </p>
+          <nav className="mt-2 flex flex-col gap-1">
             <Link
-              href="/login"
-              onClick={() => setOpen(false)}
-              className="btn-primary mt-2 w-full"
+              href="/tickets"
+              onClick={onClose}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
-              Sign in
+              <Ticket size={17} className="text-brand dark:text-blue-400" />
+              My tickets
             </Link>
+            {identity && (
+              <Link
+                href="/profile"
+                onClick={onClose}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              >
+                <UserCircle size={17} className="text-brand dark:text-blue-400" />
+                Profile
+              </Link>
+            )}
+            {roles?.isOperator && (
+              <Link
+                href="/operator"
+                onClick={onClose}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              >
+                <Building2 size={17} className="text-brand dark:text-blue-400" />
+                {roles.operatorRole === "pilot" ? "Conductor dashboard" : "Operator dashboard"}
+              </Link>
+            )}
+            {roles?.isAdmin && (
+              <Link
+                href="/admin"
+                onClick={onClose}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              >
+                <ShieldCheck size={17} className="text-brand dark:text-blue-400" />
+                Admin dashboard
+              </Link>
+            )}
           </nav>
         </div>
-      )}
-    </header>
+
+        <div className="ui border-t border-slate-100 p-4 dark:border-zinc-900">
+          {identity ? (
+            <>
+              <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 dark:bg-zinc-900">
+                <Avatar avatarUrl={identity.avatarUrl} initial={initial} size={40} />
+                <div className="min-w-0">
+                  {identity.fullName && (
+                    <p className="truncate text-sm font-medium">{identity.fullName}</p>
+                  )}
+                  <p className="truncate text-xs text-slate-500 dark:text-zinc-400">{identity.email}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={signOut}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/70"
+              >
+                <LogOut size={16} />
+                Sign out
+              </button>
+            </>
+          ) : (
+            <button type="button" onClick={() => go("/login")} className="btn-primary w-full">
+              Sign in
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
