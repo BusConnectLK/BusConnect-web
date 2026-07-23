@@ -46,8 +46,23 @@ function Hero({
       {/* Full-screen background video, swapped per theme. No controls, no
           picture-in-picture/cast buttons, not clickable — purely decorative,
           always looping. */}
+      {/* Light mode: a shorter/tighter-framed video for mobile, a wider one
+          for desktop — swapped at the sm breakpoint. */}
       <video
-        className="hero-video pointer-events-none absolute inset-0 h-full w-full object-cover dark:hidden"
+        className="hero-video pointer-events-none absolute inset-0 block h-full w-full object-cover dark:hidden sm:hidden"
+        src="/hero-light-mobile.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
+        preload="auto"
+        aria-hidden="true"
+      />
+      <video
+        className="hero-video pointer-events-none absolute inset-0 hidden h-full w-full object-cover sm:block sm:dark:hidden"
         src="/hero-light.mp4"
         autoPlay
         muted
