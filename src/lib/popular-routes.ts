@@ -50,17 +50,39 @@ export async function listPopularRoutes(limit?: number): Promise<PopularRoute[]>
 
   const byPair = new Map<string, PairAgg>();
 
-  // 1. Seed with EVERY published route, so a brand-new route with zero trips
-  //    still shows up.
-  const { data: routes, error: routesErr } = await supabase
-    .from('routes')
-    .select(
-      `origin_id, dest_id, image_url,
-       origin:locations!routes_origin_id_fkey ( name_en ),
-       dest:locations!routes_dest_id_fkey ( name_en )`,
-    );
+  // The route catalog and trip activity are independent reads — run them
+  // concurrently instead of one after another to halve the round-trip cost.
+  const [
+    { data: routes, error: routesErr },
+    { data: trips, error: tripsErr },
+  ] = await Promise.all([
+    // 1. Seed with EVERY published route, so a brand-new route with zero
+    //    trips still shows up.
+    supabase
+      .from('routes')
+      .select(
+        `origin_id, dest_id, image_url,
+         origin:locations!routes_origin_id_fkey ( name_en ),
+         dest:locations!routes_dest_id_fkey ( name_en )`,
+      ),
+    // 2. Real upcoming-trip activity, to rank corridors + estimate duration.
+    supabase
+      .from('trips')
+      .select(
+        `depart_at, arrive_est,
+         route:routes!inner ( origin_id, dest_id ),
+         bus:buses!inner ( operator:operators!inner ( status ) )`,
+      )
+      .eq('bus.operator.status', 'active')
+      .gte('depart_at', new Date().toISOString())
+      .in('status', ['scheduled', 'boarding'])
+      .limit(500),
+  ]);
   if (routesErr) {
     console.error('listPopularRoutes: could not load the route catalog —', routesErr.message);
+  }
+  if (tripsErr) {
+    console.error('listPopularRoutes: could not load trip activity —', tripsErr.message);
   }
 
   for (const r of (routes ?? []) as unknown as RouteRow[]) {
@@ -79,22 +101,6 @@ export async function listPopularRoutes(limit?: number): Promise<PopularRoute[]>
         imageUrl: r.image_url,
       });
     }
-  }
-
-  // 2. Layer in real upcoming-trip activity to rank corridors + estimate duration.
-  const { data: trips, error: tripsErr } = await supabase
-    .from('trips')
-    .select(
-      `depart_at, arrive_est,
-       route:routes!inner ( origin_id, dest_id ),
-       bus:buses!inner ( operator:operators!inner ( status ) )`,
-    )
-    .eq('bus.operator.status', 'active')
-    .gte('depart_at', new Date().toISOString())
-    .in('status', ['scheduled', 'boarding'])
-    .limit(500);
-  if (tripsErr) {
-    console.error('listPopularRoutes: could not load trip activity —', tripsErr.message);
   }
 
   for (const row of (trips ?? []) as unknown as TripRow[]) {
