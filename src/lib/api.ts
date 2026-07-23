@@ -85,18 +85,24 @@ export function getTripCrew(tripId: string) {
 }
 
 /**
- * Seat layout convention stored in bus_types.layout_json.
- * `cols` is a row template: a string is a seat column label, `null` is an aisle
- * gap. A seat's label is `${rowNumber}${colLabel}` (e.g. "1A") UNLESS `labels`
- * is present — then `labels[i]` (in row-major reading order, one entry per
- * non-aisle position) overrides the computed label for the i-th seat. This is
- * purely a display/identifier override: hold_seats/create_booking treat
- * seat_no as opaque text regardless of which convention produced it.
+ * Seat layout convention stored in bus_types.layout_json. Two formats:
+ * - Legacy: `cols` is a row template shared by every row (a string is a seat
+ *   column label, `null` an aisle gap); a seat's label is `${rowNumber}${colLabel}`
+ *   (e.g. "1A") unless `labels` overrides it (row-major, one entry per non-aisle
+ *   position).
+ * - Freeform (`grid`, written by the admin seat-map editor): a 2D array, one
+ *   row per bus row (rows can differ in length/shape — e.g. a wider back
+ *   row), each cell either a seat's own label or null for an aisle/gap. Takes
+ *   priority over rows/cols/labels when present — see lib/seat-layout.ts's
+ *   layoutToGrid(), the single place every consumer expands either format.
+ * Either way this is purely a display/identifier concern: hold_seats/
+ * create_booking treat seat_no as opaque text regardless of which produced it.
  */
 export interface SeatLayout {
   rows: number;
   cols: (string | null)[];
   labels?: string[];
+  grid?: (string | null)[][];
 }
 
 export interface SeatMap {
@@ -972,6 +978,27 @@ export function setAdminBusStatus(
   return request<AdminBus>(`/admin/buses/${busId}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),
+    accessToken,
+  });
+}
+
+export interface AdminBusLayoutContext {
+  id: string;
+  reg_no: string;
+  status: 'pending' | 'active' | 'rejected';
+  bus_type_id: string;
+  operator: { name: string } | null;
+  bus_type: { id: string; name: string; class: string; seat_count: number; layout_json: SeatLayout | null } | null;
+}
+
+export function getAdminBusLayout(accessToken: string, busId: string) {
+  return request<AdminBusLayoutContext>(`/admin/buses/${busId}/layout`, { accessToken });
+}
+
+export function updateAdminBusLayout(accessToken: string, busId: string, layout: SeatLayout) {
+  return request<AdminBusType>(`/admin/buses/${busId}/layout`, {
+    method: 'PATCH',
+    body: JSON.stringify({ layout }),
     accessToken,
   });
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { createHold, createBooking, ApiError, type SeatLayout } from "@/lib/api";
+import { layoutToGrid } from "@/lib/seat-layout";
 
 interface Props {
   tripId: string;
@@ -16,36 +17,12 @@ interface Props {
   toStopId: string;
 }
 
-/** A sensible default when an operator hasn't defined a layout: 2+2 seating. */
-function defaultLayout(seatCount: number): SeatLayout {
-  return { rows: Math.ceil(seatCount / 4), cols: ["A", "B", null, "C", "D"] };
-}
-
-/**
- * Expand a layout into ordered seat labels, capped at seatCount. Custom
- * `layout.labels` (if present) overrides the computed `${row}${col}` label at
- * each position, in the same row-major reading order.
- */
-function seatLabels(layout: SeatLayout, seatCount: number): string[] {
-  const labels: string[] = [];
-  let i = 0;
-  for (let r = 1; r <= layout.rows; r++) {
-    for (const col of layout.cols) {
-      if (col === null) continue;
-      if (labels.length >= seatCount) return labels;
-      labels.push(layout.labels?.[i] ?? `${r}${col}`);
-      i++;
-    }
-  }
-  return labels;
-}
-
 export function SeatSelector(props: Props) {
   const { tripId, seatCount, farePerSeat, fromStopId, toStopId } = props;
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
-  const layout = props.layout ?? defaultLayout(seatCount);
+  const grid = useMemo(() => layoutToGrid(props.layout, seatCount), [props.layout, seatCount]);
   const [taken, setTaken] = useState<Set<string>>(new Set(props.initialTaken));
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
@@ -138,7 +115,6 @@ export function SeatSelector(props: Props) {
     }
   }
 
-  const labels = seatLabels(layout, seatCount);
   const total = selected.size * farePerSeat;
 
   return (
@@ -166,48 +142,34 @@ export function SeatSelector(props: Props) {
         </div>
 
         <div className="flex flex-col items-center gap-2">
-          {(() => {
-            // Tracks the flat seat-position index across rows/cols, matching
-            // seatLabels()'s iteration order exactly — this is what looks up
-            // the right `label` (custom or computed) for each grid cell.
-            let flatIndex = 0;
-            return Array.from({ length: layout.rows }).map((_, r) => {
-              const row = r + 1;
-              return (
-                <div key={row} className="flex items-center gap-2">
-                  {layout.cols.map((col, ci) => {
-                    if (col === null)
-                      return <span key={ci} className="w-6" aria-hidden />;
-                    const idx = flatIndex++;
-                    if (idx >= labels.length)
-                      return <span key={ci} className="h-9 w-9" aria-hidden />;
-                    const label = labels[idx];
-                    const isTaken = taken.has(label);
-                    const isSelected = selected.has(label);
-                    return (
-                      <button
-                        key={ci}
-                        type="button"
-                        disabled={isTaken || busy}
-                        onClick={() => toggle(label)}
-                        aria-pressed={isSelected}
-                        className={[
-                          "ui h-9 w-9 rounded-lg text-xs font-medium transition-colors duration-200",
-                          isTaken
-                            ? "cursor-not-allowed bg-slate-200 text-transparent dark:bg-zinc-700"
-                            : isSelected
-                              ? "bg-brand text-brand-fg"
-                              : "border border-slate-300 bg-white text-slate-700 hover:border-brand hover:text-brand dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
-                        ].join(" ")}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            });
-          })()}
+          {grid.map((row, r) => (
+            <div key={r} className="flex items-center gap-2">
+              {row.map((label, ci) => {
+                if (label === null) return <span key={ci} className="w-6" aria-hidden />;
+                const isTaken = taken.has(label);
+                const isSelected = selected.has(label);
+                return (
+                  <button
+                    key={ci}
+                    type="button"
+                    disabled={isTaken || busy}
+                    onClick={() => toggle(label)}
+                    aria-pressed={isSelected}
+                    className={[
+                      "ui h-9 w-9 rounded-lg text-xs font-medium transition-colors duration-200",
+                      isTaken
+                        ? "cursor-not-allowed bg-slate-200 text-transparent dark:bg-zinc-700"
+                        : isSelected
+                          ? "bg-brand text-brand-fg"
+                          : "border border-slate-300 bg-white text-slate-700 hover:border-brand hover:text-brand dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
+                    ].join(" ")}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
 

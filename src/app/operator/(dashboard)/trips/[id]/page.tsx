@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft, Wallet, Armchair, UserCheck, ScanLine, User, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getOperatorManifest, ApiError, type OperatorManifest, type SeatLayout } from "@/lib/api";
+import { getOperatorManifest, ApiError, type OperatorManifest } from "@/lib/api";
+import { layoutToGrid } from "@/lib/seat-layout";
 
 const STATUS_STYLE: Record<string, string> = {
   confirmed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
@@ -10,9 +11,6 @@ const STATUS_STYLE: Record<string, string> = {
   refunded: "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400",
 };
 
-function defaultLayout(seatCount: number): SeatLayout {
-  return { rows: Math.ceil(seatCount / 4), cols: ["A", "B", null, "C", "D"] };
-}
 function dateTime(iso: string) {
   return new Date(iso).toLocaleString("en-LK", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
@@ -53,7 +51,7 @@ export default async function OperatorManifestPage({
   }
 
   const isPilot = manifest.role === "pilot";
-  const layout = manifest.layout ?? defaultLayout(40);
+  const grid = layoutToGrid(manifest.layout, 40);
   const taken = new Set(manifest.taken);
   const confirmed = manifest.bookings.filter((b) => b.status === "confirmed");
 
@@ -124,34 +122,26 @@ export default async function OperatorManifestPage({
           <h2 className="mb-3 font-heading text-lg font-semibold">Seat map</h2>
           <div className="card p-5">
             <div className="flex flex-col items-center gap-2">
-              {(() => {
-                let flatIndex = 0;
-                return Array.from({ length: layout.rows }).map((_, r) => {
-                  const row = r + 1;
-                  return (
-                    <div key={row} className="flex items-center gap-2">
-                      {layout.cols.map((col, ci) => {
-                        if (col === null) return <span key={ci} className="w-6" aria-hidden />;
-                        const idx = flatIndex++;
-                        const label = layout.labels?.[idx] ?? `${row}${col}`;
-                        const isTaken = taken.has(label);
-                        return (
-                          <span
-                            key={ci}
-                            className={`ui flex h-9 w-9 items-center justify-center rounded-lg text-xs font-medium ${
-                              isTaken
-                                ? "bg-brand text-brand-fg"
-                                : "border border-slate-300 text-slate-400 dark:border-zinc-700 dark:text-zinc-600"
-                            }`}
-                          >
-                            {label}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  );
-                });
-              })()}
+              {grid.map((row, r) => (
+                <div key={r} className="flex items-center gap-2">
+                  {row.map((label, ci) => {
+                    if (label === null) return <span key={ci} className="w-6" aria-hidden />;
+                    const isTaken = taken.has(label);
+                    return (
+                      <span
+                        key={ci}
+                        className={`ui flex h-9 w-9 items-center justify-center rounded-lg text-xs font-medium ${
+                          isTaken
+                            ? "bg-brand text-brand-fg"
+                            : "border border-slate-300 text-slate-400 dark:border-zinc-700 dark:text-zinc-600"
+                        }`}
+                      >
+                        {label}
+                      </span>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           </div>
         </div>

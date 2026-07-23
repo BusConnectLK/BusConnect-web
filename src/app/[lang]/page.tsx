@@ -42,8 +42,32 @@ function Hero({
   dict: Dictionary;
 }) {
   return (
-    <section className="relative overflow-hidden">
-      <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-14 sm:px-6 sm:pt-20 lg:px-8">
+    <section className="relative flex min-h-screen items-center overflow-hidden">
+      {/* Full-screen background video, swapped per theme. */}
+      <video
+        className="absolute inset-0 h-full w-full object-cover dark:hidden"
+        src="/hero-light.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+      />
+      <video
+        className="absolute inset-0 hidden h-full w-full object-cover dark:block"
+        src="/hero-dark.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+      />
+      {/* Scrim so heading/search text stays readable over the moving footage,
+          fading into the page background at the bottom edge. */}
+      <div className="absolute inset-0 bg-white/55 dark:bg-black/55" />
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-white dark:to-background" />
+
+      <div className="relative mx-auto w-full max-w-7xl px-4 pb-10 pt-14 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="mt-5 font-heading text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl">
             {dict.home.heroTitlePrefix}{" "}

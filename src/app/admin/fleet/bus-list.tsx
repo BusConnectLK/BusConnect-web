@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, LayoutGrid } from "lucide-react";
 import type { AdminBus } from "@/lib/api";
 import { StatusActions } from "./status-actions";
 
@@ -103,7 +104,15 @@ function BusRow({ bus: b }: { bus: AdminBus }) {
           </div>
         </div>
       </div>
-      <StatusActions busId={b.id} status={b.status} />
+      <div className="flex shrink-0 flex-col items-end gap-2">
+        <Link
+          href={`/admin/fleet/${b.id}/seat-map`}
+          className="ui flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-brand hover:text-brand dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-blue-400 dark:hover:text-blue-300"
+        >
+          <LayoutGrid size={13} /> Seat map
+        </Link>
+        <StatusActions busId={b.id} status={b.status} />
+      </div>
     </div>
   );
 }
