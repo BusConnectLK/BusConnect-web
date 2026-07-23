@@ -107,7 +107,7 @@ function Hero({
       <div className="absolute inset-0 bg-white/10 dark:bg-black/25" />
       <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-white dark:h-32 dark:to-background" />
 
-      <div className="relative mx-auto w-full max-w-7xl px-4 pb-10 pt-2 sm:px-6 sm:pt-20 lg:px-8">
+      <div className="relative mx-auto w-full max-w-7xl px-4 pb-10 pt-8 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="mt-2 font-heading text-4xl font-bold leading-[1.08] tracking-tight sm:mt-5 sm:text-6xl">
             {dict.home.heroTitlePrefix}{" "}

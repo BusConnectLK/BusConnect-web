@@ -89,7 +89,7 @@ export function SearchForm({ locations }: { locations: Location[] }) {
           min={todayIso()}
           onChange={(e) => setDate(e.target.value)}
           required
-          className="field bg-muted/40 py-2 backdrop-blur-sm sm:py-2.5"
+          className="field w-full min-w-0 bg-muted/40 py-2 backdrop-blur-sm sm:py-2.5"
         />
       </Field>
 
@@ -111,7 +111,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="flex flex-col gap-1 sm:gap-1.5">
+    <label className="flex min-w-0 flex-col gap-1 sm:gap-1.5">
       <span className="ui flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-zinc-400 sm:text-sm">
         {icon}
         {label}
