@@ -1,102 +1,77 @@
-"use client";
+// Picks and starts the one hero video matching the current theme + viewport.
+// This runs as an inline script (not a "use client" React component) so the
+// video request fires immediately during HTML parsing — before the JS
+// bundle downloads and React hydrates. A client-component version added a
+// ~3.4s delay before the video (which is the page's LCP element) even
+// started loading, since it had to wait for a useEffect to run.
+const heroVideoScript = `
+(function () {
+  var el = document.getElementById('hero-video');
+  if (!el) return;
 
-import { useEffect, useRef, useState } from "react";
+  function pickSrc() {
+    var dark = document.documentElement.classList.contains('dark');
+    var desktop = window.matchMedia('(min-width: 640px)').matches;
+    if (dark) return desktop ? '/hero-dark.mp4' : '/hero-dark-mobile.mp4';
+    return desktop ? '/hero-light.mp4' : '/hero-light-mobile.mp4';
+  }
 
-const SOURCES = {
-  lightMobile: "/hero-light-mobile.mp4",
-  lightDesktop: "/hero-light.mp4",
-  darkMobile: "/hero-dark-mobile.mp4",
-  darkDesktop: "/hero-dark.mp4",
-} as const;
+  // React doesn't reliably sync the muted IDL property from the JSX
+  // attribute on every hydration path, and browsers check the live
+  // property (not the HTML attribute) before permitting muted autoplay.
+  el.muted = true;
+  el.defaultMuted = true;
 
-function pickSrc(dark: boolean, desktop: boolean) {
-  if (dark) return desktop ? SOURCES.darkDesktop : SOURCES.darkMobile;
-  return desktop ? SOURCES.lightDesktop : SOURCES.lightMobile;
-}
+  function tryPlay() {
+    el.play().catch(function () {});
+  }
 
-/**
- * Renders a single hero background video matching the current theme +
- * breakpoint. Using CSS (hidden/dark:block) to swap between four <video>
- * elements still makes the browser fetch all four sources regardless of
- * visibility, so this picks one src via JS instead.
- */
-export function HeroVideo() {
-  const [src, setSrc] = useState<string | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
-
-    // React doesn't reliably sync the `muted` IDL property from the JSX
-    // attribute on every browser/hydration path, and browsers check the
-    // live property (not the HTML attribute) before allowing muted
-    // autoplay — set it explicitly so autoplay isn't silently blocked.
-    el.muted = true;
-    el.defaultMuted = true;
-
-    // autoPlay can still be blocked (e.g. iOS Safari under Low Power Mode,
-    // or before the video has buffered enough), leaving it paused behind a
-    // native play-button overlay that no CSS can hide. Retry once more data
-    // has loaded, and — as a last resort — on the user's very first
-    // tap/click anywhere on the page, which always satisfies the browser's
-    // autoplay gesture requirement.
-    const tryPlay = () => el.play().catch(() => {});
+  function setSrc() {
+    var next = pickSrc();
+    if (el.getAttribute('src') === next) return;
+    el.setAttribute('src', next);
+    el.load();
     tryPlay();
-    el.addEventListener("loadeddata", tryPlay);
-    el.addEventListener("canplay", tryPlay);
+  }
 
-    const onFirstGesture = () => {
-      tryPlay();
-      document.removeEventListener("touchstart", onFirstGesture);
-      document.removeEventListener("click", onFirstGesture);
-    };
-    document.addEventListener("touchstart", onFirstGesture, { once: true, passive: true });
-    document.addEventListener("click", onFirstGesture, { once: true });
+  setSrc();
+  el.addEventListener('loadeddata', tryPlay);
+  el.addEventListener('canplay', tryPlay);
 
-    return () => {
-      el.removeEventListener("loadeddata", tryPlay);
-      el.removeEventListener("canplay", tryPlay);
-      document.removeEventListener("touchstart", onFirstGesture);
-      document.removeEventListener("click", onFirstGesture);
-    };
-  }, [src]);
+  function onFirstGesture() {
+    tryPlay();
+    document.removeEventListener('touchstart', onFirstGesture);
+    document.removeEventListener('click', onFirstGesture);
+  }
+  document.addEventListener('touchstart', onFirstGesture, { once: true, passive: true });
+  document.addEventListener('click', onFirstGesture, { once: true });
 
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 640px)");
-    const update = () => {
-      const dark = document.documentElement.classList.contains("dark");
-      setSrc(pickSrc(dark, media.matches));
-    };
+  var media = window.matchMedia('(min-width: 640px)');
+  media.addEventListener('change', setSrc);
+  new MutationObserver(setSrc).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+})();
+`;
 
-    update();
-    media.addEventListener("change", update);
-    const observer = new MutationObserver(update);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-
-    return () => {
-      media.removeEventListener("change", update);
-      observer.disconnect();
-    };
-  }, []);
-
-  if (!src) return null;
-
+export function HeroVideo() {
   return (
-    <video
-      key={src}
-      ref={videoRef}
-      className="hero-video pointer-events-none absolute inset-0 h-full w-full object-cover"
-      src={src}
-      autoPlay
-      muted
-      loop
-      playsInline
-      controls={false}
-      disablePictureInPicture
-      disableRemotePlayback
-      preload="metadata"
-      aria-hidden="true"
-    />
+    <>
+      <video
+        id="hero-video"
+        className="hero-video pointer-events-none absolute inset-0 h-full w-full object-cover"
+        autoPlay
+        muted
+        loop
+        playsInline
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
+        preload="metadata"
+        aria-hidden="true"
+      />
+      <script dangerouslySetInnerHTML={{ __html: heroVideoScript }} />
+    </>
   );
 }
