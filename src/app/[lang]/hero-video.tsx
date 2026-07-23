@@ -25,10 +25,34 @@ export function HeroVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // autoPlay can be silently skipped by the browser (e.g. under data-saver
-    // mode), leaving the video paused with a native play-button overlay —
-    // nudge it explicitly so it always starts.
-    videoRef.current?.play().catch(() => {});
+    const el = videoRef.current;
+    if (!el) return;
+
+    // autoPlay can be silently blocked (e.g. iOS Safari under Low Power
+    // Mode, or before the video has buffered enough), leaving it paused
+    // behind a native play-button overlay that no CSS can hide. Retry once
+    // more data has loaded, and — as a last resort — on the user's very
+    // first tap/click anywhere on the page, which always satisfies the
+    // browser's autoplay gesture requirement.
+    const tryPlay = () => el.play().catch(() => {});
+    tryPlay();
+    el.addEventListener("loadeddata", tryPlay);
+    el.addEventListener("canplay", tryPlay);
+
+    const onFirstGesture = () => {
+      tryPlay();
+      document.removeEventListener("touchstart", onFirstGesture);
+      document.removeEventListener("click", onFirstGesture);
+    };
+    document.addEventListener("touchstart", onFirstGesture, { once: true, passive: true });
+    document.addEventListener("click", onFirstGesture, { once: true });
+
+    return () => {
+      el.removeEventListener("loadeddata", tryPlay);
+      el.removeEventListener("canplay", tryPlay);
+      document.removeEventListener("touchstart", onFirstGesture);
+      document.removeEventListener("click", onFirstGesture);
+    };
   }, [src]);
 
   useEffect(() => {
