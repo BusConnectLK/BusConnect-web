@@ -87,11 +87,8 @@ export default async function TripPage({
         <ArrowLeft size={15} /> New search
       </Link>
 
-      {/* header banner */}
-      <header
-        className="mt-4 overflow-hidden rounded-3xl p-6 sm:p-8"
-        style={{ background: "linear-gradient(135deg, #004aad 0%, #05235a 100%)" }}
-      >
+      {/* header banner — flat brand blue, clean Facebook-style meta line. */}
+      <header className="mt-4 overflow-hidden rounded-3xl bg-brand p-6 sm:p-8">
         <div className="flex items-center gap-3 text-white">
           {operator?.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -105,25 +102,27 @@ export default async function TripPage({
               {operatorName.slice(0, 1)}
             </span>
           )}
-          <div>
+          <div className="min-w-0">
             <h1 className="font-heading text-2xl font-bold tracking-tight text-white sm:text-3xl">
               {operatorName}
             </h1>
-            <p className="ui text-sm text-white/80">
-              {trip.route.name} · {trip.bus.bus_type.name} · {trip.bus.bus_type.class.replace("_", " ")} · Bus{" "}
-              {trip.bus.reg_no}
+            <p className="ui truncate text-sm text-white/80">
+              {trip.route.name} · Bus {trip.bus.reg_no}
             </p>
           </div>
         </div>
-        <div className="ui mt-5 flex flex-wrap gap-2 text-sm">
-          <span className="rounded-lg bg-white/15 px-3 py-1.5 font-medium text-white backdrop-blur">
+        <div className="ui mt-4 flex flex-wrap gap-2 text-sm">
+          <span className="rounded-lg bg-white/20 px-3 py-1.5 font-medium capitalize text-white">
+            {trip.bus.bus_type.class.replace("_", " ")}
+          </span>
+          <span className="rounded-lg bg-white/20 px-3 py-1.5 font-medium text-white">
             Board {boardStop ? formatDateTime(boardStop.scheduled_at ?? trip.depart_at) : formatDateTime(trip.depart_at)}
           </span>
-          <span className="flex items-center gap-1 rounded-lg bg-white/15 px-3 py-1.5 font-medium text-white backdrop-blur">
+          <span className="flex items-center gap-1 rounded-lg bg-white/20 px-3 py-1.5 font-medium text-white">
             <Star size={13} className="fill-amber-300 text-amber-300" />
             {(operator?.rating ?? 0).toFixed(1)}
           </span>
-          <span className="rounded-lg bg-white/15 px-3 py-1.5 font-medium text-white backdrop-blur">
+          <span className="rounded-lg bg-white/20 px-3 py-1.5 font-medium text-white">
             {(operator?.reliability_score ?? 0).toFixed(0)}% on-time
           </span>
         </div>
