@@ -59,8 +59,23 @@ function Hero({
         preload="auto"
         aria-hidden="true"
       />
+      {/* Dark mode: a shorter/tighter-framed video for mobile, a wider one
+          for desktop — swapped at the sm breakpoint. */}
       <video
-        className="hero-video pointer-events-none absolute inset-0 hidden h-full w-full object-cover dark:block"
+        className="hero-video pointer-events-none absolute inset-0 hidden h-full w-full object-cover dark:block sm:hidden"
+        src="/hero-dark-mobile.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
+        preload="auto"
+        aria-hidden="true"
+      />
+      <video
+        className="hero-video pointer-events-none absolute inset-0 hidden h-full w-full object-cover sm:dark:block"
         src="/hero-dark.mp4"
         autoPlay
         muted
