@@ -104,8 +104,8 @@ function Hero({
       />
       {/* Scrim so heading/search text stays readable over the moving footage,
           fading into the page background at the bottom edge. */}
-      <div className="absolute inset-0 bg-white/25 dark:bg-black/25" />
-      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-white dark:to-background" />
+      <div className="absolute inset-0 bg-white/10 dark:bg-black/25" />
+      <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-white dark:h-32 dark:to-background" />
 
       <div className="relative mx-auto w-full max-w-7xl px-4 pb-10 pt-2 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
@@ -113,7 +113,7 @@ function Hero({
             {dict.home.heroTitlePrefix}{" "}
             <span className="text-brand dark:text-blue-400">{dict.home.heroTitleAccent}</span>
           </h1>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-slate-600 dark:text-zinc-400 sm:mt-4 sm:text-lg">
+          <p className="mx-auto mt-3 max-w-xl text-sm font-medium text-slate-800 dark:font-normal dark:text-zinc-400 sm:mt-4 sm:text-lg">
             {dict.home.heroSubtitle}
           </p>
         </div>
