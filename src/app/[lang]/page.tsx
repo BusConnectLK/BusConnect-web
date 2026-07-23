@@ -74,7 +74,7 @@ function Hero({
       />
       {/* Scrim so heading/search text stays readable over the moving footage,
           fading into the page background at the bottom edge. */}
-      <div className="absolute inset-0 bg-white/55 dark:bg-black/55" />
+      <div className="absolute inset-0 bg-white/25 dark:bg-black/25" />
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-white dark:to-background" />
 
       <div className="relative mx-auto w-full max-w-7xl px-4 pb-10 pt-6 sm:px-6 sm:pt-20 lg:px-8">
