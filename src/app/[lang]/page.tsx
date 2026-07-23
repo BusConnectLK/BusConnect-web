@@ -88,7 +88,7 @@ function Hero({
           </p>
         </div>
 
-        <div className="card-lg mx-auto mt-9 max-w-4xl bg-card/70 p-4 backdrop-blur-md sm:p-6">
+        <div className="card-lg mx-auto mt-9 max-w-4xl bg-card/40 p-4 backdrop-blur-md sm:p-6">
           <SearchForm locations={locations} />
           {locations.length === 0 && (
             <p className="ui mt-3 text-center text-sm text-slate-500 dark:text-zinc-500">
