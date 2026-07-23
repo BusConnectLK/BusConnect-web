@@ -6,6 +6,7 @@ import Script from "next/script";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/logo";
+import { useLocale } from "@/lib/i18n/provider";
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -92,9 +93,11 @@ function LoginForm() {
    redirecting through Supabase's own domain) ─────────────────────────────── */
 function GoogleButton({ next }: { next: string }) {
   const router = useRouter();
+  const locale = useLocale();
   const buttonRef = useRef<HTMLDivElement>(null);
   const nonceRef = useRef<string>("");
   const [scriptReady, setScriptReady] = useState(false);
+  const [buttonRendered, setButtonRendered] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -140,6 +143,7 @@ function GoogleButton({ next }: { next: string }) {
           text: "continue_with",
           width: String(width),
         });
+        setButtonRendered(true);
       }
       renderAtCurrentWidth();
       window.addEventListener("resize", renderAtCurrentWidth);
@@ -156,12 +160,24 @@ function GoogleButton({ next }: { next: string }) {
 
   return (
     <div>
+      {/* hl pins Google's own UI (button label + consent screen) to our
+          site's active language instead of guessing from the browser's
+          locale — without this it can render in whatever language the
+          visitor's OS/browser happens to be set to. */}
       <Script
-        src="https://accounts.google.com/gsi/client"
+        src={`https://accounts.google.com/gsi/client?hl=${locale}`}
         strategy="afterInteractive"
         onReady={() => setScriptReady(true)}
       />
-      <div ref={buttonRef} className="flex w-full justify-center [&>div]:w-full" />
+      <div className="relative">
+        {!buttonRendered && (
+          <div className="h-10 w-full animate-pulse rounded-lg bg-muted" aria-hidden />
+        )}
+        <div
+          ref={buttonRef}
+          className={`flex w-full justify-center [&>div]:w-full ${buttonRendered ? "" : "absolute inset-0 opacity-0"}`}
+        />
+      </div>
       {error && <p className="ui mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
