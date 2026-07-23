@@ -31,7 +31,7 @@ export function SearchForm({ locations }: { locations: Location[] }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid grid-cols-1 items-end gap-3 lg:grid-cols-[1fr_auto_1fr_1fr_auto]"
+      className="grid grid-cols-1 items-end gap-2 sm:gap-3 lg:grid-cols-[1fr_auto_1fr_1fr_auto]"
     >
       <Field label="From" icon={<MapPin size={15} />}>
         <select
@@ -39,7 +39,7 @@ export function SearchForm({ locations }: { locations: Location[] }) {
           onChange={(e) => setFrom(e.target.value)}
           required
           disabled={!hasLocations}
-          className="field appearance-none"
+          className="field appearance-none py-2 sm:py-2.5"
         >
           {hasLocations ? (
             locations.map((l) => (
@@ -68,7 +68,7 @@ export function SearchForm({ locations }: { locations: Location[] }) {
           onChange={(e) => setTo(e.target.value)}
           required
           disabled={!hasLocations}
-          className="field appearance-none"
+          className="field appearance-none py-2 sm:py-2.5"
         >
           {hasLocations ? (
             locations.map((l) => (
@@ -89,11 +89,11 @@ export function SearchForm({ locations }: { locations: Location[] }) {
           min={todayIso()}
           onChange={(e) => setDate(e.target.value)}
           required
-          className="field"
+          className="field py-2 sm:py-2.5"
         />
       </Field>
 
-      <button type="submit" disabled={!from || !to} className="btn-primary">
+      <button type="submit" disabled={!from || !to} className="btn-primary py-2 sm:py-2.5">
         <Search size={17} />
         Search
       </button>
@@ -111,8 +111,8 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="flex flex-col gap-1.5">
-      <span className="ui flex items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-zinc-400">
+    <label className="flex flex-col gap-1 sm:gap-1.5">
+      <span className="ui flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-zinc-400 sm:text-sm">
         {icon}
         {label}
       </span>

@@ -42,7 +42,7 @@ function Hero({
   dict: Dictionary;
 }) {
   return (
-    <section className="relative flex min-h-[100dvh] items-center overflow-hidden sm:min-h-screen">
+    <section className="relative flex min-h-[100dvh] items-start overflow-hidden sm:min-h-screen sm:items-center">
       {/* Full-screen background video, swapped per theme. No controls, no
           picture-in-picture/cast buttons, not clickable — purely decorative,
           always looping. */}
@@ -107,18 +107,18 @@ function Hero({
       <div className="absolute inset-0 bg-white/25 dark:bg-black/25" />
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-white dark:to-background" />
 
-      <div className="relative mx-auto w-full max-w-7xl px-4 pb-10 pt-6 sm:px-6 sm:pt-20 lg:px-8">
+      <div className="relative mx-auto w-full max-w-7xl px-4 pb-10 pt-2 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <h1 className="mt-5 font-heading text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl">
+          <h1 className="mt-2 font-heading text-4xl font-bold leading-[1.08] tracking-tight sm:mt-5 sm:text-6xl">
             {dict.home.heroTitlePrefix}{" "}
             <span className="text-brand dark:text-blue-400">{dict.home.heroTitleAccent}</span>
           </h1>
-          <p className="mx-auto mt-4 max-w-xl text-sm text-slate-600 dark:text-zinc-400 sm:text-lg">
+          <p className="mx-auto mt-3 max-w-xl text-sm text-slate-600 dark:text-zinc-400 sm:mt-4 sm:text-lg">
             {dict.home.heroSubtitle}
           </p>
         </div>
 
-        <div className="card-lg mx-auto mt-9 max-w-4xl bg-card/25 p-3 backdrop-blur-md sm:bg-card/40 sm:p-6">
+        <div className="mx-auto mt-6 max-w-4xl rounded-lg border border-white/30 p-3 sm:mt-9 sm:border-border sm:bg-card/40 sm:p-6 sm:shadow-sm sm:shadow-black/[0.04] sm:backdrop-blur-md sm:transition-colors sm:duration-300 sm:dark:shadow-none">
           <SearchForm locations={locations} />
           {locations.length === 0 && (
             <p className="ui mt-3 text-center text-sm text-slate-500 dark:text-zinc-500">
