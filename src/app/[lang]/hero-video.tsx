@@ -28,12 +28,19 @@ export function HeroVideo() {
     const el = videoRef.current;
     if (!el) return;
 
-    // autoPlay can be silently blocked (e.g. iOS Safari under Low Power
-    // Mode, or before the video has buffered enough), leaving it paused
-    // behind a native play-button overlay that no CSS can hide. Retry once
-    // more data has loaded, and — as a last resort — on the user's very
-    // first tap/click anywhere on the page, which always satisfies the
-    // browser's autoplay gesture requirement.
+    // React doesn't reliably sync the `muted` IDL property from the JSX
+    // attribute on every browser/hydration path, and browsers check the
+    // live property (not the HTML attribute) before allowing muted
+    // autoplay — set it explicitly so autoplay isn't silently blocked.
+    el.muted = true;
+    el.defaultMuted = true;
+
+    // autoPlay can still be blocked (e.g. iOS Safari under Low Power Mode,
+    // or before the video has buffered enough), leaving it paused behind a
+    // native play-button overlay that no CSS can hide. Retry once more data
+    // has loaded, and — as a last resort — on the user's very first
+    // tap/click anywhere on the page, which always satisfies the browser's
+    // autoplay gesture requirement.
     const tryPlay = () => el.play().catch(() => {});
     tryPlay();
     el.addEventListener("loadeddata", tryPlay);
