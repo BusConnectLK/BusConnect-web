@@ -118,7 +118,7 @@ function Hero({
           </p>
         </div>
 
-        <div className="mx-auto mt-6 max-w-4xl rounded-lg border border-white/30 p-3 sm:mt-9 sm:border-border sm:bg-card/40 sm:p-6 sm:shadow-sm sm:shadow-black/[0.04] sm:backdrop-blur-md sm:transition-colors sm:duration-300 sm:dark:shadow-none">
+        <div className="mx-auto mt-10 max-w-4xl rounded-lg border border-white/30 p-3 sm:mt-9 sm:border-border sm:bg-card/40 sm:p-6 sm:shadow-sm sm:shadow-black/[0.04] sm:backdrop-blur-md sm:transition-colors sm:duration-300 sm:dark:shadow-none">
           <SearchForm locations={locations} />
           {locations.length === 0 && (
             <p className="ui mt-3 text-center text-sm text-zinc-500 sm:text-slate-500 sm:dark:text-zinc-500">
