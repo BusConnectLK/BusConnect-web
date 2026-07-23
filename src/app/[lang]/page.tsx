@@ -77,18 +77,18 @@ function Hero({
       <div className="absolute inset-0 bg-white/55 dark:bg-black/55" />
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-white dark:to-background" />
 
-      <div className="relative mx-auto w-full max-w-7xl px-4 pb-10 pt-14 sm:px-6 sm:pt-20 lg:px-8">
+      <div className="relative mx-auto w-full max-w-7xl px-4 pb-10 pt-6 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="mt-5 font-heading text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl">
             {dict.home.heroTitlePrefix}{" "}
             <span className="text-brand dark:text-blue-400">{dict.home.heroTitleAccent}</span>
           </h1>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-slate-600 dark:text-zinc-400">
+          <p className="mx-auto mt-4 max-w-xl text-sm text-slate-600 dark:text-zinc-400 sm:text-lg">
             {dict.home.heroSubtitle}
           </p>
         </div>
 
-        <div className="card-lg mx-auto mt-9 max-w-4xl p-4 sm:p-6">
+        <div className="card-lg mx-auto mt-9 max-w-4xl bg-card/70 p-4 backdrop-blur-md sm:p-6">
           <SearchForm locations={locations} />
           {locations.length === 0 && (
             <p className="ui mt-3 text-center text-sm text-slate-500 dark:text-zinc-500">
