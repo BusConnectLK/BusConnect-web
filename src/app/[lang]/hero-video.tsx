@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const SOURCES = {
   lightMobile: "/hero-light-mobile.mp4",
@@ -22,6 +22,14 @@ function pickSrc(dark: boolean, desktop: boolean) {
  */
 export function HeroVideo() {
   const [src, setSrc] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    // autoPlay can be silently skipped by the browser (e.g. under data-saver
+    // mode), leaving the video paused with a native play-button overlay —
+    // nudge it explicitly so it always starts.
+    videoRef.current?.play().catch(() => {});
+  }, [src]);
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 640px)");
@@ -46,6 +54,7 @@ export function HeroVideo() {
   return (
     <video
       key={src}
+      ref={videoRef}
       className="hero-video pointer-events-none absolute inset-0 h-full w-full object-cover"
       src={src}
       autoPlay
