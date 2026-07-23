@@ -39,7 +39,7 @@ export function SearchForm({ locations }: { locations: Location[] }) {
           onChange={(e) => setFrom(e.target.value)}
           required
           disabled={!hasLocations}
-          className="field appearance-none py-2 sm:py-2.5"
+          className="field appearance-none bg-muted/40 py-2 backdrop-blur-sm sm:py-2.5"
         >
           {hasLocations ? (
             locations.map((l) => (
@@ -68,7 +68,7 @@ export function SearchForm({ locations }: { locations: Location[] }) {
           onChange={(e) => setTo(e.target.value)}
           required
           disabled={!hasLocations}
-          className="field appearance-none py-2 sm:py-2.5"
+          className="field appearance-none bg-muted/40 py-2 backdrop-blur-sm sm:py-2.5"
         >
           {hasLocations ? (
             locations.map((l) => (
@@ -89,7 +89,7 @@ export function SearchForm({ locations }: { locations: Location[] }) {
           min={todayIso()}
           onChange={(e) => setDate(e.target.value)}
           required
-          className="field py-2 sm:py-2.5"
+          className="field bg-muted/40 py-2 backdrop-blur-sm sm:py-2.5"
         />
       </Field>
 
