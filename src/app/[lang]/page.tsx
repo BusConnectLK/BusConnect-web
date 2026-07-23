@@ -42,24 +42,34 @@ function Hero({
   dict: Dictionary;
 }) {
   return (
-    <section className="relative flex min-h-screen items-center overflow-hidden">
-      {/* Full-screen background video, swapped per theme. */}
+    <section className="relative flex min-h-[100dvh] items-center overflow-hidden sm:min-h-screen">
+      {/* Full-screen background video, swapped per theme. No controls, no
+          picture-in-picture/cast buttons, not clickable — purely decorative,
+          always looping. */}
       <video
-        className="absolute inset-0 h-full w-full object-cover dark:hidden"
+        className="hero-video pointer-events-none absolute inset-0 h-full w-full object-cover dark:hidden"
         src="/hero-light.mp4"
         autoPlay
         muted
         loop
         playsInline
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
+        preload="auto"
         aria-hidden="true"
       />
       <video
-        className="absolute inset-0 hidden h-full w-full object-cover dark:block"
+        className="hero-video pointer-events-none absolute inset-0 hidden h-full w-full object-cover dark:block"
         src="/hero-dark.mp4"
         autoPlay
         muted
         loop
         playsInline
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
+        preload="auto"
         aria-hidden="true"
       />
       {/* Scrim so heading/search text stays readable over the moving footage,
