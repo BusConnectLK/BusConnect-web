@@ -18,6 +18,10 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
     document.documentElement.classList.toggle("dark", next);
     try {
       localStorage.setItem("theme", next ? "dark" : "light");
+      // Also synced to a cookie so Server Components (e.g. the homepage
+      // hero video) can render the correct theme's assets directly in the
+      // initial HTML, instead of guessing and fixing it up with JS.
+      document.cookie = `theme=${next ? "dark" : "light"}; path=/; max-age=31536000; samesite=lax`;
     } catch {}
   }
 

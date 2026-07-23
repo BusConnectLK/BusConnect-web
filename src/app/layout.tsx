@@ -109,12 +109,16 @@ const jsonLd = {
   ],
 };
 
-// Set theme class before paint to avoid a flash of the wrong theme.
+// Set theme class before paint to avoid a flash of the wrong theme. Also
+// syncs a cookie on every load so Server Components (e.g. the homepage hero
+// video) can read the resolved theme and render the right static assets
+// directly, rather than picking one via client-side JS after the fact.
 const themeScript = `
 try {
   var t = localStorage.getItem('theme');
   var d = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
   if (d) document.documentElement.classList.add('dark');
+  document.cookie = 'theme=' + (d ? 'dark' : 'light') + '; path=/; max-age=31536000; samesite=lax';
 } catch (e) {}
 `;
 

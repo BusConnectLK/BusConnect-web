@@ -1,97 +1,60 @@
-// Picks and starts the one hero video matching the current theme + viewport.
-// This runs as an inline script (not a "use client" React component) so the
-// video request fires immediately during HTML parsing — before the JS
-// bundle downloads and React hydrates. A client-component version added a
-// ~3.4s delay before the video (which is the page's LCP element) even
-// started loading, since it had to wait for a useEffect to run.
-const heroVideoScript = `
-(function () {
-  var el = document.getElementById('hero-video');
-  if (!el) return;
+import { cookies } from "next/headers";
 
-  function pickSrc() {
-    var dark = document.documentElement.classList.contains('dark');
-    var desktop = window.matchMedia('(min-width: 640px)').matches;
-    if (dark) return desktop ? '/hero-dark.mp4' : '/hero-dark-mobile.mp4';
-    return desktop ? '/hero-light.mp4' : '/hero-light-mobile.mp4';
-  }
+/**
+ * Renders the hero background video matching the visitor's theme, resolved
+ * server-side from a cookie (kept in sync by the layout's theme script and
+ * the theme toggle) rather than picked client-side after the fact.
+ *
+ * This matters specifically for Safari/WebKit: it only runs its lenient
+ * muted-autoplay handling for <video autoplay> elements present in the
+ * originally parsed HTML. Any video created or mutated via JavaScript
+ * (even one built and inserted before hydration) is treated as a
+ * programmatic play() request instead, subject to a stricter policy that
+ * silently leaves it paused — confirmed by a minimal static <video> tag
+ * autoplaying fine in WebKit while every JS-driven version stayed paused.
+ * A real, static `src` attribute is the only thing that reliably works.
+ *
+ * Breakpoint (mobile vs desktop) is still resolved with plain CSS
+ * (`sm:hidden` / `hidden sm:block`) rather than a cookie, since that was
+ * never the autoplay problem — both breakpoint variants of the resolved
+ * theme end up in the DOM and get fetched, but at ~2MB each post
+ * re-encode that's a fine trade for correctness across every browser.
+ */
+export async function HeroVideo() {
+  const cookieStore = await cookies();
+  const dark = cookieStore.get("theme")?.value === "dark";
 
-  var currentSrc = null;
+  const mobileSrc = dark ? "/hero-dark-mobile.mp4" : "/hero-light-mobile.mp4";
+  const desktopSrc = dark ? "/hero-dark.mp4" : "/hero-light.mp4";
 
-  function render() {
-    var next = pickSrc();
-    if (next === currentSrc) return;
-    currentSrc = next;
-
-    // Replace the element with a fresh one that has src+autoplay+muted all
-    // present from the moment it's created, rather than mutating the
-    // existing element's src and calling .play() afterwards. Safari only
-    // runs its lenient native-autoplay handling when autoplay+src start out
-    // together; a later, script-driven play() call goes through a
-    // stricter policy path and can be silently rejected, leaving the video
-    // paused indefinitely. Replacing in place (same tag, same position)
-    // rather than inserting into a wrapper keeps this hydration-safe —
-    // React never sees an unexpected extra child node.
-    var video = document.createElement('video');
-    video.id = 'hero-video';
-    video.className = el.className;
-    video.muted = true;
-    video.defaultMuted = true;
-    video.loop = true;
-    video.playsInline = true;
-    video.autoplay = true;
-    video.setAttribute('disablepictureinpicture', '');
-    video.setAttribute('disableremoteplayback', '');
-    video.preload = 'auto';
-    video.setAttribute('aria-hidden', 'true');
-    video.src = next;
-    el.replaceWith(video);
-    el = video;
-    video.play().catch(function () {});
-  }
-
-  render();
-
-  var media = window.matchMedia('(min-width: 640px)');
-  media.addEventListener('change', render);
-  new MutationObserver(render).observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['class'],
-  });
-
-  // Last-resort fallback for any engine that still won't autoplay even
-  // with src present from creation — a user gesture always satisfies
-  // autoplay policy.
-  function onFirstGesture() {
-    el.play().catch(function () {});
-    document.removeEventListener('touchstart', onFirstGesture);
-    document.removeEventListener('click', onFirstGesture);
-  }
-  document.addEventListener('touchstart', onFirstGesture, { once: true, passive: true });
-  document.addEventListener('click', onFirstGesture, { once: true });
-})();
-`;
-
-export function HeroVideo() {
   return (
     <>
       <video
-        id="hero-video"
-        className="hero-video pointer-events-none absolute inset-0 h-full w-full object-cover"
+        className="hero-video pointer-events-none absolute inset-0 block h-full w-full object-cover sm:hidden"
+        src={mobileSrc}
+        autoPlay
         muted
         loop
         playsInline
         controls={false}
         disablePictureInPicture
         disableRemotePlayback
-        preload="none"
+        preload="auto"
         aria-hidden="true"
-        // The inline script below replaces this element with one that has
-        // src/autoplay baked in — this placeholder is intentionally never
-        // meant to match, so don't warn about it.
-        suppressHydrationWarning
       />
-      <script dangerouslySetInnerHTML={{ __html: heroVideoScript }} />
+      <video
+        className="hero-video pointer-events-none absolute inset-0 hidden h-full w-full object-cover sm:block"
+        src={desktopSrc}
+        autoPlay
+        muted
+        loop
+        playsInline
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
+        preload="auto"
+        aria-hidden="true"
+      />
     </>
   );
 }
