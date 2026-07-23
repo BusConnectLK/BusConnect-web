@@ -15,6 +15,7 @@ import { SectionHeading } from "@/components/ui";
 import { getDictionary, type Dictionary } from "@/lib/i18n/dictionaries";
 import { isLocale, defaultLocale, type Locale } from "@/lib/i18n/config";
 import { localizePath } from "@/lib/i18n/navigation";
+import { HeroVideo } from "./hero-video";
 
 export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -43,65 +44,10 @@ function Hero({
 }) {
   return (
     <section className="relative flex min-h-[100dvh] items-start overflow-hidden sm:min-h-screen sm:items-center">
-      {/* Full-screen background video, swapped per theme. No controls, no
-          picture-in-picture/cast buttons, not clickable — purely decorative,
-          always looping. */}
-      {/* Light mode: a shorter/tighter-framed video for mobile, a wider one
-          for desktop — swapped at the sm breakpoint. */}
-      <video
-        className="hero-video pointer-events-none absolute inset-0 block h-full w-full object-cover dark:hidden sm:hidden"
-        src="/hero-light-mobile.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
-        controls={false}
-        disablePictureInPicture
-        disableRemotePlayback
-        preload="auto"
-        aria-hidden="true"
-      />
-      <video
-        className="hero-video pointer-events-none absolute inset-0 hidden h-full w-full object-cover sm:block sm:dark:hidden"
-        src="/hero-light.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
-        controls={false}
-        disablePictureInPicture
-        disableRemotePlayback
-        preload="auto"
-        aria-hidden="true"
-      />
-      {/* Dark mode: a shorter/tighter-framed video for mobile, a wider one
-          for desktop — swapped at the sm breakpoint. */}
-      <video
-        className="hero-video pointer-events-none absolute inset-0 hidden h-full w-full object-cover dark:block sm:hidden"
-        src="/hero-dark-mobile.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
-        controls={false}
-        disablePictureInPicture
-        disableRemotePlayback
-        preload="auto"
-        aria-hidden="true"
-      />
-      <video
-        className="hero-video pointer-events-none absolute inset-0 hidden h-full w-full object-cover sm:dark:block"
-        src="/hero-dark.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
-        controls={false}
-        disablePictureInPicture
-        disableRemotePlayback
-        preload="auto"
-        aria-hidden="true"
-      />
+      {/* Full-screen background video, swapped per theme + breakpoint. Only
+          one <video> is ever mounted (picked in JS) so the browser fetches a
+          single ~5-30MB clip instead of all four candidates at once. */}
+      <HeroVideo />
       {/* Scrim so heading/search text stays readable over the moving footage,
           fading into the page background at the bottom edge. */}
       <div className="absolute inset-0 bg-white/10 dark:bg-black/25" />
