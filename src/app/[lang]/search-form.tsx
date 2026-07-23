@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeftRight, Calendar, MapPin, Search } from "lucide-react";
 import type { Location } from "@/lib/locations";
 
@@ -11,20 +11,20 @@ function todayIso() {
 
 export function SearchForm({ locations }: { locations: Location[] }) {
   const router = useRouter();
-  const [from, setFrom] = useState(locations[0]?.id ?? "");
-  const [to, setTo] = useState(locations[1]?.id ?? locations[0]?.id ?? "");
+  const [fromId, setFromId] = useState(locations[0]?.id ?? "");
+  const [toId, setToId] = useState(locations[1]?.id ?? locations[0]?.id ?? "");
   const [date, setDate] = useState(todayIso());
 
   const hasLocations = locations.length > 0;
 
   function swap() {
-    setFrom(to);
-    setTo(from);
+    setFromId(toId);
+    setToId(fromId);
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const qs = new URLSearchParams({ from, to, date }).toString();
+    const qs = new URLSearchParams({ from: fromId, to: toId, date }).toString();
     router.push(`/search?${qs}`);
   }
 
@@ -34,23 +34,13 @@ export function SearchForm({ locations }: { locations: Location[] }) {
       className="grid grid-cols-1 items-end gap-2 sm:gap-3 lg:grid-cols-[1fr_auto_1fr_1fr_auto]"
     >
       <Field label="From" icon={<MapPin size={15} />}>
-        <select
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
-          required
+        <LocationCombobox
+          locations={locations}
+          value={fromId}
+          onChange={setFromId}
           disabled={!hasLocations}
-          className="field appearance-none bg-[#3A3B3C]/40 py-2 text-[#E4E6EB] backdrop-blur-sm sm:bg-muted/40 sm:text-foreground sm:py-2.5"
-        >
-          {hasLocations ? (
-            locations.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name_en}
-              </option>
-            ))
-          ) : (
-            <option>No locations yet</option>
-          )}
-        </select>
+          placeholder={hasLocations ? "Where from?" : "No locations yet"}
+        />
       </Field>
 
       <button
@@ -63,23 +53,13 @@ export function SearchForm({ locations }: { locations: Location[] }) {
       </button>
 
       <Field label="To" icon={<MapPin size={15} />}>
-        <select
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-          required
+        <LocationCombobox
+          locations={locations}
+          value={toId}
+          onChange={setToId}
           disabled={!hasLocations}
-          className="field appearance-none bg-[#3A3B3C]/40 py-2 text-[#E4E6EB] backdrop-blur-sm sm:bg-muted/40 sm:text-foreground sm:py-2.5"
-        >
-          {hasLocations ? (
-            locations.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name_en}
-              </option>
-            ))
-          ) : (
-            <option>No locations yet</option>
-          )}
-        </select>
+          placeholder={hasLocations ? "Where to?" : "No locations yet"}
+        />
       </Field>
 
       <Field label="Date" icon={<Calendar size={15} />}>
@@ -93,11 +73,124 @@ export function SearchForm({ locations }: { locations: Location[] }) {
         />
       </Field>
 
-      <button type="submit" disabled={!from || !to} className="btn-primary py-2 sm:py-2.5">
+      <button type="submit" disabled={!fromId || !toId} className="btn-primary py-2 sm:py-2.5">
         <Search size={17} />
         Search
       </button>
     </form>
+  );
+}
+
+function LocationCombobox({
+  locations,
+  value,
+  onChange,
+  disabled,
+  placeholder,
+}: {
+  locations: Location[];
+  value: string;
+  onChange: (id: string) => void;
+  disabled?: boolean;
+  placeholder?: string;
+}) {
+  const [query, setQuery] = useState(() => locations.find((l) => l.id === value)?.name_en ?? "");
+  const [open, setOpen] = useState(false);
+  const [highlight, setHighlight] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Keep the displayed text in sync when the selected id changes from
+  // outside (e.g. the swap button) — adjust during render rather than in an
+  // effect, per React's "adjusting state when a prop changes" pattern.
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setQuery(locations.find((l) => l.id === value)?.name_en ?? "");
+  }
+
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return locations.slice(0, 8);
+    return locations
+      .filter(
+        (l) =>
+          l.name_en.toLowerCase().includes(q) ||
+          l.name_si?.includes(query.trim()) ||
+          l.name_ta?.includes(query.trim()),
+      )
+      .slice(0, 8);
+  }, [locations, query]);
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  function pick(loc: Location) {
+    onChange(loc.id);
+    setQuery(loc.name_en);
+    setOpen(false);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!open) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlight((h) => Math.min(h + 1, results.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlight((h) => Math.max(h - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const loc = results[highlight];
+      if (loc) pick(loc);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      <input
+        type="text"
+        value={query}
+        disabled={disabled}
+        placeholder={placeholder}
+        autoComplete="off"
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setOpen(true);
+          setHighlight(0);
+          if (e.target.value === "") onChange("");
+        }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={handleKeyDown}
+        className="field appearance-none bg-[#3A3B3C]/40 py-2 text-[#E4E6EB] backdrop-blur-sm sm:bg-muted/40 sm:text-foreground sm:py-2.5"
+      />
+      {open && results.length > 0 && (
+        <ul className="absolute inset-x-0 top-full z-20 mt-1 max-h-56 overflow-auto rounded-lg border border-border bg-card p-1 shadow-lg">
+          {results.map((loc, i) => (
+            <li key={loc.id}>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => pick(loc)}
+                className={`ui block w-full rounded-md px-3 py-2 text-left text-sm text-foreground hover:bg-muted ${
+                  i === highlight ? "bg-muted" : ""
+                }`}
+              >
+                {loc.name_en}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
