@@ -115,7 +115,7 @@ function Features() {
   ] as const;
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <section className="mx-auto hidden max-w-7xl px-4 py-14 sm:block sm:px-6 lg:px-8">
       <SectionHeading
         title="Why BusConnect"
         subtitle="Everything the old booking sites do,done smarter, faster and in your language."

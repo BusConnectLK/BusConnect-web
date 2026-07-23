@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Moon, Sun } from "lucide-react";
 
 export function ThemeToggle({ className = "" }: { className?: string }) {
+  const router = useRouter();
   const [dark, setDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -23,6 +25,10 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       // initial HTML, instead of guessing and fixing it up with JS.
       document.cookie = `theme=${next ? "dark" : "light"}; path=/; max-age=31536000; samesite=lax`;
     } catch {}
+    // Server Components (the hero video) read the theme cookie, so without
+    // this they'd keep showing the old theme's video until the next full
+    // page load even though the rest of the UI updates instantly.
+    router.refresh();
   }
 
   return (
