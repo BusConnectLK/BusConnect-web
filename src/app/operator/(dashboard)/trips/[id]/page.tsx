@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, Wallet, Armchair, UserCheck, ScanLine, User, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOperatorManifest, ApiError, type OperatorManifest } from "@/lib/api";
-import { layoutToGrid } from "@/lib/seat-layout";
+import { ConductorSeatMap } from "./conductor-seat-map";
 
 const STATUS_STYLE: Record<string, string> = {
   confirmed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
@@ -51,8 +51,6 @@ export default async function OperatorManifestPage({
   }
 
   const isPilot = manifest.role === "pilot";
-  const grid = layoutToGrid(manifest.layout, 40);
-  const taken = new Set(manifest.taken);
   const confirmed = manifest.bookings.filter((b) => b.status === "confirmed");
 
   return (
@@ -117,32 +115,16 @@ export default async function OperatorManifestPage({
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-12">
-        {/* seat map (read-only) */}
+        {/* seat map — conductor can block seats or add walk-up (cash) passengers */}
         <div className="lg:col-span-5">
           <h2 className="mb-3 font-heading text-lg font-semibold">Seat map</h2>
           <div className="card p-5">
-            <div className="flex flex-col items-center gap-2">
-              {grid.map((row, r) => (
-                <div key={r} className="flex items-center gap-2">
-                  {row.map((label, ci) => {
-                    if (label === null) return <span key={ci} className="w-6" aria-hidden />;
-                    const isTaken = taken.has(label);
-                    return (
-                      <span
-                        key={ci}
-                        className={`ui flex h-9 w-9 items-center justify-center rounded-lg text-xs font-medium ${
-                          isTaken
-                            ? "bg-brand text-brand-fg"
-                            : "border border-slate-300 text-slate-400 dark:border-zinc-700 dark:text-zinc-600"
-                        }`}
-                      >
-                        {label}
-                      </span>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
+            <ConductorSeatMap
+              tripId={manifest.trip_id}
+              layout={manifest.layout}
+              seatCount={40}
+              initialSeats={manifest.seats}
+            />
           </div>
         </div>
 

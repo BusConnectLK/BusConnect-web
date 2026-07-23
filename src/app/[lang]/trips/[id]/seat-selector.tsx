@@ -1,21 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { createHold, createBooking, ApiError, type SeatLayout } from "@/lib/api";
+import { createHold, createBooking, ApiError, type SeatLayout, type SeatState } from "@/lib/api";
 import { layoutToGrid } from "@/lib/seat-layout";
 
 interface Props {
   tripId: string;
   layout: SeatLayout | null;
   seatCount: number;
-  initialTaken: string[];
+  initialSeats: SeatState[];
   farePerSeat: number;
   fromStopId: string;
   toStopId: string;
 }
+
+const SEAT_STYLE: Record<string, string> = {
+  available:
+    "border border-slate-300 bg-white text-slate-700 hover:border-brand hover:text-brand dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
+  selected: "bg-emerald-600 text-white",
+  male: "cursor-not-allowed bg-blue-900 text-transparent",
+  female: "cursor-not-allowed bg-rose-900 text-transparent",
+  pending: "cursor-not-allowed bg-amber-600 text-transparent",
+  blocked: "cursor-not-allowed bg-slate-500 text-transparent dark:bg-slate-600",
+};
 
 export function SeatSelector(props: Props) {
   const { tripId, seatCount, farePerSeat, fromStopId, toStopId } = props;
@@ -23,57 +33,100 @@ export function SeatSelector(props: Props) {
   const supabase = useMemo(() => createClient(), []);
 
   const grid = useMemo(() => layoutToGrid(props.layout, seatCount), [props.layout, seatCount]);
-  const [taken, setTaken] = useState<Set<string>>(new Set(props.initialTaken));
+  const [seatStates, setSeatStates] = useState<Map<string, SeatState>>(
+    () => new Map(props.initialSeats.map((s) => [s.seat_no, s])),
+  );
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [genders, setGenders] = useState<Map<string, "male" | "female">>(new Map());
+  const [genderPromptSeat, setGenderPromptSeat] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
-  // Pull the current set of taken seats straight from Supabase (public read).
-  const refreshTaken = useCallback(async () => {
+  // Pull the current per-seat status straight from Supabase (public read).
+  const refreshSeats = useCallback(async () => {
     const { data } = await supabase
       .from("seat_holds")
-      .select("seat_no, status, expires_at")
+      .select("seat_no, status, gender, expires_at")
       .eq("trip_id", tripId);
     if (!data) return;
     const now = Date.now();
-    const active = data
-      .filter(
-        (h) =>
-          h.status === "booked" ||
-          (h.status === "held" && new Date(h.expires_at).getTime() > now),
-      )
-      .map((h) => h.seat_no);
-    setTaken(new Set(active));
+    const next = new Map<string, SeatState>();
+    for (const h of data) {
+      const active =
+        h.status === "booked" ||
+        h.status === "blocked" ||
+        (h.status === "held" && new Date(h.expires_at).getTime() > now);
+      if (active) {
+        next.set(h.seat_no, {
+          seat_no: h.seat_no,
+          status: h.status === "held" ? "held" : (h.status as "booked" | "blocked"),
+          gender: (h.gender as "male" | "female" | null) ?? null,
+        });
+      }
+    }
+    setSeatStates(next);
   }, [supabase, tripId]);
 
-  // Live seat updates: anyone holding/booking/releasing a seat on this trip.
+  // Live seat updates: anyone holding/booking/blocking/releasing a seat on this trip.
   useEffect(() => {
     const channel = supabase
       .channel(`seat_holds:${tripId}`)
       .on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "seat_holds",
-          filter: `trip_id=eq.${tripId}`,
-        },
-        () => void refreshTaken(),
+        { event: "*", schema: "public", table: "seat_holds", filter: `trip_id=eq.${tripId}` },
+        () => void refreshSeats(),
       )
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [supabase, tripId, refreshTaken]);
+  }, [supabase, tripId, refreshSeats]);
+
+  // Dismiss the gender popover on an outside click.
+  useEffect(() => {
+    if (!genderPromptSeat) return;
+    function onClickOutside(e: MouseEvent) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setGenderPromptSeat(null);
+      }
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [genderPromptSeat]);
+
+  function seatKind(label: string): "available" | "selected" | "male" | "female" | "pending" | "blocked" {
+    if (selected.has(label)) return "selected";
+    const state = seatStates.get(label);
+    if (!state) return "available";
+    if (state.status === "blocked") return "blocked";
+    if (state.status === "held") return "pending";
+    return state.gender === "female" ? "female" : "male";
+  }
 
   function toggle(label: string) {
-    if (taken.has(label)) return;
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(label)) next.delete(label);
-      else next.add(label);
-      return next;
-    });
+    if (seatStates.has(label)) return; // taken (held/booked/blocked) — not clickable
+    if (selected.has(label)) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.delete(label);
+        return next;
+      });
+      setGenders((prev) => {
+        const next = new Map(prev);
+        next.delete(label);
+        return next;
+      });
+      setGenderPromptSeat(null);
+      return;
+    }
+    setGenderPromptSeat(label);
+  }
+
+  function pickGender(label: string, gender: "male" | "female") {
+    setSelected((prev) => new Set(prev).add(label));
+    setGenders((prev) => new Map(prev).set(label, gender));
+    setGenderPromptSeat(null);
   }
 
   async function handleContinue() {
@@ -92,7 +145,7 @@ export function SeatSelector(props: Props) {
     try {
       const hold = await createHold(session.access_token, {
         tripId,
-        seats: [...selected],
+        seats: [...selected].map((seatNo) => ({ seatNo, gender: genders.get(seatNo) })),
       });
       const booking = await createBooking(session.access_token, {
         holdGroup: hold.hold_group,
@@ -104,11 +157,10 @@ export function SeatSelector(props: Props) {
       if (e instanceof ApiError && e.status === 409) {
         setError("Some of those seats were just taken. Please pick again.");
         setSelected(new Set());
-        void refreshTaken();
+        setGenders(new Map());
+        void refreshSeats();
       } else {
-        setError(
-          e instanceof ApiError ? e.message : "Something went wrong. Try again.",
-        );
+        setError(e instanceof ApiError ? e.message : "Something went wrong. Try again.");
       }
     } finally {
       setBusy(false);
@@ -126,18 +178,30 @@ export function SeatSelector(props: Props) {
           </svg>
           Front of bus
         </div>
-        <div className="ui mb-5 flex justify-center gap-4 text-xs text-slate-500 dark:text-zinc-400">
+        <div className="ui mb-5 flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-slate-500 dark:text-zinc-400">
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-3 w-3 rounded border border-slate-300 dark:border-zinc-600" />
             Available
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded bg-brand" />
+            <span className="inline-block h-3 w-3 rounded bg-emerald-600" />
             Selected
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded bg-slate-300 dark:bg-zinc-700" />
-            Taken
+            <span className="inline-block h-3 w-3 rounded bg-blue-900" />
+            Booked (Male)
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3 w-3 rounded bg-rose-900" />
+            Booked (Female)
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3 w-3 rounded bg-amber-600" />
+            Pending (Reserved)
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3 w-3 rounded bg-slate-500 dark:bg-slate-600" />
+            Unavailable
           </span>
         </div>
 
@@ -146,26 +210,44 @@ export function SeatSelector(props: Props) {
             <div key={r} className="flex items-center gap-2">
               {row.map((label, ci) => {
                 if (label === null) return <span key={ci} className="w-6" aria-hidden />;
-                const isTaken = taken.has(label);
-                const isSelected = selected.has(label);
+                const kind = seatKind(label);
+                const isTaken = kind !== "available" && kind !== "selected";
                 return (
-                  <button
-                    key={ci}
-                    type="button"
-                    disabled={isTaken || busy}
-                    onClick={() => toggle(label)}
-                    aria-pressed={isSelected}
-                    className={[
-                      "ui h-9 w-9 rounded-lg text-xs font-medium transition-colors duration-200",
-                      isTaken
-                        ? "cursor-not-allowed bg-slate-200 text-transparent dark:bg-zinc-700"
-                        : isSelected
-                          ? "bg-brand text-brand-fg"
-                          : "border border-slate-300 bg-white text-slate-700 hover:border-brand hover:text-brand dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
-                    ].join(" ")}
-                  >
-                    {label}
-                  </button>
+                  <div key={ci} className="relative">
+                    <button
+                      type="button"
+                      disabled={isTaken || busy}
+                      onClick={() => toggle(label)}
+                      aria-pressed={kind === "selected"}
+                      className={[
+                        "ui h-9 w-9 rounded-lg text-xs font-medium transition-colors duration-200",
+                        SEAT_STYLE[kind],
+                      ].join(" ")}
+                    >
+                      {label}
+                    </button>
+                    {genderPromptSeat === label && (
+                      <div
+                        ref={popoverRef}
+                        className="absolute left-1/2 top-full z-20 mt-2 flex -translate-x-1/2 gap-2 rounded-xl border border-border bg-card p-2 shadow-lg"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => pickGender(label, "male")}
+                          className="ui rounded-lg border border-blue-900 px-3 py-1.5 text-xs font-semibold text-blue-900 hover:bg-blue-900 hover:text-white dark:text-blue-400 dark:hover:bg-blue-900 dark:hover:text-white"
+                        >
+                          Male
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => pickGender(label, "female")}
+                          className="ui rounded-lg border border-rose-900 px-3 py-1.5 text-xs font-semibold text-rose-900 hover:bg-rose-900 hover:text-white dark:text-rose-400 dark:hover:bg-rose-900 dark:hover:text-white"
+                        >
+                          Female
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>

@@ -136,7 +136,7 @@ export default async function TripPage({
             tripId={trip.id}
             layout={seatmap?.layout ?? trip.bus.bus_type.layout_json ?? null}
             seatCount={trip.bus.bus_type.seat_count}
-            initialTaken={seatmap?.taken ?? []}
+            initialSeats={seatmap?.seats ?? []}
             farePerSeat={farePerSeat}
             fromStopId={fromStopId}
             toStopId={toStopId}

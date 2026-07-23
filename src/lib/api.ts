@@ -105,10 +105,20 @@ export interface SeatLayout {
   grid?: (string | null)[][];
 }
 
+/** Per-seat status for anything beyond plain taken/free — held (pending
+ *  checkout), booked (with the gender picked at selection time), or blocked
+ *  (conductor marked it out-of-service/reserved). */
+export interface SeatState {
+  seat_no: string;
+  status: "held" | "booked" | "blocked";
+  gender: "male" | "female" | null;
+}
+
 export interface SeatMap {
   trip_id: string;
   layout: SeatLayout | null;
   taken: string[];
+  seats: SeatState[];
 }
 
 /** A trip's per-stop timetable row (real times — from the journey when it has one). */
@@ -212,7 +222,7 @@ export function getSeatmap(id: string) {
 
 export function createHold(
   accessToken: string,
-  body: { tripId: string; seats: string[] },
+  body: { tripId: string; seats: { seatNo: string; gender?: "male" | "female" }[] },
 ) {
   return request<HoldResult>('/holds', {
     method: 'POST',
@@ -298,10 +308,17 @@ export interface OperatorManifest {
   depart_at: string;
   layout: SeatLayout | null;
   taken: string[];
+  seats: SeatState[];
   bookings: OperatorManifestBooking[];
   boarded_count: number;
   confirmed_count: number;
   revenue: number;
+}
+
+export interface AssignSeatResult {
+  ok: true;
+  booking_id: string;
+  seat_no: string;
 }
 
 export interface MyAssignment {
@@ -717,6 +734,32 @@ export function listOperatorTrips(accessToken: string) {
 
 export function getOperatorManifest(accessToken: string, tripId: string) {
   return request<OperatorManifest>(`/operator/trips/${tripId}/manifest`, { accessToken });
+}
+
+export function blockSeat(accessToken: string, tripId: string, seatNo: string) {
+  return request<{ ok: true; seat_no: string }>(
+    `/operator/trips/${tripId}/seats/${encodeURIComponent(seatNo)}/block`,
+    { method: "POST", accessToken },
+  );
+}
+
+export function unblockSeat(accessToken: string, tripId: string, seatNo: string) {
+  return request<{ ok: true }>(
+    `/operator/trips/${tripId}/seats/${encodeURIComponent(seatNo)}/block`,
+    { method: "DELETE", accessToken },
+  );
+}
+
+export function assignSeat(
+  accessToken: string,
+  tripId: string,
+  seatNo: string,
+  body: { gender: "male" | "female"; passengerName: string },
+) {
+  return request<AssignSeatResult>(
+    `/operator/trips/${tripId}/seats/${encodeURIComponent(seatNo)}/assign`,
+    { method: "POST", body: JSON.stringify(body), accessToken },
+  );
 }
 
 export function getOperatorAnalytics(accessToken: string) {
