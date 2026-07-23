@@ -88,7 +88,7 @@ export function HeroVideo() {
       controls={false}
       disablePictureInPicture
       disableRemotePlayback
-      preload="auto"
+      preload="metadata"
       aria-hidden="true"
     />
   );
