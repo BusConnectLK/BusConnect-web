@@ -27,8 +27,8 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
       <Stats />
       <PopularRoutes routes={popularRoutes} dict={dict} locale={locale} />
       <HowItWorks />
-      <Features />
       <OperatorCta dict={dict} />
+      <Features />
     </>
   );
 }
@@ -110,14 +110,15 @@ function Features() {
         title="Why BusConnect"
         subtitle="Everything the old booking sites do,done smarter, faster and in your language."
       />
-      <div className="mt-9 grid grid-cols-2 gap-4 lg:grid-cols-3">
+      <div className="mt-9 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         {features.map(([Icon, title, body]) => (
-          <div key={title} className="card card-hover p-6">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-brand-soft-dark dark:text-blue-300">
-              <Icon size={21} />
+          <div key={title} className="card card-hover p-4 sm:p-6">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand dark:bg-brand-soft-dark dark:text-blue-300 sm:h-11 sm:w-11">
+              <Icon size={18} className="sm:hidden" />
+              <Icon size={21} className="hidden sm:block" />
             </span>
-            <h3 className="mt-4 font-heading text-lg font-semibold">{title}</h3>
-            <p className="mt-1.5 text-sm text-slate-600 dark:text-zinc-400">{body}</p>
+            <h3 className="mt-3 font-heading text-base font-semibold sm:mt-4 sm:text-lg">{title}</h3>
+            <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400 sm:mt-1.5">{body}</p>
           </div>
         ))}
       </div>
