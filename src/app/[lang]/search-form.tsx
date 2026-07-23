@@ -39,7 +39,7 @@ export function SearchForm({ locations }: { locations: Location[] }) {
           onChange={(e) => setFrom(e.target.value)}
           required
           disabled={!hasLocations}
-          className="field appearance-none bg-muted/40 py-2 backdrop-blur-sm sm:py-2.5"
+          className="field appearance-none bg-[#3A3B3C]/40 py-2 text-[#E4E6EB] backdrop-blur-sm sm:bg-muted/40 sm:text-foreground sm:py-2.5"
         >
           {hasLocations ? (
             locations.map((l) => (
@@ -68,7 +68,7 @@ export function SearchForm({ locations }: { locations: Location[] }) {
           onChange={(e) => setTo(e.target.value)}
           required
           disabled={!hasLocations}
-          className="field appearance-none bg-muted/40 py-2 backdrop-blur-sm sm:py-2.5"
+          className="field appearance-none bg-[#3A3B3C]/40 py-2 text-[#E4E6EB] backdrop-blur-sm sm:bg-muted/40 sm:text-foreground sm:py-2.5"
         >
           {hasLocations ? (
             locations.map((l) => (
@@ -89,7 +89,7 @@ export function SearchForm({ locations }: { locations: Location[] }) {
           min={todayIso()}
           onChange={(e) => setDate(e.target.value)}
           required
-          className="field w-full min-w-0 bg-muted/40 py-2 backdrop-blur-sm sm:py-2.5"
+          className="field w-full min-w-0 bg-[#3A3B3C]/40 py-2 text-[#E4E6EB] backdrop-blur-sm sm:bg-muted/40 sm:text-foreground sm:py-2.5"
         />
       </Field>
 
@@ -112,7 +112,7 @@ function Field({
 }) {
   return (
     <label className="flex min-w-0 flex-col gap-1 sm:gap-1.5">
-      <span className="ui flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-zinc-400 sm:text-sm">
+      <span className="ui flex items-center gap-1.5 text-xs font-medium text-[#B0B3B8] sm:text-slate-600 sm:dark:text-zinc-400 sm:text-sm">
         {icon}
         {label}
       </span>
