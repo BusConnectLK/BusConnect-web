@@ -113,10 +113,16 @@ const jsonLd = {
 // syncs a cookie on every load so Server Components (e.g. the homepage hero
 // video) can read the resolved theme and render the right static assets
 // directly, rather than picking one via client-side JS after the fact.
+//
+// Until the visitor explicitly picks a theme (nav bar toggle, saved to
+// localStorage), default to time of day rather than system color-scheme
+// preference — light during the day, dark at night — for the hero video
+// and the rest of the UI alike.
 const themeScript = `
 try {
   var t = localStorage.getItem('theme');
-  var d = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var hour = new Date().getHours();
+  var d = t ? t === 'dark' : (hour < 6 || hour >= 18);
   if (d) document.documentElement.classList.add('dark');
   document.cookie = 'theme=' + (d ? 'dark' : 'light') + '; path=/; max-age=31536000; samesite=lax';
 } catch (e) {}
