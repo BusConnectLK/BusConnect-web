@@ -8,7 +8,7 @@ import {
   Noto_Sans_Tamil,
 } from "next/font/google";
 import "./globals.css";
-import { SiteHeader } from "@/components/site-header";
+import { ConditionalHeader } from "@/components/conditional-header";
 import { ConditionalFooter } from "@/components/conditional-footer";
 import { I18nProvider } from "@/lib/i18n/provider";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -156,7 +156,7 @@ export default async function RootLayout({
       </head>
       <body className="flex min-h-full flex-col antialiased">
         <I18nProvider locale={locale} dict={dict}>
-          <SiteHeader />
+          <ConditionalHeader />
           <main className="flex flex-1 flex-col pb-16 lg:pb-0">{children}</main>
           <ConditionalFooter />
         </I18nProvider>
