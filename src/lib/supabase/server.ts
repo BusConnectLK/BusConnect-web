@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { COOKIE_DOMAIN } from './cookie-domain';
 
 /**
  * Supabase client for use in Server Components, Route Handlers, and Server
@@ -14,6 +15,7 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      cookieOptions: { domain: COOKIE_DOMAIN },
       cookies: {
         getAll() {
           return cookieStore.getAll();
