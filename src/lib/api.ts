@@ -766,6 +766,7 @@ export function getOperatorAnalytics(accessToken: string) {
   return request<OperatorAnalytics>('/operator/analytics', { accessToken });
 }
 
+
 export function getOperatorFleet(accessToken: string) {
   return request<OperatorFleet>('/operator/fleet', { accessToken });
 }
