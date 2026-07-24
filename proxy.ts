@@ -5,7 +5,7 @@ import { COOKIE_DOMAIN } from "@/lib/supabase/cookie-domain";
 
 // Passenger routes that live under app/[lang]/ and get a locale prefix.
 // Everything else (operator, admin, auth, api, assets) stays un-prefixed.
-const LOCALIZED_SEGMENTS = new Set(["search", "trips", "bookings", "tickets", "login", "profile"]);
+const LOCALIZED_SEGMENTS = new Set(["search", "trips", "bookings", "tickets", "login", "signup", "profile"]);
 
 // partner.busconnect.lk and admin.busconnect.lk serve the existing
 // /operator and /admin route trees under the hood — the URL bar shows the

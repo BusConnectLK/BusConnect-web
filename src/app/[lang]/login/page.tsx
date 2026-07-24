@@ -1,79 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
-import Script from "next/script";
+import { Suspense, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/logo";
-import { useLocale } from "@/lib/i18n/provider";
-
-const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-
-interface GoogleCredentialResponse {
-  credential: string;
-}
-interface GoogleIdApi {
-  initialize(config: {
-    client_id: string;
-    callback: (response: GoogleCredentialResponse) => void;
-    nonce: string;
-    use_fedcm_for_prompt?: boolean;
-  }): void;
-  renderButton(
-    parent: HTMLElement,
-    options: {
-      type?: string;
-      theme?: string;
-      size?: string;
-      shape?: string;
-      text?: string;
-      width?: string;
-    },
-  ): void;
-}
-declare global {
-  interface Window {
-    google?: { accounts: { id: GoogleIdApi } };
-  }
-}
-
-/** SHA-256 hex digest — Supabase's ID-token sign-in wants the *hashed* nonce
- * baked into the Google credential, and the original raw nonce back at
- * verification time, as replay protection. */
-async function sha256Hex(value: string) {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-/**
- * `next` is usually a relative path, but can be an absolute URL back to a
- * different busconnect.lk subdomain — /login only exists on the main
- * domain, so the middleware sends visitors here from partner./admin. with
- * an absolute return URL. Only ever follow a same-site absolute target;
- * anything else falls back to "/" so this can never become an open
- * redirect to an attacker-controlled site.
- */
-function goTo(router: ReturnType<typeof useRouter>, next: string) {
-  if (next.startsWith("/")) {
-    router.push(next);
-    router.refresh();
-    return;
-  }
-  try {
-    const url = new URL(next);
-    if (url.hostname === "busconnect.lk" || url.hostname.endsWith(".busconnect.lk")) {
-      window.location.href = url.toString();
-      return;
-    }
-  } catch {
-    /* not a valid absolute URL either — fall through to the safe default */
-  }
-  router.push("/");
-  router.refresh();
-}
+import { goTo } from "@/lib/safe-redirect";
 
 export default function LoginPage() {
   return (
@@ -94,122 +27,20 @@ function LoginForm() {
         <div className="mb-8 flex justify-center">
           <Logo height={44} />
         </div>
-        <h1 className="font-heading text-center text-2xl font-bold tracking-tight">Sign in</h1>
+        <h1 className="font-heading text-center text-2xl font-bold tracking-tight">Welcome back</h1>
         <p className="ui mt-2 text-center text-sm text-slate-600 dark:text-zinc-400">
-          Enter your phone number to get a one-time code.
+          Sign in with your phone number and password.
         </p>
 
         <div className="mt-7">
           <PhoneForm next={next} router={router} />
         </div>
-
-        <div className="my-6 flex items-center gap-3">
-          <span className="h-px flex-1 bg-slate-200 dark:bg-zinc-800" />
-          <span className="ui text-xs text-slate-400 dark:text-zinc-500">or</span>
-          <span className="h-px flex-1 bg-slate-200 dark:bg-zinc-800" />
-        </div>
-
-        <GoogleButton next={next} />
       </div>
     </div>
   );
 }
 
-/* ── Google Identity Services (native sign-in — the consent screen shows
-   busconnect.lk, since Google talks to this domain directly instead of
-   redirecting through Supabase's own domain) ─────────────────────────────── */
-function GoogleButton({ next }: { next: string }) {
-  const router = useRouter();
-  const locale = useLocale();
-  const buttonRef = useRef<HTMLDivElement>(null);
-  const nonceRef = useRef<string>("");
-  const [scriptReady, setScriptReady] = useState(false);
-  const [buttonRendered, setButtonRendered] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!scriptReady || !GOOGLE_CLIENT_ID || !buttonRef.current || !window.google) return;
-
-    let cancelled = false;
-    let cleanupResize: (() => void) | undefined;
-    void (async () => {
-      const nonce = crypto.randomUUID();
-      const hashedNonce = await sha256Hex(nonce);
-      if (cancelled || !window.google || !buttonRef.current) return;
-      nonceRef.current = nonce;
-
-      window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: async ({ credential }) => {
-          setError(null);
-          const { error } = await createClient().auth.signInWithIdToken({
-            provider: "google",
-            token: credential,
-            nonce: nonceRef.current,
-          });
-          if (error) return setError(error.message);
-          goTo(router, next);
-        },
-        nonce: hashedNonce,
-        use_fedcm_for_prompt: true,
-      });
-
-      // Google's button width must be a fixed pixel value (no responsive
-      // percentage support) — measure the actual available space instead of
-      // hardcoding one, or it overflows narrower screens and gets clipped.
-      // Re-measure on resize/rotation so it stays correctly sized.
-      function renderAtCurrentWidth() {
-        if (!buttonRef.current || !window.google) return;
-        buttonRef.current.innerHTML = "";
-        const width = Math.min(400, Math.round(buttonRef.current.offsetWidth));
-        window.google.accounts.id.renderButton(buttonRef.current, {
-          theme: "outline",
-          size: "large",
-          shape: "rectangular",
-          text: "continue_with",
-          width: String(width),
-        });
-        setButtonRendered(true);
-      }
-      renderAtCurrentWidth();
-      window.addEventListener("resize", renderAtCurrentWidth);
-      cleanupResize = () => window.removeEventListener("resize", renderAtCurrentWidth);
-    })();
-
-    return () => {
-      cancelled = true;
-      cleanupResize?.();
-    };
-  }, [scriptReady, router, next]);
-
-  if (!GOOGLE_CLIENT_ID) return null;
-
-  return (
-    <div>
-      {/* hl pins Google's own UI (button label + consent screen) to our
-          site's active language instead of guessing from the browser's
-          locale — without this it can render in whatever language the
-          visitor's OS/browser happens to be set to. */}
-      <Script
-        src={`https://accounts.google.com/gsi/client?hl=${locale}`}
-        strategy="afterInteractive"
-        onReady={() => setScriptReady(true)}
-      />
-      <div className="relative">
-        {!buttonRendered && (
-          <div className="h-10 w-full animate-pulse rounded-lg bg-muted" aria-hidden />
-        )}
-        <div
-          ref={buttonRef}
-          className={`flex w-full justify-center [&>div]:w-full ${buttonRendered ? "" : "absolute inset-0 opacity-0"}`}
-        />
-      </div>
-      {error && <p className="ui mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
-    </div>
-  );
-}
-
-/* ── Phone OTP (needs an SMS provider configured in Supabase) ───────────── */
+/* ── Phone + password ─────────────────────────────────────────────────── */
 function PhoneForm({
   next,
   router,
@@ -218,56 +49,22 @@ function PhoneForm({
   router: ReturnType<typeof useRouter>;
 }) {
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [stage, setStage] = useState<"phone" | "otp">("phone");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function requestOtp(e: React.FormEvent) {
+  async function signIn(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const { error } = await createClient().auth.signInWithOtp({ phone });
-    setLoading(false);
-    if (error) return setError(error.message);
-    setStage("otp");
-  }
-
-  async function verifyOtp(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    const { error } = await createClient().auth.verifyOtp({ phone, token: otp, type: "sms" });
+    const { error } = await createClient().auth.signInWithPassword({ phone, password });
     setLoading(false);
     if (error) return setError(error.message);
     goTo(router, next);
   }
 
-  if (stage === "otp") {
-    return (
-      <form onSubmit={verifyOtp} className="flex flex-col gap-4">
-        <p className="ui text-sm text-slate-600 dark:text-zinc-400">Enter the code sent to {phone}.</p>
-        <Label text="One-time code">
-          <input
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            required
-            className="field tracking-[0.4em]"
-          />
-        </Label>
-        {error && <ErrorText>{error}</ErrorText>}
-        <SubmitButton loading={loading} idle="Verify & sign in" busy="Verifying…" />
-        <button type="button" onClick={() => setStage("phone")} className="ui text-sm text-slate-500 underline dark:text-zinc-400">
-          Use a different number
-        </button>
-      </form>
-    );
-  }
-
   return (
-    <form onSubmit={requestOtp} className="flex flex-col gap-4">
+    <form onSubmit={signIn} className="flex flex-col gap-4">
       <Label text="Phone number">
         <input
           type="tel"
@@ -279,8 +76,27 @@ function PhoneForm({
           className="field"
         />
       </Label>
+      <Label text="Password">
+        <input
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          className="field"
+        />
+      </Label>
       {error && <ErrorText>{error}</ErrorText>}
-      <SubmitButton loading={loading} idle="Send code" busy="Sending…" />
+      <SubmitButton loading={loading} idle="Sign in" busy="Signing in…" />
+      <p className="ui text-center text-sm text-slate-600 dark:text-zinc-400">
+        New to BusConnect?{" "}
+        <Link
+          href={`/signup${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`}
+          className="font-semibold text-brand underline dark:text-blue-400"
+        >
+          Sign up
+        </Link>
+      </p>
     </form>
   );
 }
