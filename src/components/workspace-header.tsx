@@ -11,7 +11,15 @@ import { UserMenu } from "./user-menu";
  * SiteHeader is what actually makes these feel like distinct workspaces
  * instead of the passenger site with an extra sidebar bolted on.
  */
-export function WorkspaceHeader({ label, homeHref }: { label: string; homeHref: string }) {
+export function WorkspaceHeader({
+  label,
+  homeHref,
+  workspace,
+}: {
+  label: string;
+  homeHref: string;
+  workspace: "operator" | "admin";
+}) {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md transition-colors duration-300">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
@@ -23,7 +31,7 @@ export function WorkspaceHeader({ label, homeHref }: { label: string; homeHref: 
         </div>
         <div className="ui flex items-center gap-3 text-sm">
           <ThemeToggle />
-          <UserMenu />
+          <UserMenu workspace={workspace} />
         </div>
       </div>
     </header>

@@ -3,17 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
-import {
-  Menu,
-  X,
-  Search,
-  Route,
-  Ticket,
-  UserCircle,
-  Building2,
-  ShieldCheck,
-  LogOut,
-} from "lucide-react";
+import { Menu, X, Search, Route, Ticket, UserCircle, LogOut } from "lucide-react";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu, Avatar } from "./user-menu";
@@ -141,7 +131,7 @@ function MobileBottomNav({ onOpenMenu }: { onOpenMenu: () => void }) {
 
 function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
-  const { identity, roles, signOut: doSignOut } = useIdentity();
+  const { identity, signOut: doSignOut } = useIdentity();
   const t = useT("nav");
   const locale = useLocale();
 
@@ -228,26 +218,6 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
               >
                 <UserCircle size={17} className="text-brand dark:text-blue-400" />
                 {t("profile")}
-              </Link>
-            )}
-            {roles?.isOperator && (
-              <Link
-                href="/operator"
-                onClick={onClose}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-              >
-                <Building2 size={17} className="text-brand dark:text-blue-400" />
-                {roles.operatorRole === "pilot" ? t("conductorDashboard") : t("operatorDashboard")}
-              </Link>
-            )}
-            {roles?.isAdmin && (
-              <Link
-                href="/admin"
-                onClick={onClose}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-              >
-                <ShieldCheck size={17} className="text-brand dark:text-blue-400" />
-                {t("adminDashboard")}
               </Link>
             )}
           </nav>

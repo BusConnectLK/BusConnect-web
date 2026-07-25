@@ -8,7 +8,7 @@ import { useIdentity } from "@/lib/use-identity";
 import { useT, useLocale } from "@/lib/i18n/provider";
 import { localizePath } from "@/lib/i18n/navigation";
 
-export function UserMenu() {
+export function UserMenu({ workspace = "passenger" }: { workspace?: "passenger" | "operator" | "admin" }) {
   const router = useRouter();
   const { identity, roles, signOut: doSignOut } = useIdentity();
   const [open, setOpen] = useState(false);
@@ -83,12 +83,12 @@ export function UserMenu() {
                 </MenuLink>
               </>
             )}
-            {roles?.isOperator && (
+            {workspace === "operator" && roles?.isOperator && (
               <MenuLink href="/operator" icon={Building2} onClick={() => setOpen(false)}>
                 {roles.operatorRole === "pilot" ? t("conductorDashboard") : t("operatorDashboard")}
               </MenuLink>
             )}
-            {roles?.isAdmin && (
+            {workspace === "admin" && roles?.isAdmin && (
               <MenuLink href="/admin" icon={ShieldCheck} onClick={() => setOpen(false)}>
                 {t("adminDashboard")}
               </MenuLink>

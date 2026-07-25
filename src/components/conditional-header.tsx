@@ -21,10 +21,10 @@ export async function ConditionalHeader() {
   if (path === "/admin/login" || path === "/operator/login") return null;
 
   if (path === "/admin" || path.startsWith("/admin/")) {
-    return <WorkspaceHeader label="Admin" homeHref="/admin" />;
+    return <WorkspaceHeader label="Admin" homeHref="/admin" workspace="admin" />;
   }
   if (path === "/operator" || path.startsWith("/operator/")) {
-    return <WorkspaceHeader label="Operator" homeHref="/operator" />;
+    return <WorkspaceHeader label="Operator" homeHref="/operator" workspace="operator" />;
   }
   return <SiteHeader />;
 }
