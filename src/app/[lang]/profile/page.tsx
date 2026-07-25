@@ -2,7 +2,6 @@ import Link from "next/link";
 import { MessageCircle, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyProfile, ApiError, type MyProfile } from "@/lib/api";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { ProfileForm } from "./profile-form";
 
 const SUPPORT_WHATSAPP_NUMBER = "94000000000"; // TODO: real BusConnect support WhatsApp number
@@ -52,24 +51,15 @@ export default async function ProfilePage() {
         <ProfileForm profile={profile} />
       </div>
 
-      <div className="card-lg mt-6 divide-y divide-slate-200 dark:divide-zinc-800">
-        <div className="flex items-center justify-between p-4">
-          <div>
-            <p className="font-medium">Appearance</p>
-            <p className="ui text-sm text-slate-500 dark:text-zinc-400">Light or dark theme</p>
-          </div>
-          <ThemeToggle />
-        </div>
-        <a
-          href={`https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent("Hi, I need help with my BusConnect booking.")}`}
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-3 p-4 hover:bg-slate-50 dark:hover:bg-zinc-900"
-        >
-          <MessageCircle size={18} className="text-slate-500 dark:text-zinc-400" />
-          <span className="font-medium">Help center</span>
-        </a>
-      </div>
+      <a
+        href={`https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent("Hi, I need help with my BusConnect booking.")}`}
+        target="_blank"
+        rel="noreferrer"
+        className="card-lg mt-6 flex items-center gap-3 p-4 hover:bg-slate-50 dark:hover:bg-zinc-900"
+      >
+        <MessageCircle size={18} className="text-slate-500 dark:text-zinc-400" />
+        <span className="font-medium">Help center</span>
+      </a>
 
       <Link
         href="/delete-account"

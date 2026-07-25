@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { uploadPassengerPhoto } from "@/lib/storage";
 import { updateMyProfile, ApiError, type MyProfile } from "@/lib/api";
-import { AvatarSlot } from "@/components/avatar-slot";
 import { PhoneField } from "@/components/phone-field";
 import { stripCountryCode, toE164 } from "@/lib/phone";
 
@@ -16,8 +14,6 @@ export function ProfileForm({ profile }: { profile: MyProfile }) {
   const [phone, setPhone] = useState(stripCountryCode(profile.phone));
   const [email, setEmail] = useState(profile.email ?? "");
   const [nic, setNic] = useState(profile.nic ?? "");
-  const [photo, setPhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(profile.avatar_url);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,11 +34,6 @@ export function ProfileForm({ profile }: { profile: MyProfile }) {
   const emailLocked = provider === "google";
   const phoneLocked = provider === "phone";
 
-  function onPhotoChange(file: File | null) {
-    setPhoto(file);
-    if (file) setPhotoPreview(URL.createObjectURL(file));
-  }
-
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -55,19 +46,12 @@ export function ProfileForm({ profile }: { profile: MyProfile }) {
       } = await supabase.auth.getSession();
       if (!session) return;
 
-      let avatarUrl: string | undefined;
-      if (photo) {
-        setStatus("Uploading photo…");
-        avatarUrl = await uploadPassengerPhoto(session.user.id, photo);
-      }
-
       setStatus("Saving…");
       await updateMyProfile(session.access_token, {
         name: name || undefined,
         phone: phoneLocked ? undefined : phone ? toE164(phone) : undefined,
         email: emailLocked ? undefined : email || undefined,
         nic: nic || undefined,
-        avatarUrl,
       });
       setSaved(true);
       window.dispatchEvent(new Event("passenger-profile-updated"));
@@ -82,11 +66,6 @@ export function ProfileForm({ profile }: { profile: MyProfile }) {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-5">
-      <div className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
-        Profile photo
-        <AvatarSlot preview={photoPreview} onChange={onPhotoChange} />
-      </div>
-
       <label className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
         Full name
         <input
