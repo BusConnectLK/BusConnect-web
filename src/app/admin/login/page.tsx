@@ -2,8 +2,9 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { Logo } from "@/components/logo";
 import { PhoneField } from "@/components/phone-field";
 import { toE164 } from "@/lib/phone";
 
@@ -46,10 +47,10 @@ function AdminLoginForm() {
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-16 sm:px-6">
       <div className="card p-8">
         <div className="mb-6 flex flex-col items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-soft text-brand dark:bg-brand-soft-dark dark:text-blue-300">
-            <ShieldCheck size={22} />
+          <Logo height={40} href="/login" />
+          <span className="ui rounded-md bg-brand-soft px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-brand dark:bg-brand-soft-dark dark:text-blue-300">
+            Admin Console
           </span>
-          <h1 className="font-heading text-center text-2xl font-bold tracking-tight">Admin Console</h1>
         </div>
         <p className="ui text-center text-sm text-slate-600 dark:text-zinc-400">
           Sign in with your BusConnect phone number and password.

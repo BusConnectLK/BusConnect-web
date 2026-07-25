@@ -56,7 +56,7 @@ function resolveLocale(request: NextRequest): { locale: Locale; redirectTo?: str
 }
 
 /**
- * Three jobs on every request: (1) subdomain routing for the partner/admin
+ * Three jobs on every request: (1) subdomain routing for the operator/admin
  * workspaces, (2) i18n locale routing for passenger pages, and (3)
  * refreshing the Supabase session cookie so sessions don't silently expire.
  * (Next.js 16 renamed the middleware.ts convention to proxy.ts — see
@@ -87,9 +87,17 @@ export async function proxy(request: NextRequest) {
     locale = resolved.locale;
   }
 
-  // Carry the resolved locale to the app (root layout reads it via headers()).
+  const effectivePath = rewriteUrl?.pathname ?? request.nextUrl.pathname;
+
+  // Carry the resolved locale + effective (post-rewrite) path to the app.
+  // The path matters because a rewrite is invisible to the browser — on a
+  // workspace subdomain the address bar still shows "/login", not
+  // "/operator/login", so any client component using usePathname() (e.g.
+  // ConditionalHeader) would guess wrong; reading this header server-side
+  // instead gets it right.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-locale", locale);
+  requestHeaders.set("x-effective-path", effectivePath);
 
   function freshResponse() {
     return rewriteUrl
@@ -124,7 +132,6 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const effectivePath = rewriteUrl?.pathname ?? request.nextUrl.pathname;
   // Each workspace gets its own dedicated login page (/operator/login,
   // /admin/login) rather than bouncing to the passenger domain's /login —
   // reachable at e.g. operator.busconnect.lk/login via the same subdomain
