@@ -6,7 +6,9 @@ import { Suspense, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/logo";
+import { PhoneField } from "@/components/phone-field";
 import { goTo } from "@/lib/safe-redirect";
+import { toE164 } from "@/lib/phone";
 
 export default function LoginPage() {
   return (
@@ -57,7 +59,7 @@ function PhoneForm({
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const { error } = await createClient().auth.signInWithPassword({ phone, password });
+    const { error } = await createClient().auth.signInWithPassword({ phone: toE164(phone), password });
     setLoading(false);
     if (error) return setError(error.message);
     goTo(router, next);
@@ -66,15 +68,7 @@ function PhoneForm({
   return (
     <form onSubmit={signIn} className="flex flex-col gap-4">
       <Label text="Phone number">
-        <input
-          type="tel"
-          inputMode="tel"
-          placeholder="+94 7X XXX XXXX"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          required
-          className="field"
-        />
+        <PhoneField value={phone} onChange={setPhone} required />
       </Label>
       <Label text="Password">
         <input

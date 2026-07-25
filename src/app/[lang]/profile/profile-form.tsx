@@ -7,12 +7,15 @@ import { createClient } from "@/lib/supabase/client";
 import { uploadPassengerPhoto } from "@/lib/storage";
 import { updateMyProfile, ApiError, type MyProfile } from "@/lib/api";
 import { AvatarSlot } from "@/components/avatar-slot";
+import { PhoneField } from "@/components/phone-field";
+import { stripCountryCode, toE164 } from "@/lib/phone";
 
 export function ProfileForm({ profile }: { profile: MyProfile }) {
   const router = useRouter();
   const [name, setName] = useState(profile.name ?? "");
-  const [phone, setPhone] = useState(profile.phone ?? "");
+  const [phone, setPhone] = useState(stripCountryCode(profile.phone));
   const [email, setEmail] = useState(profile.email ?? "");
+  const [nic, setNic] = useState(profile.nic ?? "");
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(profile.avatar_url);
   const [busy, setBusy] = useState(false);
@@ -61,8 +64,9 @@ export function ProfileForm({ profile }: { profile: MyProfile }) {
       setStatus("Saving…");
       await updateMyProfile(session.access_token, {
         name: name || undefined,
-        phone: phoneLocked ? undefined : phone || undefined,
+        phone: phoneLocked ? undefined : phone ? toE164(phone) : undefined,
         email: emailLocked ? undefined : email || undefined,
+        nic: nic || undefined,
         avatarUrl,
       });
       setSaved(true);
@@ -96,16 +100,19 @@ export function ProfileForm({ profile }: { profile: MyProfile }) {
       {!phoneLocked && (
         <label className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
           Phone number
-          <input
-            type="tel"
-            inputMode="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+94 7X XXX XXXX"
-            className="field"
-          />
+          <PhoneField value={phone} onChange={setPhone} />
         </label>
       )}
+
+      <label className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
+        NIC
+        <input
+          value={nic}
+          onChange={(e) => setNic(e.target.value)}
+          placeholder="200012345678 or 991234567V"
+          className="field"
+        />
+      </label>
 
       {!emailLocked && (
         <label className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">

@@ -7,7 +7,9 @@ import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { updateMyProfile } from "@/lib/api";
 import { Logo } from "@/components/logo";
+import { PhoneField } from "@/components/phone-field";
 import { goTo } from "@/lib/safe-redirect";
+import { toE164 } from "@/lib/phone";
 
 export default function SignUpPage() {
   return (
@@ -40,7 +42,7 @@ function SignUpForm() {
     }
     setLoading(true);
     const { error } = await createClient().auth.signUp({
-      phone,
+      phone: toE164(phone),
       password,
       options: { data: { full_name: name } },
     });
@@ -53,7 +55,7 @@ function SignUpForm() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const { data, error } = await createClient().auth.verifyOtp({ phone, token: otp, type: "sms" });
+    const { data, error } = await createClient().auth.verifyOtp({ phone: toE164(phone), token: otp, type: "sms" });
     if (error) {
       setLoading(false);
       return setError(error.message);
@@ -82,7 +84,7 @@ function SignUpForm() {
         <p className="ui mt-2 text-center text-sm text-slate-600 dark:text-zinc-400">
           {stage === "details"
             ? "Just a few details, then we'll verify your number with a one-time code."
-            : `Enter the code sent to ${phone}.`}
+            : `Enter the code sent to ${toE164(phone)}.`}
         </p>
 
         <div className="mt-7">
@@ -98,15 +100,7 @@ function SignUpForm() {
                 />
               </Label>
               <Label text="Phone Number">
-                <input
-                  type="tel"
-                  inputMode="tel"
-                  placeholder="+94 7X XXX XXXX"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
-                  className="field"
-                />
+                <PhoneField value={phone} onChange={setPhone} required />
               </Label>
               <Label text="Email (optional)">
                 <input
