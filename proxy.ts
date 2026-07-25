@@ -17,14 +17,14 @@ const LOCALIZED_SEGMENTS = new Set([
   "forgot-password",
 ]);
 
-// partner.busconnect.lk and admin.busconnect.lk serve the existing
+// operator.busconnect.lk and admin.busconnect.lk serve the existing
 // /operator and /admin route trees under the hood — the URL bar shows the
-// clean subdomain path (e.g. partner.busconnect.lk/trips/1), Next.js
+// clean subdomain path (e.g. operator.busconnect.lk/trips/1), Next.js
 // internally rewrites to /operator/trips/1. busconnect.lk/www keep serving
 // the passenger app exactly as before; the original /operator and /admin
 // paths on the main domain also keep working unchanged.
 const SUBDOMAIN_PREFIX: Record<string, string> = {
-  partner: "/operator",
+  operator: "/operator",
   admin: "/admin",
 };
 
@@ -125,23 +125,23 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const effectivePath = rewriteUrl?.pathname ?? request.nextUrl.pathname;
-  const isAuthRoute = effectivePath.startsWith("/login");
+  // Each workspace gets its own dedicated login page (/operator/login,
+  // /admin/login) rather than bouncing to the passenger domain's /login —
+  // reachable at e.g. operator.busconnect.lk/login via the same subdomain
+  // rewrite as everything else on that workspace.
+  const isOperatorLogin = effectivePath === "/operator/login";
+  const isAdminLogin = effectivePath === "/admin/login";
+  const isAuthRoute = effectivePath.startsWith("/login") || isOperatorLogin || isAdminLogin;
   const isProtectedRoute =
     effectivePath.startsWith("/bookings") ||
     effectivePath.startsWith("/tickets") ||
-    effectivePath.startsWith("/operator") ||
-    effectivePath.startsWith("/admin");
+    (effectivePath.startsWith("/operator") && !isOperatorLogin) ||
+    (effectivePath.startsWith("/admin") && !isAdminLogin);
 
   if (!user && isProtectedRoute) {
-    if (isWorkspaceSubdomain) {
-      // /login only exists on the main passenger domain — send the visitor
-      // there with an absolute return URL back to where they started. The
-      // login page validates this is same-site before ever following it.
-      const returnTo = `${request.nextUrl.protocol}//${host}${request.nextUrl.pathname}${request.nextUrl.search}`;
-      const loginUrl = new URL("/login", "https://www.busconnect.lk");
-      loginUrl.searchParams.set("next", returnTo);
-      return NextResponse.redirect(loginUrl);
-    }
+    // Relative redirect — on a workspace subdomain this re-enters the
+    // subdomain rewrite above on the next request, landing on that
+    // workspace's own /login page automatically.
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", request.nextUrl.pathname);
