@@ -14,6 +14,7 @@ const LOCALIZED_SEGMENTS = new Set([
   "signup",
   "profile",
   "delete-account",
+  "forgot-password",
 ]);
 
 // partner.busconnect.lk and admin.busconnect.lk serve the existing

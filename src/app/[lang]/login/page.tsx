@@ -80,6 +80,9 @@ function PhoneForm({
           className="field"
         />
       </Label>
+      <Link href="/forgot-password" className="ui -mt-2 self-end text-sm font-medium text-brand underline dark:text-blue-400">
+        Forgot password?
+      </Link>
       {error && <ErrorText>{error}</ErrorText>}
       <SubmitButton loading={loading} idle="Sign in" busy="Signing in…" />
       <p className="ui text-center text-sm text-slate-600 dark:text-zinc-400">
