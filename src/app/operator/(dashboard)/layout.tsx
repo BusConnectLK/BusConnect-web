@@ -13,10 +13,12 @@ export default async function OperatorDashboardLayout({
   } = await supabase.auth.getSession();
 
   let role: "owner" | "pilot" | null = null;
+  let operatorStatus: string | null = null;
   if (session) {
     try {
       const roles = await getMyRoles(session.access_token);
       role = roles.operatorRole;
+      operatorStatus = roles.operatorStatus;
     } catch (e) {
       // Not linked to an operator, or the API is unreachable — the page
       // itself renders the right messaging; just skip the sidebar chrome.
@@ -24,7 +26,11 @@ export default async function OperatorDashboardLayout({
     }
   }
 
-  if (!role) {
+  // Not linked to an operator, or the application isn't approved yet —
+  // the page itself renders the right messaging (e.g. "application under
+  // review"); the workspace nav only makes sense once there's an active
+  // operator to actually work in.
+  if (!role || operatorStatus !== "active") {
     return <div className="w-full flex-1 px-4 py-10 sm:px-6 lg:px-8">{children}</div>;
   }
 

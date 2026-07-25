@@ -70,12 +70,19 @@ export function UserMenu() {
           </div>
 
           <div className="p-1.5">
-            <MenuLink href={localizePath(locale, "/profile")} icon={UserCircle} onClick={() => setOpen(false)}>
-              {t("profile")}
-            </MenuLink>
-            <MenuLink href={localizePath(locale, "/tickets")} icon={Ticket} onClick={() => setOpen(false)}>
-              {t("myTickets")}
-            </MenuLink>
+            {/* An operator whose application hasn't been approved yet has no
+                passenger identity to speak of here — profile/tickets only
+                make sense once they're through review. */}
+            {!(roles?.isOperator && roles.operatorStatus === "pending") && (
+              <>
+                <MenuLink href={localizePath(locale, "/profile")} icon={UserCircle} onClick={() => setOpen(false)}>
+                  {t("profile")}
+                </MenuLink>
+                <MenuLink href={localizePath(locale, "/tickets")} icon={Ticket} onClick={() => setOpen(false)}>
+                  {t("myTickets")}
+                </MenuLink>
+              </>
+            )}
             {roles?.isOperator && (
               <MenuLink href="/operator" icon={Building2} onClick={() => setOpen(false)}>
                 {roles.operatorRole === "pilot" ? t("conductorDashboard") : t("operatorDashboard")}
