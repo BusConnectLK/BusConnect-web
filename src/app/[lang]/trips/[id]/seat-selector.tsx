@@ -21,10 +21,10 @@ const SEAT_STYLE: Record<string, string> = {
   available:
     "border border-slate-300 bg-white text-slate-700 hover:border-brand hover:text-brand dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
   selected: "bg-emerald-600 text-white",
-  male: "cursor-not-allowed bg-blue-900 text-transparent",
-  female: "cursor-not-allowed bg-rose-900 text-transparent",
-  pending: "cursor-not-allowed bg-amber-600 text-transparent",
-  blocked: "cursor-not-allowed bg-slate-500 text-transparent dark:bg-slate-600",
+  male: "cursor-not-allowed bg-blue-600 text-transparent",
+  female: "cursor-not-allowed bg-pink-500 text-transparent",
+  pending: "cursor-not-allowed bg-yellow-500 text-transparent",
+  blocked: "cursor-not-allowed bg-gray-500 text-transparent dark:bg-gray-600",
 };
 
 export function SeatSelector(props: Props) {
@@ -188,19 +188,19 @@ export function SeatSelector(props: Props) {
             Selected
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded bg-blue-900" />
+            <span className="inline-block h-3 w-3 rounded bg-blue-600" />
             Booked (Male)
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded bg-rose-900" />
+            <span className="inline-block h-3 w-3 rounded bg-pink-500" />
             Booked (Female)
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded bg-amber-600" />
+            <span className="inline-block h-3 w-3 rounded bg-yellow-500" />
             Pending (Reserved)
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded bg-slate-500 dark:bg-slate-600" />
+            <span className="inline-block h-3 w-3 rounded bg-gray-500 dark:bg-gray-600" />
             Unavailable
           </span>
         </div>
@@ -234,14 +234,14 @@ export function SeatSelector(props: Props) {
                         <button
                           type="button"
                           onClick={() => pickGender(label, "male")}
-                          className="ui rounded-lg border border-blue-900 px-3 py-1.5 text-xs font-semibold text-blue-900 hover:bg-blue-900 hover:text-white dark:text-blue-400 dark:hover:bg-blue-900 dark:hover:text-white"
+                          className="ui rounded-lg border border-blue-600 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-600 hover:text-white dark:text-blue-400 dark:hover:bg-blue-600 dark:hover:text-white"
                         >
                           Male
                         </button>
                         <button
                           type="button"
                           onClick={() => pickGender(label, "female")}
-                          className="ui rounded-lg border border-rose-900 px-3 py-1.5 text-xs font-semibold text-rose-900 hover:bg-rose-900 hover:text-white dark:text-rose-400 dark:hover:bg-rose-900 dark:hover:text-white"
+                          className="ui rounded-lg border border-pink-500 px-3 py-1.5 text-xs font-semibold text-pink-500 hover:bg-pink-500 hover:text-white dark:text-pink-400 dark:hover:bg-pink-500 dark:hover:text-white"
                         >
                           Female
                         </button>

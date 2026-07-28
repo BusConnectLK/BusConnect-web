@@ -17,10 +17,10 @@ interface Props {
 const SEAT_STYLE: Record<string, string> = {
   available:
     "border border-dashed border-slate-300 text-slate-400 hover:border-brand hover:text-brand dark:border-zinc-700 dark:text-zinc-600",
-  male: "bg-blue-900 text-transparent",
-  female: "bg-rose-900 text-transparent",
-  pending: "bg-amber-600 text-transparent",
-  blocked: "bg-slate-500 text-transparent dark:bg-slate-600",
+  male: "bg-blue-600 text-transparent",
+  female: "bg-pink-500 text-transparent",
+  pending: "bg-yellow-500 text-transparent",
+  blocked: "bg-gray-500 text-transparent dark:bg-gray-600",
 };
 
 type PanelMode = "menu" | "assign";
@@ -134,19 +134,19 @@ export function ConductorSeatMap({ tripId, layout, seatCount, initialSeats }: Pr
           Available
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded bg-blue-900" />
+          <span className="inline-block h-3 w-3 rounded bg-blue-600" />
           Booked (Male)
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded bg-rose-900" />
+          <span className="inline-block h-3 w-3 rounded bg-pink-500" />
           Booked (Female)
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded bg-amber-600" />
+          <span className="inline-block h-3 w-3 rounded bg-yellow-500" />
           Pending
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded bg-slate-500 dark:bg-slate-600" />
+          <span className="inline-block h-3 w-3 rounded bg-gray-500 dark:bg-gray-600" />
           Unavailable
         </span>
       </div>
@@ -225,8 +225,8 @@ export function ConductorSeatMap({ tripId, layout, seatCount, initialSeats }: Pr
                               onClick={() => setGender("male")}
                               className={`ui flex-1 rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors ${
                                 gender === "male"
-                                  ? "border-blue-900 bg-blue-900 text-white"
-                                  : "border-blue-900 text-blue-900 dark:text-blue-400"
+                                  ? "border-blue-600 bg-blue-600 text-white"
+                                  : "border-blue-600 text-blue-600 dark:text-blue-400"
                               }`}
                             >
                               Male
@@ -236,8 +236,8 @@ export function ConductorSeatMap({ tripId, layout, seatCount, initialSeats }: Pr
                               onClick={() => setGender("female")}
                               className={`ui flex-1 rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors ${
                                 gender === "female"
-                                  ? "border-rose-900 bg-rose-900 text-white"
-                                  : "border-rose-900 text-rose-900 dark:text-rose-400"
+                                  ? "border-pink-500 bg-pink-500 text-white"
+                                  : "border-pink-500 text-pink-500 dark:text-pink-400"
                               }`}
                             >
                               Female
