@@ -38,6 +38,8 @@ export default async function TicketsPage() {
   }
 
   // RLS restricts bookings + tickets to the signed-in user's own rows.
+  // Unpaid bookings (pending/reserved_unpaid) never surface here — a booking
+  // only belongs in "my tickets" once it's confirmed or explicitly cancelled.
   const { data } = await supabase
     .from("bookings")
     .select(
@@ -48,6 +50,7 @@ export default async function TicketsPage() {
            operator:operators ( name, logo_url ) ) ),
        tickets ( qr_signature, status )`,
     )
+    .in("status", ["confirmed", "cancelled", "refunded"])
     .order("created_at", { ascending: false });
 
   const rows = (data ?? []) as unknown as BookingRow[];

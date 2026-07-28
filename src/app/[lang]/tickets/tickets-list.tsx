@@ -22,12 +22,16 @@ export interface TicketBooking {
   ticketStatus: string | null;
 }
 
-type Tab = "confirmed" | "pending" | "cancelled";
+type Tab = "confirmed" | "cancelled";
 
-function tabOf(status: string): Tab {
+/** Unpaid bookings (pending/reserved_unpaid) aren't shown in the list at
+ *  all — a booking only appears here once it's actually confirmed or
+ *  explicitly cancelled, so there's nothing to filter/tab for an
+ *  in-progress checkout that was never completed. */
+function tabOf(status: string): Tab | null {
   if (status === "confirmed") return "confirmed";
   if (status === "cancelled" || status === "refunded") return "cancelled";
-  return "pending";
+  return null;
 }
 
 function money(n: number) {
@@ -49,26 +53,24 @@ function dateOnly(iso: string) {
 
 const STATUS_BADGE: Record<Tab, string> = {
   confirmed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
-  pending: "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
   cancelled: "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400",
 };
 const STATUS_LABEL: Record<Tab, string> = {
   confirmed: "Confirmed",
-  pending: "Pending",
   cancelled: "Cancelled",
 };
 
 export function TicketsList({ bookings }: { bookings: TicketBooking[] }) {
   const [tab, setTab] = useState<Tab>("confirmed");
 
+  const visible = bookings.filter((b): b is TicketBooking & { status: string } => tabOf(b.status) !== null);
   const counts: Record<Tab, number> = {
-    confirmed: bookings.filter((b) => tabOf(b.status) === "confirmed").length,
-    pending: bookings.filter((b) => tabOf(b.status) === "pending").length,
-    cancelled: bookings.filter((b) => tabOf(b.status) === "cancelled").length,
+    confirmed: visible.filter((b) => tabOf(b.status) === "confirmed").length,
+    cancelled: visible.filter((b) => tabOf(b.status) === "cancelled").length,
   };
-  const shown = bookings.filter((b) => tabOf(b.status) === tab);
+  const shown = visible.filter((b) => tabOf(b.status) === tab);
 
-  const tabs: Tab[] = ["confirmed", "pending", "cancelled"];
+  const tabs: Tab[] = ["confirmed", "cancelled"];
 
   return (
     <div className="mt-6">
@@ -96,7 +98,7 @@ export function TicketsList({ bookings }: { bookings: TicketBooking[] }) {
       ) : (
         <div className="mt-5 flex flex-col gap-4">
           {shown.map((b) => (
-            <TicketCard key={b.id} b={b} />
+            <TicketCard key={b.id} b={b} t={tab} />
           ))}
         </div>
       )}
@@ -104,9 +106,8 @@ export function TicketsList({ bookings }: { bookings: TicketBooking[] }) {
   );
 }
 
-function TicketCard({ b }: { b: TicketBooking }) {
+function TicketCard({ b, t }: { b: TicketBooking; t: Tab }) {
   const [open, setOpen] = useState(false);
-  const t = tabOf(b.status);
   const boarded = b.ticketStatus === "used";
 
   return (
@@ -158,13 +159,6 @@ function TicketCard({ b }: { b: TicketBooking }) {
             {open ? "Hide QR" : "Show QR ticket"}
             <ChevronDown size={14} className={`transition-transform ${open ? "rotate-180" : ""}`} />
           </button>
-        ) : t === "pending" ? (
-          <Link
-            href={`/bookings/${b.id}`}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-brand-fg transition-opacity hover:opacity-90"
-          >
-            Pay now
-          </Link>
         ) : (
           <Link
             href={`/bookings/${b.id}`}

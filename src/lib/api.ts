@@ -264,6 +264,17 @@ export function checkoutBooking(accessToken: string, bookingId: string) {
   });
 }
 
+/** Dev-only shortcut that confirms a booking without the real WebXPay round
+ *  trip — the API refuses this outright once NODE_ENV=production, so it's
+ *  safe to ship the client call unconditionally; the UI just hides the
+ *  button outside local development. */
+export function devConfirmPayment(accessToken: string, bookingId: string) {
+  return request<{ ok: boolean }>(`/bookings/${bookingId}/dev-confirm-pay`, {
+    method: 'POST',
+    accessToken,
+  });
+}
+
 // ── Operator dashboard (token required; caller must be linked via operator_users) ──
 
 export interface OperatorInfo {
