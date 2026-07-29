@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Loader2, Trash2, Undo2 } from "lucide-react";
+import { FileText, Download, Loader2, Trash2, Undo2 } from "lucide-react";
 import { getAdminPayoutSlipUrl, reopenPayout, deleteSettledTrip, ApiError } from "@/lib/api";
 
 type Confirming = "reopen" | "delete" | null;
@@ -24,11 +24,46 @@ export function PaidRowActions({
   async function viewSlip() {
     setError(null);
     setBusy("slip");
+    // Open the tab synchronously, before any `await` — once we cross an
+    // await, the browser no longer treats window.open as tied to this click
+    // and silently blocks it as a popup (no error, it just does nothing).
+    const tab = window.open("", "_blank");
     try {
       const { url } = await getAdminPayoutSlipUrl(token, tripId);
-      window.open(url, "_blank", "noopener,noreferrer");
+      if (tab) {
+        tab.location.href = url;
+      } else {
+        window.location.href = url;
+      }
     } catch (e) {
+      tab?.close();
       setError(e instanceof ApiError ? e.message : "Could not open the slip.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function downloadSlip() {
+    setError(null);
+    setBusy("download");
+    try {
+      const { url } = await getAdminPayoutSlipUrl(token, tripId);
+      // Fetch as a blob rather than just pointing an <a download> at the
+      // signed URL — a cross-origin href's `download` attribute is ignored
+      // by most browsers, so this is what actually guarantees a save
+      // instead of a plain navigation.
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `payout-slip-${tripId}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not download the slip.");
     } finally {
       setBusy(null);
     }
@@ -111,7 +146,15 @@ export function PaidRowActions({
           disabled={!!busy}
           className="ui inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
         >
-          {busy === "slip" ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />} Slip
+          {busy === "slip" ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />} View slip
+        </button>
+        <button
+          type="button"
+          onClick={downloadSlip}
+          disabled={!!busy}
+          className="ui inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
+        >
+          {busy === "download" ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
         </button>
         <button
           type="button"
