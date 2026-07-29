@@ -16,13 +16,24 @@ const items = [
   { label: "Bookings", href: "/admin/bookings", icon: Search },
 ] as const;
 
-export function AdminNav() {
+export function AdminNav({
+  counts,
+}: {
+  counts?: { operators?: number; fleet?: number; pilots?: number; refunds?: number };
+}) {
   const pathname = usePathname();
+  const badgeFor: Record<string, number | undefined> = {
+    "/admin/operators": counts?.operators,
+    "/admin/fleet": counts?.fleet,
+    "/admin/pilots": counts?.pilots,
+    "/admin/refunds": counts?.refunds,
+  };
 
   return (
     <nav className="flex flex-row gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
       {items.map(({ label, href, icon: Icon }) => {
         const active = pathname === href;
+        const badge = badgeFor[href];
         return (
           <Link
             key={href}
@@ -35,6 +46,11 @@ export function AdminNav() {
           >
             <Icon size={16} />
             {label}
+            {!!badge && (
+              <span className="ui ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-bold leading-none text-white">
+                {badge > 99 ? "99+" : badge}
+              </span>
+            )}
           </Link>
         );
       })}

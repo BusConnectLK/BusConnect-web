@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getMyRoles } from "@/lib/api";
+import { getMyRoles, getAdminAnalytics, listAdminBuses, listAdminPilots, ApiError } from "@/lib/api";
 import { AdminNav } from "./admin-nav";
 
 // Mirrors operator/(dashboard)/layout.tsx: this is the ONLY thing that
@@ -32,6 +32,27 @@ export default async function AdminDashboardLayout({
     return <div className="w-full flex-1 px-4 py-10 sm:px-6 lg:px-8">{children}</div>;
   }
 
+  // Nav badges — how many operators/buses/pilots are awaiting review, and
+  // how many refunds need manual processing. Best-effort: a failed fetch
+  // just means no badge, not a broken sidebar.
+  let operatorsPending = 0;
+  let fleetPending = 0;
+  let pilotsPending = 0;
+  let refundsPending = 0;
+  try {
+    const [analytics, buses, pilots] = await Promise.all([
+      getAdminAnalytics(session!.access_token),
+      listAdminBuses(session!.access_token),
+      listAdminPilots(session!.access_token),
+    ]);
+    operatorsPending = analytics.pendingOperators;
+    refundsPending = analytics.pendingRefundsCount;
+    fleetPending = buses.filter((b) => b.status === "pending").length;
+    pilotsPending = pilots.filter((p) => p.status === "pending").length;
+  } catch (e) {
+    if (!(e instanceof ApiError)) throw e;
+  }
+
   return (
     <div className="flex w-full flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:gap-8 lg:px-8">
       <aside className="w-full shrink-0 lg:w-52">
@@ -39,7 +60,14 @@ export default async function AdminDashboardLayout({
           BusConnect
         </p>
         <p className="font-heading mb-4 text-base font-bold tracking-tight">Admin</p>
-        <AdminNav />
+        <AdminNav
+          counts={{
+            operators: operatorsPending,
+            fleet: fleetPending,
+            pilots: pilotsPending,
+            refunds: refundsPending,
+          }}
+        />
       </aside>
       <div className="min-w-0 flex-1">{children}</div>
     </div>

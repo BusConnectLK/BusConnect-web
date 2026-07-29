@@ -16,14 +16,25 @@ const items = [
   { label: "Profile", href: "/operator/profile", icon: UserCircle, ownerOnly: false },
 ] as const;
 
-export function OperatorNav({ role }: { role: "owner" | "pilot" }) {
+export function OperatorNav({
+  role,
+  counts,
+}: {
+  role: "owner" | "pilot";
+  counts?: { fleet?: number; pilots?: number };
+}) {
   const pathname = usePathname();
   const visible = items.filter((item) => !item.ownerOnly || role === "owner");
+  const badgeFor: Record<string, number | undefined> = {
+    "/operator/fleet": counts?.fleet,
+    "/operator/pilots": counts?.pilots,
+  };
 
   return (
     <nav className="flex flex-row gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
       {visible.map(({ label, href, icon: Icon }) => {
         const active = pathname === href;
+        const badge = badgeFor[href];
         return (
           <Link
             key={href}
@@ -36,6 +47,11 @@ export function OperatorNav({ role }: { role: "owner" | "pilot" }) {
           >
             <Icon size={16} />
             {label}
+            {!!badge && (
+              <span className="ui ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-bold leading-none text-white">
+                {badge > 99 ? "99+" : badge}
+              </span>
+            )}
           </Link>
         );
       })}

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getMyRoles } from "@/lib/api";
+import { getMyRoles, getOperatorFleet, listPilots, ApiError } from "@/lib/api";
 import { OperatorNav } from "./operator-nav";
 
 export default async function OperatorDashboardLayout({
@@ -34,6 +34,22 @@ export default async function OperatorDashboardLayout({
     return <div className="w-full flex-1 px-4 py-10 sm:px-6 lg:px-8">{children}</div>;
   }
 
+  // Nav badges — how many of the operator's own buses/pilots are still
+  // awaiting admin approval. Best-effort: a failed fetch just means no
+  // badge, not a broken sidebar.
+  let fleetPending = 0;
+  let pilotsPending = 0;
+  try {
+    const [fleet, pilots] = await Promise.all([
+      getOperatorFleet(session!.access_token),
+      listPilots(session!.access_token),
+    ]);
+    fleetPending = fleet.buses.filter((b) => b.status === "pending").length;
+    pilotsPending = pilots.filter((p) => p.status === "pending").length;
+  } catch (e) {
+    if (!(e instanceof ApiError)) throw e;
+  }
+
   return (
     <div className="flex w-full flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:gap-8 lg:px-8">
       <aside className="w-full shrink-0 lg:w-52">
@@ -41,7 +57,7 @@ export default async function OperatorDashboardLayout({
           Operator
         </p>
         <p className="font-heading mb-4 text-base font-bold tracking-tight">Workspace</p>
-        <OperatorNav role={role} />
+        <OperatorNav role={role} counts={{ fleet: fleetPending, pilots: pilotsPending }} />
       </aside>
       <div className="min-w-0 flex-1">{children}</div>
     </div>
