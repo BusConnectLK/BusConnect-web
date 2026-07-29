@@ -11,6 +11,7 @@ interface BookingRow {
   created_at: string;
   trip: {
     depart_at: string;
+    status: string;
     route: { name: string } | null;
     bus: {
       reg_no: string;
@@ -44,7 +45,7 @@ export default async function TicketsPage() {
     .from("bookings")
     .select(
       `id, seats, amount, status, created_at,
-       trip:trips ( depart_at,
+       trip:trips ( depart_at, status,
          route:routes ( name ),
          bus:buses ( reg_no, bus_type:bus_types ( name, class ),
            operator:operators ( name, logo_url ) ) ),
@@ -53,7 +54,15 @@ export default async function TicketsPage() {
     .in("status", ["confirmed", "cancelled", "refunded"])
     .order("created_at", { ascending: false });
 
-  const rows = (data ?? []) as unknown as BookingRow[];
+  // A confirmed booking whose trip has arrived and whose ticket was fully
+  // scanned at boarding has nothing left to show — no QR to present, no trip
+  // to track. Hidden here only; the row stays in the database untouched
+  // (revenue/refund/payout math still reads it).
+  const rows = ((data ?? []) as unknown as BookingRow[]).filter((b) => {
+    if (b.status !== "confirmed") return true;
+    const ticket = b.tickets?.[0];
+    return !(b.trip?.status === "arrived" && ticket?.status === "used");
+  });
 
   // Pre-render the QR (the signed Ed25519 token itself, so a conductor's
   // scanner verifies authenticity fully offline) for confirmed bookings.
