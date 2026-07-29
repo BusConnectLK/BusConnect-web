@@ -17,7 +17,6 @@ export function RegisterBusForm() {
   const [busClass, setBusClass] = useState<(typeof BUS_CLASSES)[number]["value"]>("normal");
   const [totalSeats, setTotalSeats] = useState("45");
   const [seatLayoutStyle, setSeatLayoutStyle] = useState<(typeof SEAT_LAYOUTS)[number]["value"]>("2x2");
-  const [seatNumbering, setSeatNumbering] = useState<"auto" | "custom">("auto");
 
   const [amenities, setAmenities] = useState<Set<string>>(new Set());
 
@@ -90,7 +89,7 @@ export function RegisterBusForm() {
         busClass,
         totalSeats: seats,
         seatLayoutStyle,
-        seatNumbering,
+        seatNumbering: "auto",
         amenities: [...amenities],
         frontImageUrl,
         sideImageUrls: sideImageUrls.length > 0 ? sideImageUrls : undefined,
@@ -187,26 +186,6 @@ export function RegisterBusForm() {
               />
             </div>
           </label>
-        </div>
-
-        <div className="mt-4">
-          <p className="ui mb-2 text-sm font-medium text-slate-700 dark:text-zinc-300">Seat numbering</p>
-          <div className="flex gap-2">
-            {(["auto", "custom"] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setSeatNumbering(mode)}
-                className={`ui rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
-                  seatNumbering === mode
-                    ? "bg-brand text-brand-fg"
-                    : "bg-slate-100 text-slate-600 dark:bg-zinc-900 dark:text-zinc-400"
-                }`}
-              >
-                {mode === "auto" ? "Auto-generated" : "Custom"}
-              </button>
-            ))}
-          </div>
         </div>
       </section>
 
