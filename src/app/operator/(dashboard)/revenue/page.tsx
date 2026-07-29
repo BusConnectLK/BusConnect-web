@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Wallet, Users } from "lucide-react";
+import { Wallet, Users, ArrowUpRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOperatorRevenue, ApiError, type OperatorRevenue } from "@/lib/api";
 import { ViewSlipButton } from "./view-slip-button";
@@ -106,6 +106,12 @@ export default async function OperatorRevenuePage() {
                     </p>
                     <p className="font-heading text-lg font-bold text-brand dark:text-blue-400">{money(r.net_amount)}</p>
                   </div>
+                  <Link
+                    href={`/operator/trips/${r.trip_id}`}
+                    className="ui inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  >
+                    View <ArrowUpRight size={12} />
+                  </Link>
                   {r.payout_status === "paid" && r.has_slip && <ViewSlipButton tripId={r.trip_id} />}
                 </div>
               </div>

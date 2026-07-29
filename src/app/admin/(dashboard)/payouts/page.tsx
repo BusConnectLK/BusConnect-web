@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { listAdminPayouts, ApiError, type AdminPayoutRow } from "@/lib/api";
 import { SettleModal } from "./settle-modal";
 import { PaidRowActions } from "./paid-row-actions";
+import { TripDetailModal } from "./trip-detail-modal";
 
 type Filter = "ready" | "pending" | "paid";
 
@@ -23,6 +24,7 @@ export default function AdminPayoutsPage() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("ready");
   const [settleTrip, setSettleTrip] = useState<AdminPayoutRow | null>(null);
+  const [viewTripId, setViewTripId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -142,6 +144,13 @@ export default function AdminPayoutsPage() {
                     </p>
                     <p className="font-heading text-lg font-bold text-brand dark:text-blue-400">{money(r.net_amount)}</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setViewTripId(r.id)}
+                    className="ui shrink-0 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  >
+                    View
+                  </button>
                   {r.payout_status === "paid" ? (
                     <PaidRowActions token={token} tripId={r.id} reference={r.reference} onChange={load} />
                   ) : r.settleable ? (
@@ -171,6 +180,8 @@ export default function AdminPayoutsPage() {
           }}
         />
       )}
+
+      {viewTripId && <TripDetailModal token={token} tripId={viewTripId} onClose={() => setViewTripId(null)} />}
     </div>
   );
 }
