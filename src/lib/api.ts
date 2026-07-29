@@ -370,6 +370,7 @@ export interface OperatorAnalytics {
   upcomingTrips: number;
   totalBookings: number;
   totalRevenue: number;
+  totalNetRevenue: number;
   fillRatePct: number;
 }
 

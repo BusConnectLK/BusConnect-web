@@ -255,7 +255,7 @@ export default async function OperatorOverviewPage() {
           <Stat label="Upcoming trips" value={String(analytics?.upcomingTrips ?? 0)} />
           <Stat label="Bookings" value={String(analytics?.totalBookings ?? 0)} />
           <Stat label="Fill rate" value={`${analytics?.fillRatePct ?? 0}%`} />
-          <Stat label="Revenue" value={`LKR ${Number(analytics?.totalRevenue ?? 0).toLocaleString("en-LK")}`} />
+          <Stat label="Net earned" value={`LKR ${Number(analytics?.totalNetRevenue ?? 0).toLocaleString("en-LK")}`} />
         </div>
       )}
 

@@ -62,11 +62,10 @@ export default async function OperatorRevenuePage() {
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-6 grid grid-cols-3 gap-3">
         <Stat label="Net earned" value={money(totals.netEarned)} />
         <Stat label="Paid out" value={money(totals.paidOut)} accent />
         <Stat label="Pending" value={money(totals.pending)} />
-        <Stat label="Gross fares" value={money(totals.grossEarned)} />
       </div>
 
       <div className="mt-8 flex flex-col gap-2">
