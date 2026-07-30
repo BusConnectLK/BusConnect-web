@@ -11,6 +11,10 @@ import { PhoneField } from "@/components/phone-field";
 import { goTo } from "@/lib/safe-redirect";
 import { toE164 } from "@/lib/phone";
 
+// Matches the backend's UpdateMyProfileDto.nic validation exactly — 9 digits
+// + V/X (old format) or 12 digits (new format).
+const NIC_RE = /^([0-9]{9}[vVxX]|[0-9]{12})$/;
+
 export default function SignUpPage() {
   return (
     <Suspense>
@@ -27,6 +31,7 @@ function SignUpForm() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [nic, setNic] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [stage, setStage] = useState<"details" | "otp">("details");
@@ -36,6 +41,10 @@ function SignUpForm() {
   async function createAccount(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!NIC_RE.test(nic.trim())) {
+      setError("Enter a valid NIC — 9 digits + V/X, or 12 digits.");
+      return;
+    }
     if (password.length < 6) {
       setError("Password must be at least 6 characters.");
       return;
@@ -63,7 +72,7 @@ function SignUpForm() {
     const accessToken = data.session?.access_token;
     try {
       if (accessToken) {
-        await updateMyProfile(accessToken, { name, email: email || undefined });
+        await updateMyProfile(accessToken, { name, email: email || undefined, nic: nic.trim() });
       }
     } catch {
       // Profile fields can still be filled in later from Profile — don't
@@ -109,6 +118,15 @@ function SignUpForm() {
                   placeholder="you@email.lk"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="field"
+                />
+              </Label>
+              <Label text="NIC">
+                <input
+                  value={nic}
+                  onChange={(e) => setNic(e.target.value)}
+                  placeholder="200012345678 or 991234567V"
+                  required
                   className="field"
                 />
               </Label>
