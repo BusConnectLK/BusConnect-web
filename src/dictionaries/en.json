@@ -30,6 +30,8 @@
     "noRoutes": "No routes published yet",
     "noBusesScheduled": "No buses scheduled yet",
     "buses": "buses",
+    "today": "Today",
+    "onwards": "onwards",
     "howTitle": "How it works",
     "whyTitle": "Why BusConnect",
     "operatorCtaTitle": "Run a bus fleet? Fill more seats.",

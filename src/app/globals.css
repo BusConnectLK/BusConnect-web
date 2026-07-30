@@ -125,6 +125,15 @@
     @apply hover:shadow-md hover:shadow-black/10 dark:hover:bg-muted;
     transition: box-shadow 0.2s, background-color 0.2s, border-color 0.2s;
   }
+  /* Horizontally swipeable rows (e.g. Popular routes) — native scroll/snap,
+     just without the visible scrollbar chrome. */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
   /* Category / class pill */
   .pill {
     font-family: var(--font-inter), var(--font-sinhala), var(--font-tamil), sans-serif;

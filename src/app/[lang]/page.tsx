@@ -158,34 +158,75 @@ function PopularRoutes({
       {routes.length === 0 ? (
         <p className="ui mt-9 text-sm text-slate-500 dark:text-zinc-500">{dict.home.noRoutes}</p>
       ) : (
-        <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="scrollbar-none -mx-4 mt-9 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
           {routes.map((r) => {
             const dur = formatDuration(r.durationMinutes);
             return (
               <Link
                 key={`${r.originId}-${r.destId}`}
                 href={localizePath(locale, `/search?from=${r.originId}&to=${r.destId}&date=${today}`)}
-                className="card card-hover overflow-hidden"
+                className="card card-hover group w-[78vw] shrink-0 snap-start overflow-hidden sm:w-80"
               >
-                {r.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={r.imageUrl}
-                    alt={`${r.originName} to ${r.destName}`}
-                    className="aspect-video w-full object-cover"
-                  />
-                )}
+                <div className="relative">
+                  {r.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={r.imageUrl}
+                      alt={`${r.originName} to ${r.destName}`}
+                      className="aspect-video w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex aspect-video w-full items-center justify-center bg-gradient-to-br from-brand to-blue-800">
+                      <MapPinned size={28} className="text-white/40" />
+                    </div>
+                  )}
+                  {/* Floating stat badge, ticket-stub style */}
+                  <div className="absolute left-4 top-4 overflow-hidden rounded-xl shadow-lg ring-1 ring-black/5">
+                    <p className="ui bg-brand px-3 py-1 text-center text-[10px] font-bold uppercase tracking-wider text-white">
+                      {dict.home.today}
+                    </p>
+                    <p className="bg-white px-3 py-1.5 text-center dark:bg-zinc-900">
+                      <span className="font-heading text-lg font-extrabold leading-none text-slate-900 dark:text-white">
+                        {r.tripCount}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
                 <div className="p-4">
-                  <h3 className="flex items-center gap-2 font-heading text-base font-bold tracking-tight">
+                  <h3 className="flex items-center gap-1.5 font-heading text-lg font-bold tracking-tight">
                     <span className="truncate">{r.originName}</span>
                     <ArrowRight size={15} className="shrink-0 text-slate-400" />
                     <span className="truncate">{r.destName}</span>
                   </h3>
                   <p className="ui mt-1 text-sm text-slate-500 dark:text-zinc-400">
                     {r.tripCount > 0
-                      ? `${r.tripCount} ${r.tripCount === 1 ? "trip" : "trips"} scheduled today${dur ? ` · ${dur}` : ""}`
+                      ? `${r.tripCount} ${r.tripCount === 1 ? "trip" : "trips"} today${dur ? ` · ${dur}` : ""}`
                       : dict.home.noBusesScheduled}
                   </p>
+
+                  <div className="my-3.5 border-t border-dashed border-slate-200 dark:border-zinc-800" />
+
+                  <div className="flex items-end justify-between gap-3">
+                    <div>
+                      {r.minFare != null ? (
+                        <>
+                          <p className="ui text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-zinc-500">
+                            LKR
+                          </p>
+                          <p className="font-heading text-xl font-extrabold leading-none text-brand dark:text-blue-400">
+                            {r.minFare.toLocaleString("en-LK", { maximumFractionDigits: 0 })}
+                          </p>
+                          <p className="ui text-[10px] text-slate-400 dark:text-zinc-500">{dict.home.onwards}</p>
+                        </>
+                      ) : (
+                        <p className="ui text-xs text-slate-400 dark:text-zinc-500">{dict.home.noBusesScheduled}</p>
+                      )}
+                    </div>
+                    <span className="btn-primary shrink-0 px-4 py-2 text-sm transition-transform group-hover:translate-x-0.5">
+                      {dict.nav.searchBuses}
+                    </span>
+                  </div>
                 </div>
               </Link>
             );

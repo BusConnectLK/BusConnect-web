@@ -9,6 +9,7 @@ export interface PopularRoute {
   durationMinutes: number | null;
   tripCount: number;
   imageUrl: string | null;
+  minFare: number | null;
 }
 
 interface RouteRow {
@@ -22,6 +23,7 @@ interface RouteRow {
 interface TripRow {
   depart_at: string;
   arrive_est: string | null;
+  base_fare: number;
   route: { origin_id: string; dest_id: string } | null;
 }
 
@@ -31,6 +33,7 @@ type PairAgg = {
   originName: string;
   destName: string;
   durations: number[];
+  fares: number[];
   count: number;
   imageUrl: string | null;
 };
@@ -80,7 +83,7 @@ const getAllPopularRoutes = unstable_cache(
       supabase
         .from('trips')
         .select(
-          `depart_at, arrive_est,
+          `depart_at, arrive_est, base_fare,
            route:routes!inner ( origin_id, dest_id ),
            bus:buses!inner ( operator:operators!inner ( status ) )`,
         )
@@ -108,6 +111,7 @@ const getAllPopularRoutes = unstable_cache(
           originName: r.origin?.name_en ?? 'Unknown',
           destName: r.dest?.name_en ?? 'Unknown',
           durations: [],
+          fares: [],
           count: 0,
           imageUrl: r.image_url,
         });
@@ -130,11 +134,13 @@ const getAllPopularRoutes = unstable_cache(
         originName: 'Unknown',
         destName: 'Unknown',
         durations: [],
+        fares: [],
         count: 0,
         imageUrl: null,
       };
       existing.count += 1;
       if (duration != null) existing.durations.push(duration);
+      if (row.base_fare != null) existing.fares.push(Number(row.base_fare));
       byPair.set(key, existing);
     }
 
@@ -150,6 +156,7 @@ const getAllPopularRoutes = unstable_cache(
       durationMinutes: r.durations.length > 0 ? Math.min(...r.durations) : null,
       tripCount: r.count,
       imageUrl: r.imageUrl,
+      minFare: r.fares.length > 0 ? Math.min(...r.fares) : null,
     }));
   },
   ['popular-routes'],
