@@ -940,6 +940,76 @@ export interface AdminBus {
 
 export type AdminRoute = RouteCatalogEntry;
 
+// ── Users (admin) — every account, any role ─────────────────────────────────
+
+export interface AdminUserSummary {
+  id: string;
+  email: string | null;
+  name: string | null;
+  phone: string | null;
+  created_at: string;
+  deleted: boolean;
+  roles: {
+    passenger: boolean;
+    operator: { name: string; role: string }[];
+    pilot: { status: string; assignedRole: string | null } | null;
+    admin: string | null;
+  };
+}
+
+export interface AdminUserBooking {
+  id: string;
+  seats: string[];
+  amount: number;
+  status: string;
+  created_at: string;
+  trip: {
+    id: string;
+    depart_at: string;
+    route: { name: string } | null;
+    bus: { reg_no: string; operator: { name: string } | null } | null;
+  } | null;
+  tickets: { id: string; status: string; boarded_seats: string[] }[];
+  payments: { id: string; status: string; amount: number; method: string }[];
+  refunds: { id: string; status: string; amount: number; reason: string }[];
+}
+
+export interface AdminUserDetail {
+  id: string;
+  email: string | null;
+  created_at: string;
+  passenger: {
+    id: string;
+    name: string | null;
+    phone: string | null;
+    email: string | null;
+    nic: string | null;
+    avatar_url: string | null;
+    created_at: string;
+    deleted_at: string | null;
+  } | null;
+  operator_memberships: { role: string; operator: { id: string; name: string; status: string } | null }[];
+  pilot_roster: {
+    id: string;
+    name: string;
+    phone_no: string;
+    status: string;
+    assigned_role: string | null;
+    operator: { id: string; name: string } | null;
+    bus: { reg_no: string } | null;
+  }[];
+  admin_role: string | null;
+  bookings: AdminUserBooking[];
+}
+
+export function listAdminUsers(accessToken: string) {
+  return request<AdminUserSummary[]>('/admin/users', { accessToken });
+}
+
+export function getAdminUser(accessToken: string, userId: string) {
+  return request<AdminUserDetail>(`/admin/users/${userId}`, { accessToken });
+}
+
 export function listAdminOperators(accessToken: string) {
   return request<AdminOperator[]>('/admin/operators', { accessToken });
 }
