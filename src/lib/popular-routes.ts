@@ -7,7 +7,12 @@ export interface PopularRoute {
   originName: string;
   destName: string;
   durationMinutes: number | null;
+  /** Total upcoming trips (any day) — used for popularity ranking. */
   tripCount: number;
+  /** Trips departing today (Asia/Colombo calendar day) — what the card's "Today" badge shows. */
+  todayCount: number;
+  /** Calendar date (Asia/Colombo, yyyy-mm-dd) of the soonest upcoming trip, if any. */
+  nextDateIso: string | null;
   imageUrl: string | null;
   minFare: number | null;
 }
@@ -35,8 +40,15 @@ type PairAgg = {
   durations: number[];
   fares: number[];
   count: number;
+  todayCount: number;
+  nextDateIso: string | null;
   imageUrl: string | null;
 };
+
+/** Calendar date (Asia/Colombo) a timestamp falls on, as yyyy-mm-dd. */
+function colomboDateIso(iso: string) {
+  return new Date(iso).toLocaleDateString('en-CA', { timeZone: 'Asia/Colombo' });
+}
 
 /**
  * "Popular routes" for the homepage. Every route admin has published is
@@ -113,10 +125,14 @@ const getAllPopularRoutes = unstable_cache(
           durations: [],
           fares: [],
           count: 0,
+          todayCount: 0,
+          nextDateIso: null,
           imageUrl: r.image_url,
         });
       }
     }
+
+    const today = colomboDateIso(new Date().toISOString());
 
     for (const row of (trips ?? []) as unknown as TripRow[]) {
       const route = row.route;
@@ -136,11 +152,18 @@ const getAllPopularRoutes = unstable_cache(
         durations: [],
         fares: [],
         count: 0,
+        todayCount: 0,
+        nextDateIso: null,
         imageUrl: null,
       };
       existing.count += 1;
       if (duration != null) existing.durations.push(duration);
       if (row.base_fare != null) existing.fares.push(Number(row.base_fare));
+
+      const tripDate = colomboDateIso(row.depart_at);
+      if (tripDate === today) existing.todayCount += 1;
+      if (!existing.nextDateIso || tripDate < existing.nextDateIso) existing.nextDateIso = tripDate;
+
       byPair.set(key, existing);
     }
 
@@ -155,6 +178,8 @@ const getAllPopularRoutes = unstable_cache(
       destName: r.destName,
       durationMinutes: r.durations.length > 0 ? Math.min(...r.durations) : null,
       tripCount: r.count,
+      todayCount: r.todayCount,
+      nextDateIso: r.nextDateIso,
       imageUrl: r.imageUrl,
       minFare: r.fares.length > 0 ? Math.min(...r.fares) : null,
     }));

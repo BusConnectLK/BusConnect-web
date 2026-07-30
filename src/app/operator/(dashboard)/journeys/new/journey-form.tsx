@@ -25,6 +25,25 @@ interface StopRow {
   canDrop: boolean;
 }
 
+/**
+ * Stops only carry a time-of-day (no date) — the day a stop actually falls
+ * on is implicit, derived by walking them in order and counting how many
+ * times the clock has wrapped past midnight relative to the first stop
+ * (departure, always day 0). Whenever a stop's time is earlier than the
+ * previous stop's, the trip has crossed into the next day.
+ */
+function computeDayOffsets(times: string[]): number[] {
+  const offsets: number[] = [];
+  let offset = 0;
+  let prev: string | null = null;
+  for (const t of times) {
+    if (prev !== null && t < prev) offset += 1;
+    offsets.push(offset);
+    prev = t;
+  }
+  return offsets;
+}
+
 export function JourneyForm({ initial }: { initial?: OperatorJourneyDetail }) {
   const router = useRouter();
   const editing = !!initial;
@@ -155,20 +174,24 @@ export function JourneyForm({ initial }: { initial?: OperatorJourneyDetail }) {
         router.push(`/login?next=/operator/journeys${editing ? `/${initial.id}/edit` : "/new"}`);
         return;
       }
+      const dayOffsets = computeDayOffsets(stops.map((s) => s.time));
       const payload = {
         routeId,
         busId,
         departTime,
         arriveTime,
-        arriveDayOffset: arriveNextDay ? 1 : 0,
+        // Derived from the actual stop times rather than trusted from the
+        // "arrives the next day" checkbox alone, so the two can't disagree.
+        arriveDayOffset: dayOffsets.length > 0 ? dayOffsets[dayOffsets.length - 1] : arriveNextDay ? 1 : 0,
         departLocation: departLocation || undefined,
         departLocationUrl: departLocationUrl || undefined,
         arriveLocation: arriveLocation || undefined,
         arriveLocationUrl: arriveLocationUrl || undefined,
         baseFare: Number(baseFare),
-        stops: stops.map((s) => ({
+        stops: stops.map((s, i) => ({
           routeStopId: s.routeStopId,
           time: s.time,
+          dayOffset: dayOffsets[i],
           canBoard: s.canBoard,
           canDrop: s.canDrop,
         })),

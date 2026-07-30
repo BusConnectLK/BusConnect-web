@@ -104,19 +104,17 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
               <p className="ui mt-1 truncate text-sm text-slate-500 dark:text-zinc-500">{origin}</p>
             </div>
             <div className="flex flex-1 flex-col items-center gap-1 text-slate-400 dark:text-zinc-600">
-              <span className="ui text-xs font-medium">
-                {dur}
-                {overnight && (
-                  <span className="ml-1 rounded bg-amber-100 px-1 py-px text-[10px] font-semibold text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
-                    +1 day
-                  </span>
-                )}
-              </span>
+              <span className="ui text-xs font-medium">{dur}</span>
               <div className="flex w-full items-center gap-1">
                 <span className="h-px flex-1 bg-slate-200 dark:bg-zinc-700" />
                 <ArrowRight size={14} />
                 <span className="h-px flex-1 bg-slate-200 dark:bg-zinc-700" />
               </div>
+              {overnight && (
+                <span className="ui text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                  Arrives next day
+                </span>
+              )}
             </div>
             <div className="text-right">
               <p className="font-heading text-2xl font-bold leading-none">{formatTime(trip.drop_at)}</p>

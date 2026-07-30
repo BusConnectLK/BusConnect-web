@@ -137,6 +137,16 @@ function Features() {
 }
 
 /* ── Popular routes ────────────────────────────────────────────────────── */
+/** "tomorrow" / "in 2 days" / "Fri, 2 Aug" for a yyyy-mm-dd relative to today. */
+function relativeDateLabel(dateIso: string, todayIso: string) {
+  const days = Math.round(
+    (new Date(`${dateIso}T00:00:00`).getTime() - new Date(`${todayIso}T00:00:00`).getTime()) / 86400000,
+  );
+  if (days === 1) return "tomorrow";
+  if (days > 1 && days <= 6) return `in ${days} days`;
+  return new Date(`${dateIso}T00:00:00`).toLocaleDateString("en-LK", { weekday: "short", day: "numeric", month: "short" });
+}
+
 function PopularRoutes({
   routes,
   dict,
@@ -146,7 +156,7 @@ function PopularRoutes({
   dict: Dictionary;
   locale: Locale;
 }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Colombo" });
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -187,7 +197,7 @@ function PopularRoutes({
                     </p>
                     <p className="bg-white px-3 py-1.5 text-center dark:bg-zinc-900">
                       <span className="font-heading text-lg font-extrabold leading-none text-slate-900 dark:text-white">
-                        {r.tripCount}
+                        {r.todayCount}
                       </span>
                     </p>
                   </div>
@@ -200,9 +210,11 @@ function PopularRoutes({
                     <span className="truncate">{r.destName}</span>
                   </h3>
                   <p className="ui mt-1 text-sm text-slate-500 dark:text-zinc-400">
-                    {r.tripCount > 0
-                      ? `${r.tripCount} ${r.tripCount === 1 ? "trip" : "trips"} today${dur ? ` · ${dur}` : ""}`
-                      : dict.home.noBusesScheduled}
+                    {r.todayCount > 0
+                      ? `${r.todayCount} ${r.todayCount === 1 ? "trip" : "trips"} today${dur ? ` · ${dur}` : ""}`
+                      : r.nextDateIso
+                        ? `Next trip ${relativeDateLabel(r.nextDateIso, today)}${dur ? ` · ${dur}` : ""}`
+                        : dict.home.noBusesScheduled}
                   </p>
 
                   <div className="my-3.5 border-t border-dashed border-slate-200 dark:border-zinc-800" />
