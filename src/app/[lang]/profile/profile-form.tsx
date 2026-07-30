@@ -6,7 +6,7 @@ import { Loader2, Save } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { updateMyProfile, ApiError, type MyProfile } from "@/lib/api";
 import { PhoneField } from "@/components/phone-field";
-import { stripCountryCode, toE164 } from "@/lib/phone";
+import { stripCountryCode, toE164, formatPhoneDisplay } from "@/lib/phone";
 
 export function ProfileForm({ profile }: { profile: MyProfile }) {
   const router = useRouter();
@@ -76,12 +76,18 @@ export function ProfileForm({ profile }: { profile: MyProfile }) {
         />
       </label>
 
-      {!phoneLocked && (
-        <label className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
-          Phone number
+      <label className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
+        Phone number
+        {phoneLocked ? (
+          <input
+            value={formatPhoneDisplay(profile.phone)}
+            disabled
+            className="field cursor-not-allowed text-slate-500 dark:text-zinc-500"
+          />
+        ) : (
           <PhoneField value={phone} onChange={setPhone} />
-        </label>
-      )}
+        )}
+      </label>
 
       <label className="ui flex flex-col gap-1.5 text-sm font-medium text-slate-700 dark:text-zinc-300">
         NIC
