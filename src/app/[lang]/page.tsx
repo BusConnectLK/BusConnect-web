@@ -86,7 +86,7 @@ function Stats() {
     ["100%", "Secure"],
   ];
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map(([value, label]) => (
           <div key={label} className="card px-4 py-5 text-center">
@@ -149,7 +149,7 @@ function PopularRoutes({
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <SectionHeading
         id="routes"
         title={dict.home.popularRoutesTitle}
@@ -246,7 +246,7 @@ function HowItWorks() {
     ["Board with QR", "Get your e-ticket instantly and scan it to board."],
   ];
   return (
-    <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
       <SectionHeading id="how" title="How it works" />
       <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map(([title, body], i) => (
@@ -266,7 +266,7 @@ function HowItWorks() {
 /* ── Operator CTA ──────────────────────────────────────────────────────── */
 function OperatorCta({ dict }: { dict: Dictionary }) {
   return (
-    <section id="operators" className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
+    <section id="operators" className="mx-auto w-full max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
       <div
         className="overflow-hidden rounded-3xl p-8 sm:p-12"
         style={{ background: "linear-gradient(135deg, #004aad 0%, #05235a 100%)" }}
