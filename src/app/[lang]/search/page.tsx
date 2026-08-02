@@ -41,17 +41,10 @@ function duration(depart: string, arrive: string) {
   return `${h}h${m ? ` ${m}m` : ""}`;
 }
 
-function routeEndpoints(routeName: string): [string, string] {
-  const parts = routeName.split(/\s*-\s*/);
-  if (parts.length >= 2) return [parts[0], parts[parts.length - 1]];
-  return [routeName, ""];
-}
-
 function TripCard({ trip }: { trip: TripSearchResult }) {
   const dur = duration(trip.boarding_at, trip.drop_at);
   const overnight =
     new Date(trip.drop_at).toDateString() !== new Date(trip.boarding_at).toDateString();
-  const [origin, destination] = routeEndpoints(trip.route_name);
   const amenities = trip.bus_amenities.slice(0, 4);
 
   return (
@@ -101,7 +94,7 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
           <div className="mt-4 flex items-center gap-4 sm:gap-6">
             <div>
               <p className="font-heading text-2xl font-bold leading-none">{formatTime(trip.boarding_at)}</p>
-              <p className="ui mt-1 truncate text-sm text-slate-500 dark:text-zinc-500">{origin}</p>
+              <p className="ui mt-1 truncate text-sm text-slate-500 dark:text-zinc-500">{trip.from_location_name}</p>
             </div>
             <div className="flex flex-1 flex-col items-center gap-1 text-slate-400 dark:text-zinc-600">
               <span className="ui text-xs font-medium">{dur}</span>
@@ -118,7 +111,7 @@ function TripCard({ trip }: { trip: TripSearchResult }) {
             </div>
             <div className="text-right">
               <p className="font-heading text-2xl font-bold leading-none">{formatTime(trip.drop_at)}</p>
-              <p className="ui mt-1 truncate text-sm text-slate-500 dark:text-zinc-500">{destination}</p>
+              <p className="ui mt-1 truncate text-sm text-slate-500 dark:text-zinc-500">{trip.to_location_name}</p>
             </div>
           </div>
 
