@@ -6,12 +6,44 @@ import { Loader2, CreditCard, FlaskConical } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { checkoutBooking, devConfirmPayment, ApiError } from "@/lib/api";
 
+declare global {
+  interface Window {
+    Checkout: {
+      configure: (opts: { session: { id: string } }) => Promise<void>;
+      showPaymentPage: () => Promise<void>;
+    };
+    mpgsErrorCallback: (error: unknown) => void;
+    mpgsCancelCallback: () => void;
+  }
+}
+
 /** Only ever true when the page is actually loaded from localhost — this
  *  button hits a backend route that self-refuses in production regardless,
  *  but hiding it outside local dev keeps it from ever being visible on a
  *  deployed preview/staging build too. */
 function isLocalDev(): boolean {
   return typeof window !== "undefined" && window.location.hostname === "localhost";
+}
+
+let mpgsScriptPromise: Promise<void> | null = null;
+
+/** Loads MPGS's hosted-checkout SDK once per page. data-error/data-cancel
+ *  must be set on the <script> tag itself — the SDK reads them at parse
+ *  time, so they can't be passed to configure() later. */
+function loadMpgsScript(src: string): Promise<void> {
+  if (window.Checkout) return Promise.resolve();
+  if (mpgsScriptPromise) return mpgsScriptPromise;
+
+  mpgsScriptPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.setAttribute("data-error", "mpgsErrorCallback");
+    script.setAttribute("data-cancel", "mpgsCancelCallback");
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Could not load the payment SDK."));
+    document.head.appendChild(script);
+  });
+  return mpgsScriptPromise;
 }
 
 export function PayButton({ bookingId }: { bookingId: string }) {
@@ -54,20 +86,25 @@ export function PayButton({ bookingId }: { bookingId: string }) {
         return;
       }
 
-      const checkout = await checkoutBooking(session.access_token, bookingId);
+      const { sessionId, checkoutJsUrl } = await checkoutBooking(session.access_token, bookingId);
 
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = checkout.action;
-      for (const [name, value] of Object.entries(checkout.fields)) {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = name;
-        input.value = value;
-        form.appendChild(input);
-      }
-      document.body.appendChild(form);
-      form.submit();
+      // data-error / data-cancel are function *names* the MPGS SDK looks up
+      // on window — not URLs. They only fire for a problem before the
+      // browser leaves this page (bad/expired session); once the payer
+      // reaches MPGS's own hosted page there's no client-side callback at
+      // all, success/cancel/decline all redirect to our server return URL.
+      window.mpgsErrorCallback = (err: unknown) => {
+        console.error("MPGS error", err);
+        setError("Payment could not start. Please try again.");
+        setBusy(false);
+      };
+      window.mpgsCancelCallback = () => {
+        setBusy(false);
+      };
+
+      await loadMpgsScript(checkoutJsUrl);
+      await window.Checkout.configure({ session: { id: sessionId } });
+      await window.Checkout.showPaymentPage(); // full-page redirect to MPGS
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not start payment. Try again.");
       setBusy(false);
@@ -79,11 +116,11 @@ export function PayButton({ bookingId }: { bookingId: string }) {
       <button type="button" onClick={pay} disabled={busy} className="btn-primary w-full">
         {busy ? (
           <>
-            <Loader2 size={18} className="animate-spin" /> Redirecting to WebXPay…
+            <Loader2 size={18} className="animate-spin" /> Redirecting to secure checkout…
           </>
         ) : (
           <>
-            <CreditCard size={18} /> Pay securely with WebXPay
+            <CreditCard size={18} /> Pay securely with card
           </>
         )}
       </button>
@@ -94,7 +131,7 @@ export function PayButton({ bookingId }: { bookingId: string }) {
           disabled={busy}
           className="ui mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-amber-400 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
         >
-          <FlaskConical size={15} /> Dev: mark as paid (skip WebXPay)
+          <FlaskConical size={15} /> Dev: mark as paid (skip MPGS)
         </button>
       )}
       {error && <p className="ui mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>}

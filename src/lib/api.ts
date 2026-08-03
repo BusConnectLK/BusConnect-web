@@ -209,9 +209,9 @@ export interface BookingResult {
   amount: number;
 }
 
-export interface PayHereCheckout {
-  action: string;
-  fields: Record<string, string>;
+export interface MpgsCheckoutSession {
+  sessionId: string;
+  checkoutJsUrl: string;
 }
 
 // ── Public (no token) ────────────────────────────────────────────────────────
@@ -269,13 +269,13 @@ export function cancelBooking(accessToken: string, id: string) {
 }
 
 export function checkoutBooking(accessToken: string, bookingId: string) {
-  return request<PayHereCheckout>(`/bookings/${bookingId}/pay`, {
+  return request<MpgsCheckoutSession>(`/bookings/${bookingId}/pay`, {
     method: 'POST',
     accessToken,
   });
 }
 
-/** Dev-only shortcut that confirms a booking without the real WebXPay round
+/** Dev-only shortcut that confirms a booking without the real MPGS round
  *  trip — the API refuses this outright once NODE_ENV=production, so it's
  *  safe to ship the client call unconditionally; the UI just hides the
  *  button outside local development. */
