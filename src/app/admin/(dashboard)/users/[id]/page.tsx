@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Loader2, User, Building2, IdCard, ShieldCheck, Ticket, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, Loader2, User, Building2, IdCard, ShieldCheck, Ticket, ArrowUpRight, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getAdminUser, ApiError, type AdminUserDetail } from "@/lib/api";
 
@@ -119,6 +119,13 @@ export default function AdminUserDetailPage() {
           </div>
         </Section>
       )}
+
+      {/* ── Wallet ─────────────────────────────────────────────────────── */}
+      <Section icon={<Wallet size={16} />} title="Wallet">
+        <p className="font-heading text-2xl font-bold text-brand dark:text-blue-400">
+          {money(detail.wallet_balance)}
+        </p>
+      </Section>
 
       {/* ── Operator memberships ──────────────────────────────────────── */}
       {detail.operator_memberships.length > 0 && (

@@ -1002,6 +1002,8 @@ export interface AdminUserDetail {
   }[];
   admin_role: string | null;
   bookings: AdminUserBooking[];
+  wallet_balance: number;
+  wallet_currency: string;
 }
 
 export function listAdminUsers(accessToken: string) {
