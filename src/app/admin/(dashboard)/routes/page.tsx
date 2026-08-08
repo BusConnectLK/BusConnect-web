@@ -1,17 +1,21 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { ArrowDown, ArrowUp, Loader2, Plus, PlusCircle, Route as RouteIcon, Save, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Loader2, MapPin, Plus, PlusCircle, RefreshCw, Route as RouteIcon, Save, Trash2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { uploadRouteImage } from "@/lib/storage";
 import { ImageSlot } from "@/components/image-slot";
+import { StopLocationPicker } from "@/components/stop-location-picker";
 import {
   listAdminLocations,
   createAdminLocation,
+  updateAdminLocationCoords,
+  resolveMapsLink,
   listAdminRoutes,
   createAdminRoute,
   updateAdminRoute,
   deleteAdminRoute,
+  regenerateAdminRoutePath,
   ApiError,
   type AdminLocation,
   type AdminRoute,
@@ -151,6 +155,7 @@ export default function AdminRoutesPage() {
                   <p className="ui mt-1 text-xs text-slate-400 dark:text-zinc-500">{r.stops.length} stops</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
+                  <RegeneratePathButton token={token} routeId={r.id} onDone={loadAll} />
                   <button
                     type="button"
                     onClick={() =>
@@ -195,6 +200,7 @@ function RouteEditor({
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(editor.imageUrl ?? null);
+  const [locatingStop, setLocatingStop] = useState<{ id: string; name: string } | null>(null);
 
   function onImageChange(file: File | null) {
     setImageFile(file);
@@ -299,6 +305,19 @@ function RouteEditor({
               onCreate={onCreateLocation}
             />
             <div className="flex shrink-0 items-center gap-0.5">
+              <button
+                type="button"
+                onClick={() => {
+                  const loc = locations.find((l) => l.id === id);
+                  if (loc) setLocatingStop({ id: loc.id, name: loc.name_en });
+                }}
+                disabled={!id}
+                className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-zinc-800"
+                aria-label="Set location on map"
+                title="Set location on map"
+              >
+                <MapPin size={14} />
+              </button>
               <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-zinc-800" aria-label="Move up">
                 <ArrowUp size={14} />
               </button>
@@ -332,7 +351,63 @@ function RouteEditor({
           {busy ? "Saving…" : "Save route"}
         </button>
       </div>
+
+      {locatingStop && (
+        <StopLocationPicker
+          stopName={locatingStop.name}
+          initial={null}
+          onResolveLink={(url) => resolveMapsLink(token, url)}
+          onSave={async (point) => {
+            await updateAdminLocationCoords(token, locatingStop.id, point);
+          }}
+          onClose={() => setLocatingStop(null)}
+        />
+      )}
     </div>
+  );
+}
+
+function RegeneratePathButton({
+  token,
+  routeId,
+  onDone,
+}: {
+  token: string;
+  routeId: string;
+  onDone: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function run() {
+    setError(null);
+    setBusy(true);
+    try {
+      await regenerateAdminRoutePath(token, routeId);
+      onDone();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not fetch a road path.");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <span className="relative">
+      <button
+        type="button"
+        onClick={() => void run()}
+        disabled={busy}
+        title="Re-fetch the real road path from this route's stops"
+        className="ui rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
+      >
+        {busy ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
+      </button>
+      {error && (
+        <span className="ui absolute top-full right-0 z-10 mt-1 w-48 whitespace-normal rounded-lg border border-red-200 bg-red-50 p-2 text-xs text-red-700 shadow-lg dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+          {error}
+        </span>
+      )}
+    </span>
   );
 }
 

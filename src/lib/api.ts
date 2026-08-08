@@ -1213,6 +1213,32 @@ export function deleteAdminRoute(accessToken: string, routeId: string) {
   return request(`/admin/routes/${routeId}`, { method: 'DELETE', accessToken });
 }
 
+/** Regenerates a route's real road path (Google Directions) from its current stops. */
+export function regenerateAdminRoutePath(accessToken: string, routeId: string) {
+  return request<{ ok: true }>(`/admin/routes/${routeId}/path`, { method: 'POST', accessToken });
+}
+
+export function updateAdminLocationCoords(
+  accessToken: string,
+  locationId: string,
+  body: { lat: number; lng: number },
+) {
+  return request<AdminLocation>(`/admin/locations/${locationId}/coords`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+    accessToken,
+  });
+}
+
+/** Parses a pasted Google Maps link (long-form or maps.app.goo.gl short link) into coordinates. */
+export function resolveMapsLink(accessToken: string, url: string) {
+  return request<{ lat: number; lng: number }>('/admin/locations/resolve-maps-link', {
+    method: 'POST',
+    body: JSON.stringify({ url }),
+    accessToken,
+  });
+}
+
 // ── Timetable — every scheduled trip across every operator ─────────────────
 
 export interface AdminTrip {
