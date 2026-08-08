@@ -119,6 +119,9 @@ export default function AdminRoutesPage() {
           editor={editor}
           setEditor={setEditor}
           onCreateLocation={createLocation}
+          onLocationUpdated={(id, point) =>
+            setLocations((prev) => prev.map((l) => (l.id === id ? { ...l, lat: point.lat, lng: point.lng } : l)))
+          }
           onSaved={() => {
             setEditor(null);
             void loadAll();
@@ -187,6 +190,7 @@ function RouteEditor({
   editor,
   setEditor,
   onCreateLocation,
+  onLocationUpdated,
   onSaved,
 }: {
   token: string;
@@ -194,13 +198,18 @@ function RouteEditor({
   editor: EditorState;
   setEditor: (e: EditorState | null) => void;
   onCreateLocation: (name: string) => Promise<AdminLocation>;
+  onLocationUpdated: (id: string, point: { lat: number; lng: number }) => void;
   onSaved: () => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(editor.imageUrl ?? null);
-  const [locatingStop, setLocatingStop] = useState<{ id: string; name: string } | null>(null);
+  const [locatingStop, setLocatingStop] = useState<{
+    id: string;
+    name: string;
+    initial: { lat: number; lng: number } | null;
+  } | null>(null);
 
   function onImageChange(file: File | null) {
     setImageFile(file);
@@ -309,7 +318,13 @@ function RouteEditor({
                 type="button"
                 onClick={() => {
                   const loc = locations.find((l) => l.id === id);
-                  if (loc) setLocatingStop({ id: loc.id, name: loc.name_en });
+                  if (loc) {
+                    setLocatingStop({
+                      id: loc.id,
+                      name: loc.name_en,
+                      initial: loc.lat != null && loc.lng != null ? { lat: loc.lat, lng: loc.lng } : null,
+                    });
+                  }
                 }}
                 disabled={!id}
                 className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-zinc-800"
@@ -355,10 +370,11 @@ function RouteEditor({
       {locatingStop && (
         <StopLocationPicker
           stopName={locatingStop.name}
-          initial={null}
+          initial={locatingStop.initial}
           onResolveLink={(url) => resolveMapsLink(token, url)}
           onSave={async (point) => {
             await updateAdminLocationCoords(token, locatingStop.id, point);
+            onLocationUpdated(locatingStop.id, point);
           }}
           onClose={() => setLocatingStop(null)}
         />

@@ -914,6 +914,8 @@ export interface AdminLocation {
   name_en: string;
   name_si: string | null;
   name_ta: string | null;
+  lat: number | null;
+  lng: number | null;
 }
 
 export interface AdminBusType {
